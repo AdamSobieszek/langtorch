@@ -1,5 +1,4 @@
-
-# <img src="langtorch_w_background.png" width="60" height="60" alt="LangTorch Logo" style="vertical-align: middle;"> LangTorch
+#  <div style="text-align: center;"> <img src="./langtorch_banner.png" alt="LangTorch Logo" style="max-width: 40rem; width: 70%; height: auto; vertical-align: middle;"> </div>
 
 [![PyPI version](https://badge.fury.io/py/langtorch.svg)](https://badge.fury.io/py/langtorch)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
