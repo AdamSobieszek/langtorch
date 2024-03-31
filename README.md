@@ -20,9 +20,14 @@ pip install langtorch
 
 ## Overview
 
-- **Create more with less**: Instead of providing wrapper classes for users to memorize, LangTorch introduces flexible objects that, while governed by simple rules, enable all kinds of text formatting, templating and LLM operations. This lets developers think about what they want to build, instead of how the classes were named.
-- - **Unified Approach**: TextTensors let you structure geometrically and handle in parallel text entries, that without any additional classes can represent strings, documents, prompt templates, completion dictionaries, chat histories, markup languages, chunks, retrieval queries, tokens, embeddings...
-- **You probably already know LangTorch**: LangTorch components subclass their numerical PyTorch counterparts, which lets users apply their existing coding skills to building novel LLM app architectures. This includes **TextModules** - a subclass of torch.nn.Module working on TextTensors and able to perform template completions, prompt injections, local and API LLM inference, create embedding, performing operations on embeddings in retrieval and so on.
+- **No useless classes**: Instead of providing wrapper classes for users to memorize, LangTorch introduces fewer, more flexible objects that, while governed by simple rules, enable all kinds of text formatting, templating and LLM operations.
+
+- **Unified Approach**: TextTensors let you structure geometrically and handle in parallel text entries that without any additional classes can represent strings, documents, prompt templates, completion dictionaries, chat histories, markup languages, chunks, retrieval queries, tokens, embeddings...
+
+- **You probably already know LangTorch**: LangTorch components subclass their numerical PyTorch counterparts, which lets users apply their existing coding skills to building novel LLM app architectures. This includes:
+
+- **TextModules** - a subclass of torch.nn.Module working on TextTensors and able to perform template completions, prompt injections, local and API LLM inference, create embedding, performing operations on embeddings in retrieval and so on.
+
 - Honestly just go to https://langtorch.org there is much more information there!
 
 ## Code Examples Speak for Themselves
