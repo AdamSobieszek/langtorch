@@ -28,7 +28,7 @@ pip install langtorch
 - **Unified Approach**: 
 
 	 TextTensors let you structure geometrically and handle in parallel text entries that can represent:
-	> strings, documents, prompt templates, completion dictionaries, chat histories, markup languages, chunks, retrieval queries, tokens, embeddings...
+	> strings, documents, prompt templates, completion dictionaries, chat histories, markup languages, chunks, retrieval queries, tokens, embeddings and so on
 
 - **You probably already know LangTorch**: 
 
@@ -36,7 +36,8 @@ pip install langtorch
 
 - **Other goodies like TextModules**
 
-	a subclass of torch.nn.Module working on TextTensors and able to perform template completions, prompt injections, local and API LLM inference, create embedding, performing operations on embeddings in retrieval and so on.
+	a subclass of torch.nn.Module working on TextTensors and able to perform:
+	> template completions, prompt injections, local and API LLM inference, create embedding, performing operations on embeddings in retrieval and so on, and so on
 
 - Honestly just go to https://langtorch.org there is much more information there!
 
