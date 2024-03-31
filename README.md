@@ -1,8 +1,7 @@
 
 # <img src="langtorch_w_background.png" width="60" height="60" alt="LangTorch Logo" style="vertical-align: middle;"> LangTorch
 
-[![Release Notes](https://img.shields.io/github/release/AdamSobieszek/langtorch)](https://github.com/AdamSobieszek/langtorch/releases)
-[![Downloads](https://static.pepy.tech/badge/AdamSobieszek/langtorch)](https://pepy.tech/project/langtorch)
+[![PyPI version](https://badge.fury.io/py/langtorch.svg)](https://badge.fury.io/py/langtorch)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Twitter](https://img.shields.io/twitter/url/https/twitter.com/AdamSobieszek.svg?style=social&label=Follow%20%40AdamSobieszek)](https://twitter.com/AdamSobieszek)
 [![GitHub star chart](https://img.shields.io/github/stars/AdamSobieszek/langtorch?style=social)](https://star-history.com/#AdamSobieszek/langtorch)
@@ -10,7 +9,7 @@
 [//]: # ([![]&#40;https://dcbadge.vercel.app/api/server/6adMQxSpJS?compact=true&style=flat&#41;]&#40;https://discord.gg/6adMQxSpJS&#41;)
 
 
-LangTorch is a Python package designed to simplify the development of LLM applications by leveraging familiar PyTorch concepts.
+LangTorch is a Python package designed to simplify the development of LLM applications by leveraging familiar PyTorch concepts. While existing frameworks focus on connecting language models to other services, LangTorch aims to change the way you approach creating LLM applications, by introducing a unified framework for working with texts, chats, templates, LLMs, API calls and more, thanks to TextTensors -- which are like torch Tensors but with text data as entries, offering a flexible way to structure and transform text data and embeddings with seamless parallelization. 
 
 ## Installation
 
@@ -20,57 +19,97 @@ pip install langtorch
 
 ## Overview
 
-LangTorch provides a structured approach to LLM applications, offering:
+- **Create more with less**: Instead of providing wrapper classes for users to memorize, LangTorch introduces flexible objects that, while governed by simple rules, enable all kinds of text formatting, templating and LLM operations. This lets developers think about what they want to build, instead of how the classes were named.
+- - **Unified Approach**: TextTensors let you structure geometrically and handle in parallel text entries, that without any additional classes can represent strings, documents, prompt templates, completion dictionaries, chat histories, markup languages, chunks, retrieval queries, tokens, embeddings...
+- **You probably already know LangTorch**: LangTorch components subclass their numerical PyTorch counterparts, which lets users apply their existing coding skills to building novel LLM app architectures. This includes **TextModules** - a subclass of torch.nn.Module working on TextTensors and able to perform template completions, prompt injections, local and API LLM inference, create embedding, performing operations on embeddings in retrieval and so on.
+- Honestly just go to https://langtorch.org there is much more information there!
 
-- **TextTensors**: A unified way to handle prompt templates, completion dictionaries, and chat histories.
-- **TextModules**: Building blocks, derived from torch.nn.Module, specifically tailored for text operations and LLM calls both locally and via an API.
-- other things that are also better than langchain
-## Examples
+## Code Examples Speak for Themselves
 
-### TextTensors
+The examples are introduced on the main documentation page, but even without much introduction you can see how compact some pretty complex operations can be implemented with LangTorch.
 
-Creating and manipulating textual data as tensors:
+### TextTensors act both as texts and embeddings
 
-```python
-template = TextTensor([["Explain {theory} in terms of {framework}"],  
-                       ["Argue how {framework} can prove {theory}"]])  
-
-result = template * TextTensor({"theory": "active inference", "framework": "thermodynamics" })
-
-print(result)
-# Outputs: [[Explain active inference in terms of thermodynamics]
-#           [Argue how thermodynamics can prove active inference]]
+```python  
+import torch  
+  
+tensor1 = TextTensor([["Yes"], ["No"]])  
+tensor2 = TextTensor(["Yeah", "Nope", "Yup", "Non"])  
+  
+print(torch.cosine_similarity(tensor1, tensor2))
+print("Content:\n", tensor1)
 ```
 
-### TextModules
+```    title="Output:"
+tensor([[0.6923, 0.6644, 0.6317, 0.5749],
+	    [0.5457, 0.7728, 0.5387, 0.7036]])
+Content:
+[[Yes], 
+ [No ]]
+```
 
-Building sequences of operations on text data:
+LangTorch code looks weird at first, why? Since the utility of Tensors, as used in Torch, relies on their ability to calculate simultaneously products of several weights. The corresponding, and most used, feature in LangTorch allows several prompts to be formatted on several inputs, by defining the multiplication of text entries `text1*text2` similarly to `text1.format(**text2)`
+
+The multiplication operation lets us build chains of TextModules with a simple `torch.nn.Sequential`:
 
 ```python
 chain = torch.nn.Sequential(
-    TextModule("Calculate this equation: {}"),
-    langtorch.methods.CoT,
-    GPT4
-    TextModule("Is this reasoning correct? {}", activation = GPT4)
+    TextModule("Translate this equation to natural language: {}"),
+    CoT,
+    OpenAI("gpt-4")
+    TextModule("Calculate the described quantity: {}"),
+    OpenAI("gpt-4", T=0)
 )
 
-output = chain(TextTensor(["170*32 =", "4*20 =", "123*45/10 =", "2**10*5 ="]))
+input_tensor = TextTensor(["170*32 =", "4*20 =", "123*45/10 =", "2**10*5 ="])
+output_tensor = chain(input_tensor)
 ```
 
-### Cosine Similarities
+### Retrieval & RAG from scratch
 
-Compute similarities between entries:
+The code below is a complete working implementation of a cosine similarity-based retriever:
 
 ```python
-from langtorch.tt import CosineSimilarity
+class Retriever(TextModule):  
+    def __init__(self, documents: TextTensor):  
+        super().__init__()  
+        self.documents = TextTensor(documents).view(-1)  
+  
+    def forward(self, query: TextTensor, k: int = 5):  
+        cos_sim = torch.cosine_similarity(self.documents, query.reshape(1))  
+        return self.documents[cos_sim.topk(k)]
+         
+```
+```python title="Usage:"
+retriever = Retriever(open("doc.txt", "r").readlines())
+query = TextTensor("How to build a retriever?")
 
-cos = CosineSimilarity()
-similarities = cos(TextTensor([["Yes"], ["No"]]), TextTensor(["1", "0", "Noo", "Yees"]))
+print(retriever(query))
 ```
 
-## Contribute
+We can now compose this module with a TextModule making LLM calls to get a custom Retrieval Augmented Generation pipeline:
 
-Your feedback and contributions are valued. Feel free to check out our [contribution guidelines](#).
+```python
+class RAG(TextModule):  
+    def __init__(self, documents: TextTensor, *args, **kwargs):  
+        super().__init__(*args, **kwargs)  
+        self.retriever = Retriever(documents)  
+  
+    def forward(self, user_message: TextTensor, k: int = 5):  
+        retrieved_context = self.retriever(user_message, k) +"\n"  
+        user_message = user_message + "\nCONTEXT:\n" + retrieved_context.sum()  
+        return super().forward(user_message)
+```
+
+```python title="Usage:"
+rag_chat = RAG(paragraphs,  
+			   prompt="Use the context to answer the following user query: ",
+			   activation="gpt-3.5-turbo")
+
+assistant_response = rag_chat(user_query)
+```
+
+Go to https://langtorch.org to understand these RAGs-to-riches code shenanigans.
 
 ## License
 
