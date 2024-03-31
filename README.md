@@ -125,4 +125,4 @@ Go to https://langtorch.org to understand these RAGs-to-riches code shenanigans.
 
 ## License
 
-LangTorch is MIT licensed. See the [LICENSE](#) file for details.
+LangTorch is available under the [MIT license](https://opensource.org/licenses/MIT).
