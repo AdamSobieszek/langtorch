@@ -37,17 +37,19 @@ The examples are introduced on the main documentation page, but even without muc
 ### TextTensors act both as texts and embeddings
 
 ```python  
->> import torch  
->> 
->> tensor1 = TextTensor([["Yes"], ["No"]])  
->> tensor2 = TextTensor(["Yeah", "Nope", "Yup", "Non"])  
+import torch  
   
->> torch.cosine_similarity(tensor1, tensor2)
+tensor1 = TextTensor([["Yes"], ["No"]])  
+tensor2 = TextTensor(["Yeah", "Nope", "Yup", "Non"])  
+  
+print(torch.cosine_similarity(tensor1, tensor2))
+print("Content:\n", tensor1)
+```
 
+```    title="Output:"
 tensor([[0.6923, 0.6644, 0.6317, 0.5749],
 	    [0.5457, 0.7728, 0.5387, 0.7036]])
->> tensor1
-
+Content:
 [[Yes], 
  [No ]]
 ```
