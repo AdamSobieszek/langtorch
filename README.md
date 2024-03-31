@@ -1,4 +1,4 @@
-#  <div style="text-align: center;"> <img src="./langtorch_banner.png" alt="LangTorch Logo" style="max-width: 40rem; width: 70%; height: auto; vertical-align: middle;"> </div>
+#  <div style="text-align: center;"> <img src="./langtorch_banner.png" alt="LangTorch Logo" style="max-width: 40rem; width: 100%; height: auto; vertical-align: middle;"> </div>
 
 [![PyPI version](https://badge.fury.io/py/langtorch.svg)](https://badge.fury.io/py/langtorch)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
@@ -8,7 +8,7 @@
 [//]: # ([![]&#40;https://dcbadge.vercel.app/api/server/6adMQxSpJS?compact=true&style=flat&#41;]&#40;https://discord.gg/6adMQxSpJS&#41;)
 
 
-LangTorch is a Python package designed to simplify the development of LLM applications by leveraging familiar PyTorch concepts. While existing frameworks focus on connecting language models to other services, LangTorch aims to change the way you approach creating LLM applications, by introducing a unified framework for working with texts, chats, templates, LLMs, API calls and more, thanks to TextTensors -- which are like torch Tensors but with text data as entries, offering a flexible way to structure and transform text data and embeddings with seamless parallelization. 
+LangTorch is a Python package designed to simplify the development of LLM applications by leveraging familiar PyTorch concepts. While existing frameworks focus on connecting language models to other services, LangTorch aims to change the way you approach creating LLM applications, by introducing a unified framework for working with texts, chats, templates, LLMs, API calls and more, thanks to TextTensors — "a torch Tensors but with text data as entries" — offering a flexible way to structure and transform text data and embeddings with seamless parallelization. 
 
 ## Installation
 
