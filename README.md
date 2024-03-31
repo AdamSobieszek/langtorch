@@ -10,7 +10,8 @@
 
 LangTorch is a Python package that accelerates development of complex language model applications by leveraging familiar PyTorch concepts.
 
-While existing frameworks focus on connecting language models to other services, LangTorch aims to change the way you approach creating LLM applications by introducing a unified framework for working with texts, chats, templates, LLMs, API calls and more, thanks to TextTensors — "torch Tensors but with text data as entries" — offering a flexible way to structure and transform text data and embeddings with seamless parallelization. 
+While existing frameworks focus on connecting language models to other services, LangTorch aims to change the way you approach creating LLM applications by introducing a unified framework for working with texts, chats, templates, LLMs, API calls and more.
+> Powered by **TextTensors** — "torch Tensors but with text data as entries" — offering a flexible way to structure and transform text data and embeddings with seamless parallelization. 
 
 ## Installation
 
@@ -20,13 +21,22 @@ pip install langtorch
 
 ## Overview
 
-- **No useless classes**: Instead of providing wrapper classes for users to memorize, LangTorch introduces fewer, more flexible objects that, while governed by simple rules, enable all kinds of text formatting, templating and LLM operations.
+- **No useless classes**:
 
-- **Unified Approach**: TextTensors let you structure geometrically and handle in parallel text entries that without any additional classes can represent strings, documents, prompt templates, completion dictionaries, chat histories, markup languages, chunks, retrieval queries, tokens, embeddings...
+	Instead of providing wrapper classes for users to memorize, LangTorch introduces fewer, more flexible objects that enable all kinds of text formatting, templating and LLM operations.
 
-- **You probably already know LangTorch**: LangTorch components subclass their numerical PyTorch counterparts, which lets users apply their existing coding skills to building novel LLM app architectures. This includes:
+- **Unified Approach**: 
 
-- **TextModules** - a subclass of torch.nn.Module working on TextTensors and able to perform template completions, prompt injections, local and API LLM inference, create embedding, performing operations on embeddings in retrieval and so on.
+	 TextTensors let you structure geometrically and handle in parallel text entries that can represent:
+	> strings, documents, prompt templates, completion dictionaries, chat histories, markup languages, chunks, retrieval queries, tokens, embeddings...
+
+- **You probably already know LangTorch**: 
+
+	LangTorch components subclass their numerical PyTorch counterparts, which lets users apply their existing coding skills to building novel LLM app architectures.
+
+- **Other goodies like TextModules**
+
+	a subclass of torch.nn.Module working on TextTensors and able to perform template completions, prompt injections, local and API LLM inference, create embedding, performing operations on embeddings in retrieval and so on.
 
 - Honestly just go to https://langtorch.org there is much more information there!
 
