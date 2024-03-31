@@ -1,0 +1,12 @@
+venv
+.idea
+build/
+dist/
+helpful_things/
+examples_in_progress/
+docs_notebooks/
+tests/
+examples/
+/src/langtorch/main.py'
+__pycache__/
+'

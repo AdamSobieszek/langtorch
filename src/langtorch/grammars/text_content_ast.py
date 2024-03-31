@@ -9,7 +9,7 @@ from ..utils import is_Text, is_str
 
 
 def parse_content(content, parser):
-    for i,c in enumerate(content):
+    for i, c in enumerate(content):
         if not isinstance(c, int) and not c:
             content[i] = ""
     return to_ast(*content, parser=parser, is_tuple=True)

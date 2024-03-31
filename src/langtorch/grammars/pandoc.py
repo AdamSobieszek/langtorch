@@ -27,7 +27,6 @@ def join_str_types(pandoc_tuples):
     result = []
     temp_str = ""
 
-
     for item in pandoc_tuples:
         if not item:
             continue
@@ -56,7 +55,7 @@ def join_str_types(pandoc_tuples):
                         continue
                     else:
                         item = join_str_types(item)
-                        if isinstance(item, str): # in case there are exceptions to this pandoc pattern
+                        if isinstance(item, str):  # in case there are exceptions to this pandoc pattern
                             item += item[0]  # Add closing quote
                 if isinstance(item, str):
                     temp_str += item
@@ -65,7 +64,7 @@ def join_str_types(pandoc_tuples):
                         result.append(temp_str)
                         temp_str = ""
                     result.append(item)
-            elif item[0] in ['Str'] and isinstance(item[1], str): #, 'Emph', 'Bold'?
+            elif item[0] in ['Str'] and isinstance(item[1], str):  # , 'Emph', 'Bold'?
                 temp_str += item[1]
             else:
                 if temp_str:
@@ -75,7 +74,7 @@ def join_str_types(pandoc_tuples):
                 if item[0] in ['Plain']:
                     item = item[1]
                 elif item[0] in ['OrderedList'] and len(item[1]) == 2 and isinstance(item[1][0], list):
-                        item = (item[0], item[1][1])
+                    item = (item[0], item[1][1])
                 result.append(item)
         elif isinstance(item, list):
             item = join_str_types(item)

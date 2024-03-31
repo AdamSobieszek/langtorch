@@ -41,7 +41,6 @@ language_to_formatter = Formatters()
 
 
 def tensor_str_formatter(cls, array: np.ndarray, indent: str = " ") -> str:
-
     def format_entry(entry, max_lines, max_width):
         # Split the entry into lines, pad them to match the max width, and ensure each entry has the same number of lines
         lines = entry.split('\n')
@@ -87,21 +86,21 @@ def tensor_str_formatter(cls, array: np.ndarray, indent: str = " ") -> str:
 
     def format_1d(array_1d):
         # Treat the 1D array as a 2D array with a single columns
-        return [m[1:-1] if len(m)>=2 else m for m in format_2d(array_1d.reshape(-1, 1))]
+        return [m[1:-1] if len(m) >= 2 else m for m in format_2d(array_1d.reshape(-1, 1))]
 
     if array.ndim == 0:
         return str(array.item())
     if array.ndim == 1:
-        if len(str(array))>100:
+        if len(str(array)) > 100:
             indent = ' '
             formatted_lines = format_1d(array)
-            return '[' +('\n' + indent).join(formatted_lines) + ']'
+            return '[' + ('\n' + indent).join(formatted_lines) + ']'
         else:
             return format_1d_as_row(array)
     elif array.ndim == 2:
         indent = ' '
         formatted_lines = format_2d(array)
-        return indent[1:]+'['+ ('\n' + indent).join(formatted_lines) + ']'
+        return indent[1:] + '[' + ('\n' + indent).join(formatted_lines) + ']'
     else:
         inner_arrays = [cls.str_formatter(sub_array, indent + '  ') for sub_array in array]
         inner_content = (',\n' + indent).join(inner_arrays)

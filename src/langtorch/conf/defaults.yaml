@@ -1,0 +1,96 @@
+# LangTorch general settings
+cfg:
+  strict: false  # Whether to operate in strict mode
+  default_path: ""  # Default path for saving/loading tensors
+
+  default_model_for_functions: "gpt-3.5-turbo"
+  default_embedding_model: "text-embedding-3-small"
+  #  functional:
+
+  ### Class-specific defaults ###
+  #  Text defaults:
+  texts:
+    text.Text:
+      parse: "auto"   # True, False, "auto", "code", "markup" or name of a specific markup language
+      allowed_keys: null
+      syntax: "grammars/langtorch_default_grammar.py"
+      detect_language: True
+    chat.Chat:
+      parse: false
+    codeCode:
+      parse: "code"
+    langtorchcode.LangTorchCode:
+      parse: "code"
+    markdown.Markdown:
+      parse: "markup"
+    # You can define new Text subclasses here
+    # You can then add a corresponding TextTensor subclass
+
+
+
+  # TextModule defaults:
+  tt:
+    modules:
+      to_tt:
+        textmodule.TextModule:
+          activation: null # If you want all TextModules to have an activation LLM change this variable to Activation(//params//)
+
+        # Activation defaults:
+        activation:
+          Activation:
+            model: "gpt-3.5-turbo"
+            system_message: "You are a helpful assistant"
+            backward_prompt: "Our objective is:\n{grad}\n\nTo achieve this, we performed the following task:\n{input}\n\nAnd hot the result:\n{output}\n\nDid we succeed or failed to perform the task given our goal? Respond with a one-sentence explanation or reason why or why not."
+
+
+
+  #  TextTensor defaults:
+  tensors:
+    texttensor.TextTensor:
+      parse: "auto"   # True, False, "auto", "code", "markup" or name of a specific markup language
+      allowed_keys: null
+      syntax: "grammars/langtorch_default_grammar.py"
+      detect_language: True
+      embedding_model: "text-embedding-3-small"
+      always_embed: False
+      tokenizer: null
+      always_tokenize: False
+
+
+    chattensor.Chat:
+      ttype: "Chat"
+      parse: false
+    codetensor.Code:
+      ttype: "Code"
+      parse: "code"
+    langtorchcode.LangTorchCode:
+      ttype: "LangTorchCode"
+    markdown.Markdown:
+      ttype: "Markdown"
+      parse: "md"
+    example_new_tensor.ExampleNewTensor:
+      ttype: "Text"
+      __str__: "return 'This is a fancy new tensors:'+super().__str__()"
+      requires_grad: True
+      parse: "html"
+
+
+
+  # API Settings
+  # TODO  Check if implemented
+  api:
+    openai:
+      api_key: null # null == try to load from os var OPENAI_API_KEY
+      organization: null
+
+  # TODO Torch Settings
+  torch:
+    no_grad: false
+    device: "'cuda' if torch.cuda.is_available() else 'cpu'"
+
+
+# Additional context, available from ctx
+methods:
+  - "methods/*"
+
+

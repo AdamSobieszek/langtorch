@@ -1,0 +1,16 @@
+### This session file stores saved tensors, api calls, overrides to the configuration and caching ###
+# LangTorch general settings
+cfg:
+  path: "{path}"
+
+# You may add additional textual context here, use
+# >    key: "text value"
+
+# To dynamically load a text file, use
+# >    key "[path](/path/to/file.txt)"
+
+# To dynamically load from a python file, use
+# >    key "[python](/path/to/root_folder, )"
+
+# To dynamically load a local python variable, use
+# >    key "$VAR_NAME"
