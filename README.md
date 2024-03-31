@@ -8,7 +8,7 @@
 [//]: # ([![]&#40;https://dcbadge.vercel.app/api/server/6adMQxSpJS?compact=true&style=flat&#41;]&#40;https://discord.gg/6adMQxSpJS&#41;)
 
 
-LangTorch is a Python package designed to simplify the development of LLM applications by leveraging familiar PyTorch concepts. 
+LangTorch is a Python package that accelerates development of complex language model applications by leveraging familiar PyTorch concepts.
 
 While existing frameworks focus on connecting language models to other services, LangTorch aims to change the way you approach creating LLM applications by introducing a unified framework for working with texts, chats, templates, LLMs, API calls and more, thanks to TextTensors — "torch Tensors but with text data as entries" — offering a flexible way to structure and transform text data and embeddings with seamless parallelization. 
 
