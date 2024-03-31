@@ -30,7 +30,7 @@ pip install langtorch
 
 - Honestly just go to https://langtorch.org there is much more information there!
 
-## Code Examples Speak for Themselves
+## Code Examples
 
 The examples are introduced on the main documentation page, but even without much introduction you can see how compact some pretty complex operations can be implemented with LangTorch.
 
