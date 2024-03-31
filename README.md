@@ -54,7 +54,11 @@ Content:
  [No ]]
 ```
 
+
 LangTorch code looks weird at first, why? Since the utility of Tensors, as used in Torch, relies on their ability to calculate simultaneously products of several weights. The corresponding, and most used, feature in LangTorch allows several prompts to be formatted on several inputs, by defining the multiplication of text entries `text1*text2` similarly to `text1.format(**text2)`
+
+
+### Chains
 
 The multiplication operation lets us build chains of TextModules with a simple `torch.nn.Sequential`:
 
@@ -70,6 +74,8 @@ chain = torch.nn.Sequential(
 input_tensor = TextTensor(["170*32 =", "4*20 =", "123*45/10 =", "2**10*5 ="])
 output_tensor = chain(input_tensor)
 ```
+
+
 
 ### Retrieval & RAG from scratch
 
