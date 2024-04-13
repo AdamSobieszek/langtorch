@@ -108,7 +108,21 @@ class TextTensor(torch.Tensor, metaclass=_ParameterMeta):
         for attr in ["content", "embedding"]:
             if not attr in metadata:
                 metadata[attr] = eval(attr)
-        # TODO create from dict of tensors
+
+        def dict_to_tt(cls, d, parse): # TODO create from dict of tensors
+            if not d:
+                return None
+            def item_to_tt(cls, k,v, parse):
+                content = cls.input_formatter(cls.content_to_object_array(v,  parse=parse))
+                content = np.array([(k, v) for v in content.flat], dtype=object).reshape(content.shape)
+                return cls.__new__(cls, content, parse=parse)
+
+            content = item_to_tt(cls, d.items()[0][0], d.items()[0][1], parse=parse)
+            for k, v in d.items()[1:]:
+                content += item_to_tt(cls, k, v, parse=parse)
+            return content
+
+        
         # Set content to be an object array with cls.text_class entries
         metadata["content"] = cls.content_to_object_array(metadata["content"], parse=parse)
         # Apply input formatter
@@ -135,9 +149,12 @@ class TextTensor(torch.Tensor, metaclass=_ParameterMeta):
 
     @classmethod
     def content_to_object_array(cls, input, **kwargs):
-        return input.content if isinstance(input, TextTensor) \
-            else np.array(input, dtype=object) if isinstance(input, Text) \
-            else chararray_to_TextArray(input, cls._ttype, **kwargs)
+        try:
+            return input.content if isinstance(input, TextTensor) \
+                else np.array(input, dtype=object) if isinstance(input, Text) \
+                else chararray_to_TextArray(input, cls._ttype, **kwargs)
+        except Exception as e:
+            raise ValueError(f"Could not convert input to TextTensor content. Failed to convert input to an array:\n{e}")
 
     @property
     def content(self):
@@ -485,7 +502,7 @@ class TextTensor(torch.Tensor, metaclass=_ParameterMeta):
     def __eq__(self, other):
         return self.content == other.content if isinstance(other, TextTensor) else self.content == other
 
-    def sum(self, dim: Union[int, List[int]] = None, keepdim: bool = False) -> 'TextTensor':
+    def sum(self, dim: Union[int, List[int]] = None, keepdim: bool = False, sep: str = "") -> 'TextTensor':
         """Reduces the input tensor over the specified dimensions, optionally keeping dimensions."""
         if len(self.shape) == 0:
             return self
@@ -496,7 +513,7 @@ class TextTensor(torch.Tensor, metaclass=_ParameterMeta):
         else:
             if isinstance(dim, int):
                 dim = [dim]
-            connecting_char = [""] * len(dim)
+            connecting_char = [sep] * len(dim)
         for d in dim:
             assert dim is None or d < len(
                 self.shape), f"Dimension {d} is out of range for input of shape {self.content.shape}"

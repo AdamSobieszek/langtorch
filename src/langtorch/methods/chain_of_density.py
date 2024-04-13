@@ -1,4 +1,4 @@
-from .. import TextTensor, TextModule, ActivationGPT, Text
+from .. import TextTensor, TextModule, Activation, Text
 
 
 class CoDModule(TextModule):

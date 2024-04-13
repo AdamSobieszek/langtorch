@@ -233,7 +233,7 @@ class Text(str):
         if isinstance(content, tuple) and len(content) == 2 and (
                 isinstance(content[0], str) and isinstance(content[1], str)):
             AttributeError(
-                f"When setting the .content attribute, passing a tuple of strings is ambiguous. Pass either a list with a (key, value) tuple or a list with two strings."
+                f"When setting the .content attribute, passing a tuple of two strings is ambiguous. Pass a list with a tuple [(key, value)] or a list of strings [value, value]."
             )
 
         if isinstance(content, list):
@@ -501,6 +501,7 @@ class Text(str):
         from langtorch import TextTensor
         return TextTensor(str(self).split() if sep == "" else str(self).split(sep), parse=False)
 
+
     def __getitem__(self, index):
         if isinstance(index, str):
             return self.loc[index]
@@ -516,16 +517,42 @@ class Text(str):
         for s in self.content:
             yield s
 
+    # def _handle_other(self, other, method):
+    #     if isinstance(other, str) and not isinstance(other, Text):
+    #         return other
+    #     elif isinstance(other, Text):
+    #         return other.content
+    #     elif is_TextTensor(other):
+    #         if len(other.flat) == 1:
+    #             return self.__class__(*self.content, *other.item().content, parse=False)
+    #         else:
+    #             return other.__class__([getattr(self, method)(t) for t in other.flat], ttype=self.__class__, parse=False)
+    #     else:
+    #         return other
+
     def __add__(self, other):
         if isinstance(other, str) and not isinstance(other, Text):
             return self.__class__(*self.content, other, parse=False)
         elif isinstance(other, Text):
             return self.__class__(*self.content, *other.content, parse=False)
+        elif is_TextTensor(other):
+            if len(other.flat) == 1:
+                return self.__class__(*self.content, *other.item().content, parse=False)
+            else:
+                return other.__class__([self + t for t in other.flat], ttype=self.__class__, parse=False)
         else:
-            raise TypeError(f'Cannot add {type(other)}')
+            try:
+                return self.__class__(*self.content, other, parse=False)
+            except ValueError as e:
+                raise ValueError(f"Cannot add other={other} to Text. Failed to create a Text instance from other.") from e
 
     def __mul__(self, other):
-        if not isinstance(other, Text):
+        if is_TextTensor(other):
+            if len(other.flat) == 1:
+                other =  other.item()
+            else:
+                return other.__class__([self * t for t in other.flat], ttype=self.__class__, parse=False)
+        elif not isinstance(other, Text):
             try:
                 other = Text(other)
             except ParseException:

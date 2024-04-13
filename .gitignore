@@ -10,3 +10,4 @@ examples/
 /src/langtorch/main.py'
 __pycache__/
 LangTorch.egg-info/
+/stuff/

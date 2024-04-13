@@ -68,3 +68,31 @@ In your response omit the 'Text no:' label. Respond only by copying word by word
         input = input.sum(d, keepdim)
         input = TextModule(prompt.format(definition=definition), activation=langtorch.Activation(**kwargs))(input)
     return input
+
+
+@set_defaults_from_ctx
+def min(input: TextTensor,
+        definition: str = "the text that stands out as incorrect, least complete or of the worst quality.",
+        prompt: str = """Review the list of texts below to discern the predominant themes, informational content, and stylistic elements shared among these entries.\
+Your task is to identify the text with 'minimum value'. \
+By 'minimum', we mean {definition}.\
+In your response omit the 'Text no:' label. Respond only by copying word by word the text that is minimum value from this list:\n""",
+        dim: Optional[Union[int, List[int]]] = None,
+        keepdim: bool = False, model: str = 'default', T: int = 0, **kwargs) -> TextTensor:
+    if len(input.flat) <= 1:
+        return input
+
+    assert dim is None or dim < len(input.shape), f"Dimension {dim} is out of range for input of shape {input.shape}"
+    if dim is None:
+        dim = list(range(len(input.shape)))
+    elif isinstance(dim, int):
+        dim = [dim]
+
+    kwargs['model'], kwargs['T'] = model, T
+    for d in sorted(dim)[::-1]:
+        if input.shape[d] <= 1:
+            continue
+        input = append_text_labels(input, [d])
+        input = input.sum(d, keepdim)
+        input = TextModule(prompt.format(definition=definition), activation=langtorch.Activation(**kwargs))(input)
+    return input

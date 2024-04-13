@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="LangTorch",
-    version="1.0.0",
+    version="1.0.2",
     description="Framework for intuitive LLM application development with tensors.",
     long_description=open("README.md", "r").read(),
     long_description_content_type="text/markdown",

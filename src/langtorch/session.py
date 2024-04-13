@@ -85,8 +85,8 @@ class Session(metaclass=SingletonMeta):
         if self._session_file and os.path.exists(self._session_file) and not new_session_file:
             try:
                 _config = OmegaConf.merge(_config, OmegaConf.load(self._session_file))
-            except Exception as E:
-                print(f"Error loading session from {self._session_file}: {E}")
+            except Exception as e:
+                print(f"Error loading session from {self._session_file}: {e}")
 
         if not getattr(_config, "tensor_savepath", None):
             _config.tensor_savepath = "" if self._session_file is None else os.path.join(
@@ -306,10 +306,10 @@ class Session(metaclass=SingletonMeta):
         # Return the attribute from the configuration
         try:
             attr = self._config[name]
-        except KeyError:
+        except KeyError as e:
             logging.warning(f"getattr {name}, but session attributes are: {self._config.keys()}")
 
-            raise AttributeError(f"'{type(self).__name__}' object has no attribute '{name}'")
+            raise AttributeError(f"'{type(self).__name__}' object has no attribute '{name}'") from e
 
         return attr
 

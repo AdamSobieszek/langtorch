@@ -125,8 +125,8 @@ def chat_strings(prompts, system_messages, model="gpt-3.5-turbo-0613", temperatu
             if isinstance(tool, str):
                 try:
                     tools[i] = json.loads(tool)
-                except json.JSONDecodeError:
-                    raise ValueError(f"Tool {tool} is not a valid JSON string object.")
+                except json.JSONDecodeError as e:
+                    raise ValueError(f"Tool {tool} is not a valid JSON string object.") from e
             if not "type" in tools[i]:
                 tools[i] = {"type": "function", "function": tools[i]}
 
@@ -184,8 +184,8 @@ def chat(prompts, system_messages, model="gpt-3.5-turbo", cache=True, api_key=No
     if api_key is None:
         try:
             api_key = os.environ["OPENAI_API_KEY"]
-        except KeyError:
-            raise KeyError('No OpenAI API key. Set os.environ["OPENAI_API_KEY"] = YOUR KEY')
+        except KeyError as e:
+            raise KeyError('No OpenAI API key. Set os.environ["OPENAI_API_KEY"] = YOUR KEY') from e
     ids, uncached_request_strings = session.request("openai", "chat", request_strings, cache)
 
     if request_strings:

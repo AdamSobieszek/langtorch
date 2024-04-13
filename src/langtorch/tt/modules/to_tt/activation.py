@@ -79,7 +79,7 @@ class OpenAI(TextModule):
         super(OpenAI, self).__init__()
         self.system_message = str(system_message)
         self.model = model
-        self.backwad_prompt = backward_prompt
+        self.backward_prompt = backward_prompt
         self.keep_history = True if keep_history or kwargs.get('echo', False) else False
         if not 'temperature' in kwargs:
             kwargs['temperature'] = T
@@ -120,12 +120,12 @@ class OpenAI(TextModule):
                 # NOT STRICT
                 input[i] = [("user", str(m))]
                 logging.debug(
-                    f"A text without 'exculsively assistant' ot 'user' keys was passed to OpenAI Chat. Assuming the whole Text is a user message: = '{str(m)[:25]}'... ")
+                    f"A text without exclusively 'assistant' ot 'user' keys was passed to OpenAI Chat. Assuming the whole Text is one user message: = '{str(m)[:25]}'... ")
             else:
                 raise ValueError(
-                    f"Invalid input to OpenAI Chat. Ambigous input: some but not all items in TextTensor entries have keys 'user' or 'assistant'. Change the input into a valid chat, or the input was a single user message remove these keys or use entry.add_key_('user'): \nentry.items()=={m.items()}")
+                    f"Invalid input to OpenAI Chat. Ambiguous input: some but not all items in TextTensor entries have keys 'user' or 'assistant'. Change the input into a valid chat, or the input was a single user message remove these keys or use entry.add_key_('user'): \nentry.items()=={m.items()}")
         logging.debug(f"Chat api input: {input}")
-        logging.debug(f"Chat api system messages: {system_messages}")
+        logging.debug(f"Chat api unique system messages: {set(system_messages)}")
 
         result = chat(input, system_messages, model=self.model, cache=self.cache, as_str=True, tools=self.tool_jsons,
                       **self.kwargs)
