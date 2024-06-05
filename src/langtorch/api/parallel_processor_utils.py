@@ -21,6 +21,7 @@ from abc import ABC, abstractmethod  # for abstract APIRequest class
 from dataclasses import dataclass  # for storing API inputs, outputs, and metadata
 
 import aiohttp  # for making API calls concurrently
+from aiohttp import ClientConnectorError
 import tiktoken  # for counting tokens
 
 from ..session import ctx as langtorch_session
@@ -77,9 +78,9 @@ class APIRequestOpenAI(APIRequest):
                 async with session.post(
                         url=request_url, headers=request_header, json=self.request_json
                 ) as response:
-                    response = await response.json()
+                    response = await response.json(content_type='application/json')
             if "error" in response:
-                logging.warning(
+                logging.debug(
                     f"Request {self.task_id} failed with error {response['error']}"
                 )
                 status_tracker.num_api_errors += 1
@@ -88,7 +89,8 @@ class APIRequestOpenAI(APIRequest):
                     status_tracker.time_of_last_rate_limit_error = time.time()
                     status_tracker.num_rate_limit_errors += 1
                     status_tracker.num_api_errors -= 1  # rate limit errors are counted separately
-
+        except ClientConnectorError as e:
+            raise e  # Re-raise a connection error
         except Exception as e:  # catching naked exceptions is bad practice, but in this case we'll log & save them
             logging.warning(f"Request {self.task_id} failed with Exception {e}")
             status_tracker.num_other_errors += 1
@@ -98,7 +100,8 @@ class APIRequestOpenAI(APIRequest):
             if self.attempts_left:
                 retry_queue.put_nowait(self)
             else:
-                logging.error(f"Request {self.request_json} failed after all attempts. Saving errors: {self.result}")
+                errors = '\n'.join(list(set([str(r['error']) for r in self.result])))
+                logging.error(f"Request {self.request_json} failed after all attempts. Encountered errors: {errors}")
 
                 try:  # error catching to deal with session errors
                     langtorch_session.add_response(self.id, response)
@@ -118,8 +121,12 @@ class APIRequestOpenAI(APIRequest):
 
 def api_endpoint_from_url(request_url):
     """Extract the API endpoint from the request URL."""
+
     match = re.search('^https://[^/]+/v\\d+/(.+)$', request_url)
-    return match[1]
+    if match is None:
+        return None
+    else:
+        return match[1]
 
 
 def append_to_jsonl(data, filename: str) -> None:

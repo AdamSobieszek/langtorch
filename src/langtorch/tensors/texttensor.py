@@ -37,6 +37,8 @@ def chararray_to_TextArray(arr, ttype=Text, shape=None, **kwargs):
     text_arr = np.array(text_arr, dtype=object).reshape(arr.shape if shape is None else shape)
     return text_arr
 
+from typing import Any, Callable
+
 
 class TextTensor(torch.Tensor, metaclass=_ParameterMeta):
     """
@@ -86,8 +88,10 @@ class TextTensor(torch.Tensor, metaclass=_ParameterMeta):
     _embedding_model = "text-embedding-3-small"  # TextTensor to Tensor with an embedding model
     _tokenizer = None  # TextTensor to Tensor with a transformer tokenizer
     _embedding, _tokens = None, None
-    _tokenizer_default_kwargs = {"return_tensors": "pt", "padding": True, "truncation": True}
+    _tokenizer_kwargs = {"return_tensors": "pt", "padding": True, "truncation": True}
     parse = 'auto'
+    is_gradient = False
+    is_param = False
 
     @classmethod
     def input_formatter(cls, content):
@@ -100,8 +104,37 @@ class TextTensor(torch.Tensor, metaclass=_ParameterMeta):
         tensor.content = chararray_to_TextArray(tensor.content, cls._ttype)
         return tensor
 
-    def __new__(cls, content="", parse=True, metadata=None, requires_grad: bool = False,
-                is_gradient: bool = False, is_param: bool = False, **kwargs):
+    @classmethod
+    def recursive_walk_replace(cls, obj: Any, target_class: type, func: Callable[[Any], Any]) -> Any:
+        """
+        Recursively walks through any iterable structure, finds all instances of target_class,
+        and replaces them with the result of func applied to them.
+
+        :param obj: The object to walk through.
+        :param target_class: The class to look for in the structure.
+        :param func: The function to apply to instances of target_class.
+        :return: A new object with the replacements made.
+        """
+        if isinstance(obj, target_class):
+            return func(obj)
+        elif isinstance(obj, dict):
+            return {k: cls.recursive_walk_replace(v, target_class, func) for k, v in obj.items()}
+        elif isinstance(obj, (list, set)):
+            cls2 = type(obj)
+            return cls2(cls.recursive_walk_replace(item, target_class, func) for item in obj)
+        elif isinstance(obj, tuple):
+            return func(obj)  # Directly replace tuple with _ttype
+        else:
+            return obj
+
+    def __new__(cls, content="", parse=True, metadata=None,
+                ttype: Text = None,
+                embedding_model: Union[str, Callable] = None,
+                tokenizer: Union[str, Callable] = None,
+                tokenizer_kwargs: dict = None,
+                requires_grad: bool = False,
+                is_gradient: bool = False,
+                is_param: bool = False, **kwargs):
         embedding = None
         if metadata is None:
             metadata = dict()
@@ -109,20 +142,31 @@ class TextTensor(torch.Tensor, metaclass=_ParameterMeta):
             if not attr in metadata:
                 metadata[attr] = eval(attr)
 
-        def dict_to_tt(cls, d, parse): # TODO create from dict of tensors
+
+        def dict_to_tt(cls, d, parse):  # TODO create from dict of tensors
             if not d:
                 return None
-            def item_to_tt(cls, k,v, parse):
-                content = cls.input_formatter(cls.content_to_object_array(v,  parse=parse))
-                content = np.array([(k, v) for v in content.flat], dtype=object).reshape(content.shape)
-                return cls.__new__(cls, content, parse=parse)
 
-            content = item_to_tt(cls, d.items()[0][0], d.items()[0][1], parse=parse)
-            for k, v in d.items()[1:]:
-                content += item_to_tt(cls, k, v, parse=parse)
+            def item_to_tt(cls, k, v, parse):
+                tt = cls.__new__(cls, v, parse=parse)
+                return cls([(k,t) for t in tt.flat], parse=False).reshape(tt.shape)
+
+            items = iter(d.items())
+            first = next(items)
+            content = item_to_tt(cls, first[0], first[1], parse=parse)
+            first_shape = content.shape
+            for k, v in items:
+                content += item_to_tt(cls, k, v, parse=parse).reshape(first_shape)
             return content
 
-        
+        def replace_tuple_with_ttype(tpl):
+            nonlocal cls
+            return cls._ttype(*tpl)
+
+        # if isinstance(metadata["content"], dict):
+        #     metadata["content"] = dict_to_tt(cls, metadata["content"], parse=parse)
+        # Replace tuples with Text entries
+        metadata["content"] = cls.recursive_walk_replace(metadata["content"], tuple, replace_tuple_with_ttype)
         # Set content to be an object array with cls.text_class entries
         metadata["content"] = cls.content_to_object_array(metadata["content"], parse=parse)
         # Apply input formatter
@@ -139,6 +183,15 @@ class TextTensor(torch.Tensor, metaclass=_ParameterMeta):
 
         # Apply linter
         tensor = cls.linter(tensor)
+        if ttype is not None:
+            tensor.ttype = ttype
+        if embedding_model is not None:
+            tensor.embedding_model = embedding_model
+        if tokenizer is not None:
+            tensor.tokenizer = tokenizer
+        if tokenizer_kwargs is not None:
+            tensor._tokenizer_kwargs = tokenizer_kwargs
+
         return tensor
 
     def __init__(self, *args, **kwargs):
@@ -154,7 +207,8 @@ class TextTensor(torch.Tensor, metaclass=_ParameterMeta):
                 else np.array(input, dtype=object) if isinstance(input, Text) \
                 else chararray_to_TextArray(input, cls._ttype, **kwargs)
         except Exception as e:
-            raise ValueError(f"Could not convert input to TextTensor content. Failed to convert input to an array:\n{e}")
+            raise ValueError(
+                f"Could not convert input to TextTensor content. Failed to convert input to an array:\n{e}")
 
     @property
     def content(self):
@@ -163,6 +217,14 @@ class TextTensor(torch.Tensor, metaclass=_ParameterMeta):
     @content.setter
     def content(self, content):
         self._content = TextTensor.content_to_object_array(content)
+        assert self._content is not None
+    @property
+    def embedding_model(self):
+        return self._embedding_model
+
+    @embedding_model.setter
+    def embedding_model(self, embedding_model):
+        self._embedding_model = embedding_model
         assert self._content is not None
 
     @property
@@ -216,20 +278,29 @@ class TextTensor(torch.Tensor, metaclass=_ParameterMeta):
             self._tokenizer = AutoTokenizer.from_pretrained(tokenizer)
         self._tokenizer = tokenizer
 
+    @property
+    def tokenizer_kwargs(self):
+        return self._tokenizer_kwargs
+
+    @tokenizer_kwargs.setter
+    def tokenizer_kwargs(self, tokenizer_kwargs):
+        self._tokenizer_kwargs = dict(tokenizer_kwargs)
+
     def tokenize(self, tokenizer=None, **kwargs):
         if tokenizer is not None:
             self.tokenizer = tokenizer
         assert self.tokenizer is not None
-        kwargs = {**self._tokenizer_default_kwargs, **kwargs}
+        kwargs = {**self._tokenizer_kwargs, **kwargs}
         self.tokens = self.tokenizer([str(m) for m in self.content.flat], **kwargs)
+        return self.tokens
 
     @property
     def ttype(self):
         return self._ttype
 
-    @tokens.setter
+    @ttype.setter
     def ttype(self, text_class):
-        if isinstance(text_class, Text):
+        if issubclass(text_class, Text):
             self._ttype = text_class
         else:
             if callable(text_class):
@@ -238,9 +309,13 @@ class TextTensor(torch.Tensor, metaclass=_ParameterMeta):
             assert text_class in dir(langtorch.texts), f"Text class {text_class} not found in langtorch.texts"
 
             self._ttype = getattr(langtorch.texts, text_class)
+        self.content = np.array([self._ttype(t) for t in self.content.flat], dtype=object).reshape(self.content.shape)
+        # iter over multidimensional self._content
+        for index, text_entry in np.ndenumerate(self._content):
+            self._content[index].language = self._ttype.language
 
     functions_on_texts = [torch.cat, torch.concat, torch.concatenate, torch.vstack, torch.stack, torch.hstack,
-                          torch.squeeze, torch.unsqueeze, torch.reshape, torch.swapaxes, torch.sum]
+                          torch.squeeze, torch.unsqueeze, torch.reshape, torch.swapaxes, torch.sum, torch.nonzero]
     functions_on_embeddings = [torch.mean, torch.cosine_similarity]
     functions_on_tokens = []
 
@@ -273,26 +348,34 @@ class TextTensor(torch.Tensor, metaclass=_ParameterMeta):
 
         def apply_to_texttensors(func, args, kwargs):
             args2, kwargs2 = [], {}
+            first = None
             for i, arg in enumerate(args):
                 if isinstance(arg, TextTensor):
                     args2.append(func(arg))
+                    if first is None:
+                        first = arg
                 else:
                     args.append(arg)
             for k, arg in kwargs.items():
                 if isinstance(arg, TextTensor):
                     kwargs2[k] = func(arg)
+                    if first is None:
+                        first = arg
                 else:
                     kwargs2[k] = arg
 
-            return args2, kwargs2
+            return first, args2, kwargs2
 
-        def apply_embed(tensor) -> torch.Tensor:
-            if tensor.embedding is None:
-                tensor.embed()
+        def apply_embed(tensor, model = None) -> torch.Tensor:
+            tensor.embed(model=model)
             assert isinstance(tensor.embedding, torch.Tensor)
             return tensor.embedding
 
-        args, kwargs = apply_to_texttensors(apply_embed, args, kwargs)
+        first, args, kwargs = apply_to_texttensors(lambda t:t, args, kwargs)
+        model = kwargs.pop("model", None)
+        if model is None:
+            model = first.embedding_model
+        first, args, kwargs = apply_to_texttensors(lambda t:apply_embed(t, model), args, kwargs)
 
         if func is torch.cosine_similarity:
             kwargs["dim"] = -1
@@ -305,6 +388,54 @@ class TextTensor(torch.Tensor, metaclass=_ParameterMeta):
     def _handle_functions_on_tokens(self, func: Callable, *args, **kwargs):
         # Fallback if the function is not recognized
         raise NotImplementedError("This torch function has no langtorch equivalent yet")
+
+    @property
+    def loc(self):
+        """
+        Provides key-based indexing for TextTensor, leveraging the `loc` method of the Text entries.
+        You can access and manipulate sub-elements of the TextTensor based on keys.
+        """
+
+        class LocIndexer:
+            def __init__(self, tensor):
+                self.tensor = tensor
+
+            def __getitem__(self, key):
+                result = [text.loc[key] for text in self.tensor.content.flat]
+                shape = self.tensor.content.shape
+                return TextTensor(np.array(result, dtype=object).reshape(shape), parse=False)
+
+            def __setitem__(self, key, value):
+                if not isinstance(value, np.ndarray):
+                    value = np.array(value, dtype=object).reshape(self.tensor.content.shape)
+                for index, text_entry in np.ndenumerate(self.tensor.content):
+                    text_entry.loc[key] = value[index]
+
+        return LocIndexer(self)
+
+    @property
+    def iloc(self):
+        """
+        Provides index-based indexing for TextTensor, leveraging the `iloc` method of the Text entries.
+        You can access and manipulate sub-elements of the TextTensor based on indices.
+        """
+
+        class IlocIndexer:
+            def __init__(self, tensor):
+                self.tensor = tensor
+
+            def __getitem__(self, index):
+                result = [text.iloc[index] for text in self.tensor.content.flat]
+                shape = self.tensor.content.shape
+                return TextTensor(np.array(result, dtype=object).reshape(shape), parse=False)
+
+            def __setitem__(self, index, value):
+                if not isinstance(value, np.ndarray):
+                    value = np.array(value, dtype=object).reshape(self.tensor.content.shape)
+                for idx, text_entry in np.ndenumerate(self.tensor.content):
+                    text_entry.iloc[index] = value[idx]
+
+        return IlocIndexer(self)
 
     def detach(self) -> 'TextTensor':
         with torch.no_grad():
@@ -327,10 +458,8 @@ class TextTensor(torch.Tensor, metaclass=_ParameterMeta):
         return np.array([str(c) for c in self.content.flat]).reshape(self.content.shape)
 
     @classmethod
-    def from_file(cls, path, encoding="utf-8", **kwargs):
-        with open(path, encoding=encoding) as f:
-            content = f.read()
-        return cls(content, **kwargs)
+    def from_file(cls, path, encoding="utf-8", parse: Union[bool, str] = True, **kwargs):
+        return cls._ttype.from_file(path, encoding=encoding, parse=parse).to_tensor(**kwargs)
 
     @classmethod
     def from_df(cls, df: 'DataFrame', **kwargs) -> 'TextTensor':
@@ -431,7 +560,7 @@ class TextTensor(torch.Tensor, metaclass=_ParameterMeta):
 
         self._metadata = metadata
 
-    def metadata_index(self, index):
+    def getitem_over_metadata(self, index):
         """Pick out entries of metadata with the provided index. Usually used to transfer metadata to a sub-tensors."""
 
         index = utils.positive_indices(index, self.content.shape)
@@ -484,7 +613,7 @@ class TextTensor(torch.Tensor, metaclass=_ParameterMeta):
         return metadata
 
     def __repr__(self):
-        return str(self.sum().content)
+        return self.__str__()
 
     def __str__(self):
         return self.str_formatter(self)
@@ -502,12 +631,14 @@ class TextTensor(torch.Tensor, metaclass=_ParameterMeta):
     def __eq__(self, other):
         return self.content == other.content if isinstance(other, TextTensor) else self.content == other
 
+    def __ne__(self, other):
+        return ~self.__eq__(other)
     def sum(self, dim: Union[int, List[int]] = None, keepdim: bool = False, sep: str = "") -> 'TextTensor':
         """Reduces the input tensor over the specified dimensions, optionally keeping dimensions."""
         if len(self.shape) == 0:
             return self
 
-        if dim is None:
+        if dim is None and not sep:
             dim = list(range(len(self.shape)))
             connecting_char = ([" "] + ["\n" * (i + 1) for i in range(len(self.content.shape) - 1)])[::-1]
         else:
@@ -526,8 +657,8 @@ class TextTensor(torch.Tensor, metaclass=_ParameterMeta):
 
         return result
 
-    def join_with(self, delimiter=" ", dim=None):
-        return JoinTextTensor.apply(self, delimiter, dim)
+    def join_with(self, sep=" ", dim=None):
+        return JoinTextTensor.apply(self, sep, dim)
 
     join = join_with  # Alias
 
@@ -587,7 +718,7 @@ class TextTensor(torch.Tensor, metaclass=_ParameterMeta):
             metadata = object.__getattribute__(self, "_metadata")
         except AttributeError:
             raise AttributeError(
-                "Got a TextTensor without content. TextTensor was likely passed outside of langtorch, e.g. to an unsupported torch function that expects torch.Tensor")
+                "Got a TextTensor without content. TextTensor was likely passed outside of langtorch, e.g. to an unsupported torch function that expects a torch.Tensor")
         if name in ["_content", "content"] or name in metadata:
             if name in metadata:
                 return metadata[name]
@@ -628,12 +759,20 @@ class TextTensor(torch.Tensor, metaclass=_ParameterMeta):
             if isinstance(index, torch.Tensor):
                 index = index.cpu().detach().numpy()
             _ = self.content[index]
-        except IndexError as E:
-            if ("out of bounds" in str(E)) or ("out of range" in str(E)):
-                raise IndexError(f"Index {index} out of bounds for TextTensor of shape {self.content.shape}")
+        except IndexError as e:
+            if ("out of bounds" in str(e)) or ("out of range" in str(e)):
+                raise IndexError(f"Index {index} out of bounds for TextTensor of shape {self.content.shape}") from e
             else:
-                raise E
-        return self.__class__(metadata=self.metadata_index(index), parse=False)
+                raise e
+        return self.__class__(metadata=self.getitem_over_metadata(index),
+                            ttype=self.ttype,
+                            embedding_model=self.embedding_model,
+                            tokenizer=self.tokenizer,
+                            tokenizer_kwargs=self.tokenizer_kwargs,
+                            requires_grad=self.requires_grad,
+                            is_gradient=self.is_gradient,
+                            is_param=self.is_param,
+                            parse=False)
 
     def __setitem__(self, index, value):
         """
@@ -688,11 +827,16 @@ class TextTensor(torch.Tensor, metaclass=_ParameterMeta):
     def mT(self):  # diff!
         return self.__class__(self.content.T, super().mT, parse=False)
 
-    def embed(self, model="default", verbose=False):
-        if model == "default":
+    def embed(self, model=None, verbose=False):
+        if model is None:
             model = self._embedding_model
+        else:
+            self.embedding_model = model
         assert model is not None
-        self.embedding = get_embedding(self, model=model, verbose=verbose)
+        if callable(model):
+            self.embedding = model([str(m) for m in self.flat]).reshape(self.shape + (-1,))
+        else:
+            self.embedding = get_embedding(self, model=model, verbose=verbose)
         return self.embedding
 
     def apply(self, func):

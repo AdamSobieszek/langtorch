@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="LangTorch",
-    version="1.0.2",
+    version="1.0.6",
     description="Framework for intuitive LLM application development with tensors.",
     long_description=open("README.md", "r").read(),
     long_description_content_type="text/markdown",
@@ -13,7 +13,7 @@ setup(
     package_dir={"": "src"},
     install_requires=[
         "numpy",
-        "torch>=2.0.0",
+        "torch >= 2.1.0",
         "aiohttp",
         "nest_asyncio",
         "openai>=1.2.4",
@@ -23,10 +23,8 @@ setup(
         "pyparsing",
         "pypandoc",
         "transformers",
-        "peft",
         'omegaconf',
         'hydra-core',
-        'h5py',
         "markdown-it-py"
     ],
     python_requires='>=3.8',
@@ -40,7 +38,7 @@ setup(
     ],
     keywords="LangTorch, PyTorch, LLM, Language Models, Chat, Chains",
     package_data={
-        'langtorch': ['cong/defaults.yaml', 'conf/new_session_template.yaml','conf/overrides.yaml', 'methods/prompts.yaml'],
+        'langtorch': ['conf/defaults.yaml', 'conf/new_session_template.yaml','conf/overrides.yaml', 'methods/prompts.yaml'],
     },
     include_package_data=True,
 )

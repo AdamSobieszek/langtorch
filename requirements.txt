@@ -1,5 +1,5 @@
 numpy
-torch>=2.0.0
+torch>=2.1.0
 aiohttp
 nest_asyncio
 openai>=1.2.4
@@ -9,8 +9,6 @@ retry
 pyparsing
 pypandoc
 transformers
-peft
 omegaconf
 hydra-core
-h5py
 markdown-it-py

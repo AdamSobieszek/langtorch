@@ -62,7 +62,8 @@ class MulTextTensor(Function):
     def forward(ctx, input1, input2):
         # Store the input for backward computation
         assert isinstance(input1, langtorch.TextTensor) and hasattr(input1, "content"), input1
-        assert isinstance(input2, langtorch.TextTensor) and hasattr(input2, "content"), input2
+        if not isinstance(input2, langtorch.TextTensor):
+            input2 = langtorch.TextTensor([input2] * len(input1.flat), parse=False).reshape(input1.shape)
         ctx.save_for_backward(input1, input2)
 
         # Compute the result using the content attribute's multiplication
@@ -240,9 +241,9 @@ class StackTextTensor(Function):
 
 class JoinTextTensor(Function):
     @staticmethod
-    def forward(ctx, input, on="", dim=None):
+    def forward(ctx, input, sep="", dim=None):
         shape = input.content.shape
-        ctx.save_for_backward(input, langtorch.TextTensor(on, parse=False), torch.tensor(shape),
+        ctx.save_for_backward(input, langtorch.TextTensor(sep, parse=False), torch.tensor(shape),
                               torch.tensor(dim if dim is not None else []))
         # Convert the content to a list and join the elements with `on`
         if len(input.shape) == 0: return input
@@ -252,7 +253,7 @@ class JoinTextTensor(Function):
             result = input.ttype()
             for i, t in enumerate(input.content.flat):
                 if i != input.content.size - 1:
-                    result += (t + on)
+                    result += (t + sep)
                 else:
                     result += t
             output = input.__class__(result, parse=False)
@@ -265,7 +266,7 @@ class JoinTextTensor(Function):
                 if i == 0:
                     result = tt.reshape(new_shape)
                 else:
-                    result = np.array([m + on + t for m, t in zip(result.flat, tt.flat)], dtype=object).reshape(
+                    result = np.array([m + sep + t for m, t in zip(result.flat, tt.flat)], dtype=object).reshape(
                         new_shape)
             output = input.__class__(result, parse=False)
 
@@ -287,7 +288,7 @@ class ReshapeTextTensor(Function):
     def forward(ctx, input, shape):
         ctx.shape = input.shape
         output = input.__class__(input.content.reshape(*shape), parse=False),
-        # metadata = input.metadax
+        # metadata = input.metadata
         # a_apply(lambda v: v.reshape(*shape), lambda v: v.reshape(*shape, v.shape[-1]))
         # # add metadata
         return output

@@ -21,7 +21,7 @@ class Linear(TextModule):
           are the same shape as the input and :math:`H_{out} = \text{out\_features}`.
 
     Attributes:
-        weight: the TextTensor to format of shape
+        prompt: the TextTensor to format of shape
             :math:`(\text{out\_features}, \text{in\_features})`. The values are
             initialized from :math:`\mathcal{U}(-\sqrt{k}, \sqrt{k})`, where
             :math:`k = \frac{1}{\text{in\_features}}`

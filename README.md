@@ -86,9 +86,9 @@ chain = torch.nn.Sequential(
     TextModule("Calculate the described quantity: {}"),
     OpenAI("gpt-4", T=0)
 )
-
-input_tensor = TextTensor(["170*32 =", "4*20 =", "123*45/10 =", "2**10*5 ="])
-output_tensor = chain(input_tensor)
+	
+	input_tensor = TextTensor(["170*32 =", "4 times 20 =", "123*45/10 =", "2**10*5 ="])
+	output_tensor = chain(input_tensor)
 ```
 
 

@@ -20,6 +20,8 @@ def join_str_types(pandoc_tuples):
     elif isinstance(pandoc_tuples, tuple):
         if pandoc_tuples[0] == 'Str':
             return pandoc_tuples[1]
+        elif len(pandoc_tuples) == 2:
+            return (pandoc_tuples[0], join_str_types(pandoc_tuples[1]))
     elif len(pandoc_tuples) == 1:
         return join_str_types(pandoc_tuples[0])
     elif all(isinstance(x, str) for x in pandoc_tuples):
@@ -88,7 +90,6 @@ def join_str_types(pandoc_tuples):
             if temp_str:
                 result.append(temp_str)
                 temp_str = ""
-
             result.append(item)
     if temp_str:
         result.append(temp_str)
@@ -97,7 +98,8 @@ def join_str_types(pandoc_tuples):
 
 def pandoc_dict_to_tuple(d):
     if isinstance(d, list):
-        return join_str_types([pandoc_dict_to_tuple(x) for x in d])
+        r = [pandoc_dict_to_tuple(x) for x in d]
+        return join_str_types(r)
     if isinstance(d, dict):
         if "c" not in d:
             return (d["t"], "")
@@ -108,7 +110,8 @@ def pandoc_dict_to_tuple(d):
             if len(d["c"]) == 3 and isinstance(d["c"][0], int):
                 d["t"] += str(d["c"][0])
             return (d["t"], pandoc_dict_to_tuple(d["c"]))
-
+    # if isinstance(d, str):
+    #     return d
 
 def pandoc_to_ast(input_string: str, input_format: str) -> str:
     """

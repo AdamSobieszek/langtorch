@@ -45,7 +45,7 @@ class TextModule(torch.nn.Module):
     output_class = TextTensor
 
     def __init__(self,
-                 prompt: Union[str, 'TextTensor', Callable] = [""],
+                 prompt: Union[str, TextTensor, list] = [""],
                  activation=None,
                  key=None,
                  type_checking=False, *args, **kwargs):

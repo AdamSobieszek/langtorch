@@ -25,12 +25,10 @@ class TransformersCausalLM(torch.nn.Module):
         self.model_kwargs = model_kwargs
 
     def forward(self, input_texttensor: TextTensor, skip_special_tokens=True, **gen_kwargs) -> TextTensor:
-        assert isinstance(input_texttensor, TextTensor)
-        # Convert TextTensor to a list of strings
-        texts = [str(entry) for entry in input_texttensor.flat]
+        input_texttensor = TextTensor(input_texttensor, tokenizer = self.tokenizer, tokenizer_kwargs=self.tokenizer_kwargs)
 
         # Tokenize and generate responses
-        inputs = self.tokenizer(texts, **self.tokenizer_kwargs).to(self.model.device)
+        inputs = input_texttensor.tokenize().to(self.model.device)
         with torch.no_grad():
             outputs = self.model.generate(**inputs, **self.model_kwargs, **gen_kwargs)
 

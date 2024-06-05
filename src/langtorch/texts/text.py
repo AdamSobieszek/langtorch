@@ -111,7 +111,7 @@ class Text(str):
                 content[i] = content[i].sum().item()
                 assert isinstance(content[i], str) or (0 < len(content[i]) <= 2)
         # returns the final content tuple
-        parser = "langtorch-f-string" if parse is True else parse
+        parser = "langtorch-f-string" if parse is True else (False if parse is None else parse)
         content = cls._parse_content(content, parser=parser)
 
         assert cls._is_valid_tree(content, is_tuple=True), f"Creating Text with an invalid content tree: {content}"
@@ -144,7 +144,7 @@ class Text(str):
 
     def __str__(self):
         s = self.__class__.str_formatter(self, self.language)
-        return s if s else "\u200B"  # Zero width space to fix errors with printing arrays of empty Texts
+        return s
 
     @classmethod
     def from_messages(cls, *messages, **kwargs):
@@ -214,11 +214,18 @@ class Text(str):
         print(bottom_line)
 
     def __repr__(self):
-        return self.__str__()
+        s = self.__class__.str_formatter(self, self.language)
+        return s if s else "\u200b"  # Zero width space to fix errors with printing arrays of empty Texts
 
-    def to_tensor(self):
+
+    def to_tensor(self, **kwargs):
         from langtorch import TextTensor
-        return TextTensor(self.content)
+        if not "ttype" in kwargs:
+            kwargs["ttype"] = self.__class__
+            kwargs["ttype"].language = self.language
+        if not "parse" in kwargs:
+            kwargs["parse"] = False
+        return TextTensor([(kv,) for kv in self.items()], **kwargs)
 
     @property
     def identity(self):
@@ -464,7 +471,7 @@ class Text(str):
                         value = Text(value)
 
                     new_tup = []
-                    relevant_items = [(k, v) for k, v in tup if k in keys]
+                    relevant_items = [kv for kv in tup if kv[0] in keys]
                     # Editing case
                     if len(relevant_items) <= len(value.items()):
                         replacement_items = list(value.items()[:len(relevant_items)])
@@ -505,7 +512,7 @@ class Text(str):
     def __getitem__(self, index):
         if isinstance(index, str):
             return self.loc[index]
-        return self.iloc[index]
+        return str(self)[index]
 
     def __or__(self, other):
         return
@@ -513,9 +520,18 @@ class Text(str):
     def __len__(self):
         return len(str(self.content))
 
+    def __eq__(self, other):
+        if isinstance(other, Text):
+            return self.content == other.content
+        elif isinstance(other,str):
+            s = str(Text(self)).replace("u200b","")
+            return s == other
+        return False
+
     def __iter__(self):
         for s in self.content:
             yield s
+
 
     # def _handle_other(self, other, method):
     #     if isinstance(other, str) and not isinstance(other, Text):
@@ -590,30 +606,11 @@ class Text(str):
                     return True
             return False
 
-        def handle_positional_args(k_, v_, i, result, formatted_indices, indices_to_delete, positional_j):
-            for j, (k, v) in enumerate(content):
-                if v == str(positional_j):
-                    result[j] = (k, v_)
-                    positional_j += 1
-                    formatted_indices.append(j)
-                    return positional_j
-            for j, (k, v) in enumerate(content):
-                if v == "":
-                    result[j] = (k, v_)
-                    formatted_indices.append(j)
-                    if v_ == k:
-                        indices_to_delete.append(j)
-                    return positional_j
-            result.append((k_, v_))
-            return positional_j
+        items = self.items()
+        result = items[:]
+        items_other = other.items()
 
-        content = self.items()
-        result = content[:]
-        formatted_indices = []
-        indices_to_delete = []
-        positional_j = 0
-
-        for i, (k, v) in enumerate(content):
+        for i, (k, v) in enumerate(items):
             if v == "*":
                 if k == "":
                     result = result[:i] + list(other.items()) + result[i + 1:]
@@ -621,17 +618,35 @@ class Text(str):
                     result[i] = (k, other.items())
                 return self.__class__(*result, parse=False)
 
-        for k_, v_ in other.items():
-            if v_ == "*":
-                result = [(k_, [item for i, item in enumerate(result) if i not in indices_to_delete])]
-                indices_to_delete = []
-                formatted_indices = []
-            elif k_ == "":
-                positional_j = handle_positional_args(k_, v_, i, result, formatted_indices, indices_to_delete,
-                                                      positional_j)
-            else:  # Key substitution
+        # if v_ == "*":
+        #     result = [(k_, [item for i, item in enumerate(result) if i not in indices_to_delete])]
+        replacement_map = {}
+        for i, (k, v) in enumerate(items):
+            if isinstance(v, str) and v.isdigit():
+                if int(v)<len(items_other):
+                    replacement_map[i] = int(v)
+        for i, (k, v) in enumerate(items):
+            if isinstance(v, str) and v == "":
+                try:
+                    replacement_map[i] = next(j for j in range(len(items_other)) if j not in replacement_map.values())
+                except StopIteration: # no more items in other
+                    break
+
+        # Replace entries of result according to replacement_map
+        for i, j in replacement_map.items():
+            if items_other[j][0] == "":
+                result[i] = (result[i][0], items_other[j][1])
+            elif result[i][0] == "":
+                result[i] = items_other[j]
+            else:
+                result[i] = (result[i][0], items_other[j])
+
+        formatted_indices = list(replacement_map.keys())
+        indices_to_delete = []
+        for j, (k_, v_) in enumerate(items_other):
+            if j not in replacement_map.values():
                 k_, v_ = flatten_keys(k_, v_)
-                for i, (k, v) in enumerate(content):
+                for i, (k, v) in enumerate(items):
                     if match_mul_rule(k, v, k_, v_, i, result, formatted_indices, indices_to_delete):
                         break
                 else:
@@ -799,29 +814,30 @@ class Text(str):
         return Text.guess_format(text)
 
     @classmethod
-    def load(cls, path: str, language: str = "str"):
-        # Determine the caller's file path
-        caller_frame = inspect.currentframe().f_back
-        caller_file = inspect.getframeinfo(caller_frame).filename
-        caller_dir = os.path.dirname(caller_file)
+    def load(cls, path: str, encoding="utf-8", parse: Union[bool, str] = True):
 
-        # Resolve the relative path to an absolute path
-        absolute_path = os.path.abspath(os.path.join(caller_dir, path))
-
-        # Extract the file extension as the input format
-        if language == "str":
-            input_format = os.path.splitext(absolute_path)[1][1:]
+        if not os.path.isabs(path):
+            absolute_path = os.path.abspath(os.path.join(os.getcwd(), path))
         else:
-            input_format = language
+            absolute_path = path
+        # Extract the file extension as the input format
+        if parse is True:
+            language = os.path.splitext(absolute_path)[1][1:]
+        else:
+            language = parse
 
         # Read the file content
-        with open(absolute_path, 'r', encoding="utf-8") as file:
+        with open(absolute_path, 'r', encoding=encoding) as file:
             input_string = file.read()
 
-        return cls(input_string, language=input_format, parse=input_format)
+        return cls(input_string, parse=language, language=language)
 
     def save(self, path: str) -> None:
-        with open(path, 'w', encoding='utf-8') as file:
+        if not os.path.isabs(path):
+            absolute_path = os.path.abspath(os.path.join(os.getcwd(), path))
+        else:
+            absolute_path = path
+        with open(absolute_path, 'w', encoding='utf-8') as file:
             file.write(str(self))
 
     from_file = load

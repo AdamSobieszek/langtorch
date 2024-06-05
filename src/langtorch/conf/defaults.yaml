@@ -5,7 +5,11 @@ cfg:
 
   default_model_for_functions: "gpt-3.5-turbo"
   default_embedding_model: "text-embedding-3-small"
-  #  functional:
+
+  ### Printing ###
+  soft_wrap: True
+  max_width: 140
+
 
   ### Class-specific defaults ###
   #  Text defaults:
@@ -39,7 +43,7 @@ cfg:
         activation:
           Activation:
             model: "gpt-3.5-turbo"
-            system_message: "You are a helpful assistant"
+            system_message: null
             backward_prompt: "Our objective is:\n{grad}\n\nTo achieve this, we performed the following task:\n{input}\n\nAnd hot the result:\n{output}\n\nDid we succeed or failed to perform the task given our goal? Respond with a one-sentence explanation or reason why or why not."
 
 
@@ -83,11 +87,11 @@ cfg:
       api_key: null # null == try to load from os var OPENAI_API_KEY
       organization: null
 
+
   # TODO Torch Settings
   torch:
     no_grad: false
     device: "'cuda' if torch.cuda.is_available() else 'cpu'"
-
 
 # Additional context, available from ctx
 methods:

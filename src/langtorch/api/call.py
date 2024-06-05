@@ -131,28 +131,27 @@ def chat_strings(prompts, system_messages, model="gpt-3.5-turbo-0613", temperatu
                 tools[i] = {"type": "function", "function": tools[i]}
 
     params = {"temperature": temperature,
-              "top_p": top_p,
-              "n": n,
-              "stop": stop,
-              "max_tokens": max_tokens,
-              "presence_penalty": presence_penalty,
-              "frequency_penalty": frequency_penalty,
-              "tools": tools,
-              "tool_choice": tool_choice}
+                  "top_p": top_p,
+                  "n": n,
+                  "stop": stop,
+                  "max_tokens": max_tokens,
+                  "presence_penalty": presence_penalty,
+                  "frequency_penalty": frequency_penalty,
+                  "tools": tools,
+                  "tool_choice": tool_choice}
 
     default_values = {"temperature": 1, "top_p": 1, "n": 1, "stop": None, "max_tokens": None, "presence_penalty": 0,
                       "frequency_penalty": 0, "tools": None, "tool_choice": "none"}
 
     jobs = [{"model": model,
-             "messages": [{"role": "system", "content": system_message},
-                          {"role": "user", "content": prompt}] if isinstance(prompt, str) else
-             [{"role": "system", "content": system_message}] + [{"role": r, "content": c} for r, c in prompt],
+             "messages": ([{"role": "system", "content": system_message}] if system_message else [])+([{"role": "user", "content": prompt}] if isinstance(prompt, str) else
+             [{"role": r, "content": c} for r, c in prompt]),
              **{param: value for param, value in params.items() if value != default_values[param]}}
             for prompt, system_message in zip(prompts, system_messages)]
     return [json.dumps(job, ensure_ascii=False) for job in jobs]
 
 
-def chat(prompts, system_messages, model="gpt-3.5-turbo", cache=True, api_key=None, verbose=False, as_str=False,
+def chat(prompts, system_messages, model="gpt-3.5-turbo", provider = "openai", cache=True, api_key=None, verbose=False, as_str=False,
          **kwargs):
     """
     Processes a list of chat prompts in parallel, saving the results to a specified file.
@@ -161,6 +160,7 @@ def chat(prompts, system_messages, model="gpt-3.5-turbo", cache=True, api_key=No
         prompts (List[str] or List[Tuple[str,str]] or str): List or single prompt or list of (role, prompt) pairs to send to the model.
         system_messages (List[str] or str): List or single system message to guide the model's behavior.
         model (str, optional): Model name to use. Default is "gpt-3.5-turbo-0613".
+        provider (str, optional):  The provider to use. Default is "openai".
         cache (bool, optional): If True, reuse previous call results.
         api_key (str, optional): API key for authentication. If None, uses environment variable.
         verbose (bool, optional): If True, enables detailed logging. Default is True.
@@ -171,7 +171,6 @@ def chat(prompts, system_messages, model="gpt-3.5-turbo", cache=True, api_key=No
         Union[Coroutine, openai.ChatCompletion, str]: Coroutine object representing the asynchronous execution of the API requests if save_filepath is provided. Otherwise, returns the chat response object, or a string if as_str is True.
     """
 
-    session = Session()
     if "T" in kwargs:
         kwargs["temperature"] = kwargs["T"]
     if not isinstance(system_messages, list): system_messages = [system_messages]
@@ -181,45 +180,56 @@ def chat(prompts, system_messages, model="gpt-3.5-turbo", cache=True, api_key=No
         system_messages = system_messages * len(prompts)
     request_strings = chat_strings(prompts, system_messages, model, **kwargs)
 
+    session = Session()
+    provider_to_request_url = {"openai":"https://api.openai.com/v1/chat/completions",
+                                               "anthropic":"https://api.anthropic.com/v1/messages",
+                                               "groq":"https://api.groq.com/openai/v1/chat/completions"}
+    assert provider in provider_to_request_url, f"Provider {provider} not in available providers"
     if api_key is None:
         try:
-            api_key = os.environ["OPENAI_API_KEY"]
+            api_key = os.environ[f"{provider.upper()}_API_KEY"]
         except KeyError as e:
-            raise KeyError('No OpenAI API key. Set os.environ["OPENAI_API_KEY"] = YOUR KEY') from e
-    ids, uncached_request_strings = session.request("openai", "chat", request_strings, cache)
+            raise KeyError(f'No {provider} API key. Set os.environ["{provider.upper()}_API_KEY"] = YOUR KEY') from e
+    provider_to_request_header = {"openai": {"Authorization": f"Bearer {api_key}"},
+                                 "anthropic": {"x-api-key:": f"{api_key}",
+                                               "anthropic-version": "2023-06-01",
+                                               "Content-Type": "application/json"},
+                                      "groq": {"Authorization": f"Bearer {api_key}"},}
+    request_header = provider_to_request_header[provider]
+    ids, uncached_request_strings = session.request(provider, "chat", request_strings, cache)
 
-    if request_strings:
-        job = execute_api_requests_in_parallel(
-            ids=ids,
-            request_strings=uncached_request_strings,
-            request_url="https://api.openai.com/v1/chat/completions",
-            api_key=api_key,
-            logging_level=logging.INFO if verbose else logging.ERROR,
-            max_requests_per_minute=200 if "gpt-4" in request_strings[0] else 3_500 * 0.5,
-            max_tokens_per_minute=40_000 * 0.5 if "gpt-4" in request_strings[0] else 90_000 * 0.5,
-        )
+    with Session(session.path) as session:
+        if request_strings:
+            job = execute_api_requests_in_parallel(
+                ids=ids,
+                request_strings=uncached_request_strings,
+                request_url=provider_to_request_url[provider],
+                request_header=request_header,
+                logging_level=logging.INFO if verbose else logging.ERROR,
+                max_requests_per_minute=200 if "gpt-4" in request_strings[0] else 3_500 * 0.5,
+                max_tokens_per_minute=40_000 * 0.5 if "gpt-4" in request_strings[0] else 90_000 * 0.5,
+            )
 
-        try:
-            loop = asyncio.get_event_loop()
-            loop.run_until_complete(job)
-        except RuntimeError as E1:
             try:
-                asyncio.run(job)
-            except RuntimeError as E2:
-                raise RuntimeError(
-                    f"Asyncio get current event loop failed with {E1}. Tried to fall back on new event loop with asyncio.run(job) but failed with error: {E2}.\nThis indicates error with the API code or provider and could be hard to fix.")
+                loop = asyncio.get_event_loop()
+                loop.run_until_complete(job)
+            except RuntimeError as E1:
+                try:
+                    asyncio.run(job)
+                except RuntimeError as E2:
+                    raise RuntimeError(
+                        f"Asyncio get current event loop failed with {E1}. Tried to fall back on new event loop with asyncio.run(job) but failed with error: {E2}.\nThis indicates error with the API code or provider and could be hard to fix.")
 
-    return session.completions("chat", "openai", request_strings)
+        return session.completions("chat", provider, request_strings)
 
 
-def get_embedding(texts, model="text-embedding-3-small", cache=True, as_np=False, api_key=None, verbose=False):
+def get_embedding(texts, model="text-embedding-3-small", cache=True,  api_key=None, verbose=False):
     """
     Retrieves embeddings for the given texts from the OpenAI API and saves the results in a file.
 
     Parameters:
         texts (List[str], TextTensor): List of texts for which to get embeddings.
-        cache (bool, optional):
-        as_np (bool, optional):
+        cache (bool, optional): If True, reuse previous call results. Default is True.
         api_key (str, optional): API key for authentication. If None, uses environment variable.
         verbose (bool, optional): If True, enables detailed logging. Default is True.
 
@@ -243,27 +253,29 @@ def get_embedding(texts, model="text-embedding-3-small", cache=True, as_np=False
     request_strings = [json.dumps({"model": model, "input": str(x).strip() + "\n"}, ensure_ascii=False) for x in texts]
 
     ids, uncached_request_strings = session.request("openai", "embeddings", request_strings, cache)
+    request_header = {"Authorization": f"Bearer {api_key}"}
 
     # Execute API requests in parallel and save to session
-    job = execute_api_requests_in_parallel(
-        ids=ids,
-        request_strings=uncached_request_strings,
-        request_url="https://api.openai.com/v1/embeddings",
-        api_key=api_key,
-        max_requests_per_minute=3_000 * 0.5,
-        max_tokens_per_minute=250_000 * 0.5,
-        token_encoding_name="cl100k_base",
-        max_attempts=3,
-        logging_level=logging.INFO if verbose else logging.ERROR,
-    )
+    with Session(session.path) as session:
+        job = execute_api_requests_in_parallel(
+            ids=ids,
+            request_strings=uncached_request_strings,
+            request_url="https://api.openai.com/v1/embeddings",
+            request_header=request_header,
+            max_requests_per_minute=3_000 * 0.5,
+            max_tokens_per_minute=250_000 * 0.5,
+            token_encoding_name="cl100k_base",
+            max_attempts=3,
+            logging_level=logging.INFO if verbose else logging.ERROR,
+        )
 
-    try:
-        loop = asyncio.get_event_loop()
-        loop.run_until_complete(job)
-    except Exception as E:
-        asyncio.run(job)
+        try:
+            loop = asyncio.get_event_loop()
+            loop.run_until_complete(job)
+        except Exception as E:
+            asyncio.run(job)
 
-    return session.completions("embeddings", "openai", request_strings).reshape(shape + (-1,))
+        return session.completions("embeddings", "openai", request_strings).reshape(shape + (-1,))
 
 
 embed = get_embedding  ## Alternative function name

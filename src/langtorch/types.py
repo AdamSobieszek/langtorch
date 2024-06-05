@@ -7,8 +7,8 @@ import langtorch
 # Convenience aliases for common composite types that we need
 # to talk about in LangTorch
 
-_TextTensorOrTensors = Union[langtorch.TextTensor, Sequence[langtorch.TextTensor]]
-_TextTensorOrText = Union[langtorch.TextTensor, str]
+TextTensorOrTensors = Union[langtorch.TextTensor, Sequence[langtorch.TextTensor]]
+TextTensorOrText = Union[langtorch.TextTensor, str]
 
 
 # Storage protocol implemented by ${Type}StorageBase classes, maybe use this interface

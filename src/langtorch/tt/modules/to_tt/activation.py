@@ -32,7 +32,8 @@ class Activation(TextModule):
 
     @set_defaults_from_ctx
     def __new__(cls, model: str = "default",
-                system_message: str = "default",
+                system_message: str = None,
+                provider: str = "openai",
                 cache: bool = False,
                 keep_history: bool = False,
                 T: float = 0.8,
@@ -47,15 +48,17 @@ class Activation(TextModule):
         if cls is Activation:
             # Return an instance of the OpenAI subclass instead of Activation
             # In the future more subclasses of Activation will be added here
-            return OpenAI(model=model,
-                          system_message=system_message,
-                          cache=cache,
-                          keep_history=keep_history,
-                          T=T,
-                          tools=tools,
-                          key=key,
-                          backward_prompt=backward_prompt,
-                          *args, **kwargs)
+                activation = OpenAI(model=model,
+                              system_message=system_message,
+                              cache=cache,
+                              keep_history=keep_history,
+                              T=T,
+                              tools=tools,
+                              key=key,
+                              backward_prompt=backward_prompt,
+                              *args, **kwargs)
+                activation.provider = provider
+                return activation
         else:
             # If a subclass of Activation is being instantiated, proceed as normal
             return super().__new__(cls)
@@ -64,11 +67,12 @@ class Activation(TextModule):
 class OpenAI(TextModule):
     input_class = TextTensor
     output_class = TextTensor
+    provider = "openai"
 
     def __init__(self,
                  model: Union[str, TextTensor] = "gpt-3.5-turbo",
                  system_message: Union[
-                     str, TextTensor] = "You are an expert, who answers only with the requested texts. Keep it short.",
+                     str, TextTensor] = None,
                  backward_prompt: Union[str, TextTensor] = "",
                  cache: bool = False,
                  keep_history: bool = False,
@@ -77,7 +81,7 @@ class OpenAI(TextModule):
                  parse_output=False,
                  *args, **kwargs):
         super(OpenAI, self).__init__()
-        self.system_message = str(system_message)
+        self.system_message = str(system_message) if system_message is not None else None
         self.model = model
         self.backward_prompt = backward_prompt
         self.keep_history = True if keep_history or kwargs.get('echo', False) else False
@@ -102,7 +106,7 @@ class OpenAI(TextModule):
             shape = (-1, self.n) if self.n > 1 else -1
             input = TextTensor(input)
         elif isinstance(input, TextTensor):
-            shape = tuple([m for m in input.shape] + [self.n]) if self.n > 1 else tuple(input.shape)
+            shape = tuple([self.n]+[m for m in input.shape]) if self.n > 1 else tuple(input.shape)
         else:
             raise TypeError("Activation handles only lists and TextTensors")
 
@@ -127,7 +131,7 @@ class OpenAI(TextModule):
         logging.debug(f"Chat api input: {input}")
         logging.debug(f"Chat api unique system messages: {set(system_messages)}")
 
-        result = chat(input, system_messages, model=self.model, cache=self.cache, as_str=True, tools=self.tool_jsons,
+        result = chat(input, system_messages, model=self.model, provider=self.provider, cache=self.cache, as_str=True, tools=self.tool_jsons,
                       **self.kwargs)
 
         assert result is not None

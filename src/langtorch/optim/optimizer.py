@@ -22,7 +22,7 @@ class TextOptimizer(Optimizer):
 
         for group in self.param_groups:
             for param in group['params']:
-                if not isinstance(param, TextTensor):
+                if not isinstance(param, ):
                     raise ValueError("Optimizer parameters must be of type TextTensor")
                 if param.grad is None:
                     continue
