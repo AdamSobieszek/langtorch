@@ -2,7 +2,7 @@
 <img align="center" src="./langtorch_banner.png" alt="LangTorch Logo" style="max-width: 40rem; width: 100%; height: auto; vertical-align: middle;">
 </p>
 
-[![PyPI version](https://badge.fury.io/py/langtorch.svg)]([https://badge.fury.io/py/langtorch](https://pypi.org/project/LangTorch/))
+[![PyPI version](https://badge.fury.io/py/langtorch.svg)](https://pypi.org/project/LangTorch/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Twitter](https://img.shields.io/twitter/url/https/twitter.com/AdamSobieszek.svg?style=social&label=Follow%20%40AdamSobieszek)](https://twitter.com/AdamSobieszek)
 [![GitHub star chart](https://img.shields.io/github/stars/AdamSobieszek/langtorch?style=social)](https://star-history.com/#AdamSobieszek/langtorch)
