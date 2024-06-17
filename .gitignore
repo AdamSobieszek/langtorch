@@ -11,3 +11,7 @@ examples/
 __pycache__/
 LangTorch.egg-info/
 /stuff/
+/src/langtorch/main.py
+/src/langtorch/main2.py
+/src/langtorch/test.yaml
+/src/langtorch/main.py
