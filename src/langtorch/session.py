@@ -222,19 +222,18 @@ class Session(metaclass=SingletonMeta):
             if response is None:
                 raise ValueError(f"Could not find response for {request_strings[i]}")
 
-
         if type == "embeddings":
             return torch.vstack(responses)  # .permute((1,0))
         else:
             for i, response in enumerate(responses):
                 for j, text in enumerate(response):
-                    if key is None and len(text.items())==1 and text.items()[0][0] == "assistant":
+                    if key is None and len(text.items()) == 1 and text.items()[0][0] == "assistant":
                         responses[i][j].content = [text.items()[0][1]]
             from langtorch import TextTensor
             # Here, sublists represent choices for different prompts and sublist elements are Text objects
             responses = [
                 [text.add_key(key) if (
-                            key is not None and len(text.items()) != 0 and text.items()[0][0] != key) else text for
+                        key is not None and len(text.items()) != 0 and text.items()[0][0] != key) else text for
                  text in response] for
                 response in responses]
             return TextTensor(responses, parse=False)  # .permute((1, 0))

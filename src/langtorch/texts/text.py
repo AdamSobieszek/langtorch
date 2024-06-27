@@ -114,7 +114,6 @@ class Text(str):
         parser = "langtorch-f-string" if parse is True else (False if parse is None else parse)
         content = ast.parse_content(content, parser=parser)
 
-
         assert ast.is_valid_tree(content, is_tuple=True), f"Creating Text with an invalid content tree: {content}"
 
         instance = super().__new__(cls, cls.str_formatter(content))
@@ -124,7 +123,6 @@ class Text(str):
             raise ValueError(
                 f"Invalid key found in {instance.keys()}. For class {cls.__name__} only {instance.allowed_keys} keys are allowed.")
         return instance
-
 
     @classmethod
     def str_formatter(cls, instance, language="str") -> str:
@@ -214,7 +212,6 @@ class Text(str):
         s = self.__class__.str_formatter(self, self.language)
         return s if s else "\u200b"  # Zero width space to fix errors with printing arrays of empty Texts
 
-
     def to_tensor(self, **kwargs):
         from langtorch import TextTensor
         if not "ttype" in kwargs:
@@ -242,7 +239,8 @@ class Text(str):
 
         if isinstance(content, list):
             content = tuple(content)
-        assert isinstance(content, tuple), f"Content must be a list or tuple (of strings or tuples), not {type(content)}"
+        assert isinstance(content,
+                          tuple), f"Content must be a list or tuple (of strings or tuples), not {type(content)}"
         self._content = ast.to_ast(content, parser=False, is_tuple=True)
 
     def items(self):
@@ -505,7 +503,6 @@ class Text(str):
         from langtorch import TextTensor
         return TextTensor(str(self).split() if sep == "" else str(self).split(sep), parse=False)
 
-
     def __getitem__(self, index):
         if isinstance(index, str):
             return self.loc[index]
@@ -520,15 +517,14 @@ class Text(str):
     def __eq__(self, other):
         if isinstance(other, Text):
             return self.content == other.content
-        elif isinstance(other,str):
-            s = str(Text(self)).replace("u200b","")
+        elif isinstance(other, str):
+            s = str(Text(self)).replace("u200b", "")
             return s == other
         return False
 
     def __iter__(self):
         for s in self.content:
             yield s
-
 
     # def _handle_other(self, other, method):
     #     if isinstance(other, str) and not isinstance(other, Text):
@@ -557,12 +553,13 @@ class Text(str):
             try:
                 return self.__class__(*self.content, other, parse=False)
             except ValueError as e:
-                raise ValueError(f"Cannot add other={other} to Text. Failed to create a Text instance from other.") from e
+                raise ValueError(
+                    f"Cannot add other={other} to Text. Failed to create a Text instance from other.") from e
 
     def __mul__(self, other):
         if is_TextTensor(other):
             if len(other.flat) == 1:
-                other =  other.item()
+                other = other.item()
             else:
                 return other.__class__([self * t for t in other.flat], ttype=self.__class__, parse=False)
         elif not isinstance(other, Text):
@@ -580,9 +577,10 @@ class Text(str):
                 if not parent_key:
                     flatter_tuple = flatten_keys(value[0], value[1], iterate=iterate)
                 else:
-                    flatter_tuple = flatten_keys(f"{parent_key}{sep + value[0] if value[0] else ''}", value[1], iterate=iterate)
+                    flatter_tuple = flatten_keys(f"{parent_key}{sep + value[0] if value[0] else ''}", value[1],
+                                                 iterate=iterate)
                 if iterate:
-                    return flatter_tuple+[(parent_key, value)]
+                    return flatter_tuple + [(parent_key, value)]
                 else:
                     return flatter_tuple
             else:
@@ -632,13 +630,13 @@ class Text(str):
         replacement_map = {}
         for i, (k, v) in enumerate(items):
             if isinstance(v, str) and v.isdigit():
-                if int(v)<len(items_other):
+                if int(v) < len(items_other):
                     replacement_map[i] = int(v)
         for i, (k, v) in enumerate(items):
             if isinstance(v, str) and v == "":
                 try:
                     replacement_map[i] = next(j for j in range(len(items_other)) if j not in replacement_map.values())
-                except StopIteration: # no more items in other
+                except StopIteration:  # no more items in other
                     break
 
         # Replace entries of result according to replacement_map

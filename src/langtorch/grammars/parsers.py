@@ -15,6 +15,7 @@ def pandoc_parser(txt, language="md"):
         print(f"Error parsing with pandoc: {e}")
         return (txt,)
 
+
 def langtorch_parser(txt):
     try:
         txt_ = fix_double_brackets(txt)
@@ -27,12 +28,14 @@ def langtorch_parser(txt):
            for res in parsed_result]
     return arg
 
+
 def xml_parser(txt):
     try:
         return xml_to_ast(txt)
     except Exception as e:
         print(f"Error parsing XML: {e}")
         return (txt,)
+
 
 class Parsers:
     def __getitem__(self, item):

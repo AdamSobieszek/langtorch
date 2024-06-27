@@ -33,7 +33,7 @@ def _numpy_object_pad(input_array, pad, value=None):
     return padded_array
 
 
-def _unbroadcast_gradients(input_grad, tensor1, tensor2, gradient_equation=(lambda grad,t1,t2: (grad, grad)), sep=""):
+def _unbroadcast_gradients(input_grad, tensor1, tensor2, gradient_equation=(lambda grad, t1, t2: (grad, grad)), sep=""):
     with torch.no_grad():
         # Get the shapes of the original tensors
         tensor1_shape = tensor1.shape
@@ -63,6 +63,7 @@ def _unbroadcast_gradients(input_grad, tensor1, tensor2, gradient_equation=(lamb
         assert input_grad.__class__ == grad1.__class__
 
         return grad1, grad2
+
 
 class AddTextTensor(Function):
     """TextTensor + TextTensor"""
@@ -105,9 +106,11 @@ class MulTextTensor(Function):
     def backward(ctx, grad_output):
         if grad_output is None:
             return None, None
-        assert isinstance(grad_output, langtorch.TextTensor) and hasattr(grad_output, "content"), "Backward got a TextTensor without .content"
+        assert isinstance(grad_output, langtorch.TextTensor) and hasattr(grad_output,
+                                                                         "content"), "Backward got a TextTensor without .content"
         input1, input2 = ctx.saved_tensors
-        grad_input1, grad_input2 = _unbroadcast_gradients(grad_output, input1, input2, gradient_equation=(lambda grad,t1,t2: (grad*t2, grad*t1)))
+        grad_input1, grad_input2 = _unbroadcast_gradients(grad_output, input1, input2, gradient_equation=(
+            lambda grad, t1, t2: (grad * t2, grad * t1)))
         # print("mul")
         # print(torch.stack((input1, grad_input1)))
         # print(torch.stack((input2, grad_input2)))
@@ -311,7 +314,7 @@ class JoinTextTensor(Function):
         if dim != torch.nan:
             dim = sorted(list([d for d in dim.flatten()]))
         else:
-            dim = [*range(len(tuple(shape))-len(tuple(grad_output.shape)))]
+            dim = [*range(len(tuple(shape)) - len(tuple(grad_output.shape)))]
         for d in dim:
             grad_output = grad_output.unsqueeze(d)
         grad_output = grad_output.expand(tuple(shape))
@@ -396,14 +399,14 @@ class IndexTextTensor(Function):
         # Use the index to slice the input's content
         # Create a new TextTensor from the selected content
         output = input.__class__(metadata=input.getitem_over_metadata(index),
-                            ttype=input.ttype,
-                            embedding_model=input.embedding_model,
-                            tokenizer=input.tokenizer,
-                            tokenizer_kwargs=input.tokenizer_kwargs,
-                            requires_grad=input.requires_grad,
-                            is_gradient=input.is_gradient,
-                            is_param=input.is_param,
-                            parse=False)
+                                 ttype=input.ttype,
+                                 embedding_model=input.embedding_model,
+                                 tokenizer=input.tokenizer,
+                                 tokenizer_kwargs=input.tokenizer_kwargs,
+                                 requires_grad=input.requires_grad,
+                                 is_gradient=input.is_gradient,
+                                 is_param=input.is_param,
+                                 parse=False)
 
         return output
 
@@ -417,7 +420,6 @@ class IndexTextTensor(Function):
         grad_input[index] = grad_output
         # Only grad_input is needed to pass back since index doesn't require gradient
         return grad_input, None
-
 
 # functional versions of modules
 

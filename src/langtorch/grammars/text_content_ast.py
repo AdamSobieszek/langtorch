@@ -81,6 +81,7 @@ def to_ast(*args, parser="langtorch-f-string", is_tuple=False):
         else:  # Cast to string
             return str(arg)
         # Maybe consider: raise ParseException(f"Could not parse {arg} of type {type(arg).__name__}")
+
     content = [simplify(arg, parser=parser) for arg in args]
     if not is_tuple:  # Recursive case: In these cases we are returning a node or tree with a single root node
         return content[0] if isinstance(content, list) and len(content) == 1 else content

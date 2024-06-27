@@ -4,7 +4,6 @@ from typing import Any, Dict, Iterable, List, TypeAlias, Union
 from langtorch import TextTensor, Activation
 
 
-
 class TextOptimizer(Optimizer):
     def __init__(self,
                  params: Union[Iterable[torch.Tensor], Iterable[Dict[str, Any]]],
@@ -36,11 +35,11 @@ class TextOptimizer(Optimizer):
             for param in group['params']:
                 if not isinstance(param, TextTensor):
                     raise ValueError("TextOptimizer parameters must be of type TextTensor")
-                if param.grad is None: # We don't update the parameters that have no gradients
+                if param.grad is None:  # We don't update the parameters that have no gradients
                     continue
                 grad = param.grad
                 # Perform the optimization step to update 'param.content'
-                param.content = (param+"\ngrad:\n").content + grad.content
+                param.content = (param + "\ngrad:\n").content + grad.content
 
         return loss
 
@@ -72,7 +71,7 @@ class TextOptimizer(Optimizer):
 class TextualGradientDescent(TextOptimizer):
     def __init__(self,
                  params,
-                 activation: Activation=None):
+                 activation: Activation = None):
         """TextualGradientDescent optimizer
 
         :param engine: the engine to use for updating variables

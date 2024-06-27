@@ -131,27 +131,29 @@ def chat_strings(prompts, system_messages, model="gpt-3.5-turbo-0613", temperatu
                 tools[i] = {"type": "function", "function": tools[i]}
 
     params = {"temperature": temperature,
-                  "top_p": top_p,
-                  "n": n,
-                  "stop": stop,
-                  "max_tokens": max_tokens,
-                  "presence_penalty": presence_penalty,
-                  "frequency_penalty": frequency_penalty,
-                  "tools": tools,
-                  "tool_choice": tool_choice}
+              "top_p": top_p,
+              "n": n,
+              "stop": stop,
+              "max_tokens": max_tokens,
+              "presence_penalty": presence_penalty,
+              "frequency_penalty": frequency_penalty,
+              "tools": tools,
+              "tool_choice": tool_choice}
 
     default_values = {"temperature": 1, "top_p": 1, "n": 1, "stop": None, "max_tokens": None, "presence_penalty": 0,
                       "frequency_penalty": 0, "tools": None, "tool_choice": "none"}
 
     jobs = [{"model": model,
-             "messages": ([{"role": "system", "content": system_message}] if system_message else [])+([{"role": "user", "content": prompt}] if isinstance(prompt, str) else
-             [{"role": r, "content": c} for r, c in prompt]),
+             "messages": ([{"role": "system", "content": system_message}] if system_message else []) + (
+                 [{"role": "user", "content": prompt}] if isinstance(prompt, str) else
+                 [{"role": r, "content": c} for r, c in prompt]),
              **{param: value for param, value in params.items() if value != default_values[param]}}
             for prompt, system_message in zip(prompts, system_messages)]
     return [json.dumps(job, ensure_ascii=False) for job in jobs]
 
 
-def chat(prompts, system_messages, model="gpt-3.5-turbo", provider = "openai", cache=True, api_key=None, verbose=False, as_str=False, key=None,
+def chat(prompts, system_messages, model="gpt-3.5-turbo", provider="openai", cache=True, api_key=None, verbose=False,
+         as_str=False, key=None,
          **kwargs):
     """
     Processes a list of chat prompts in parallel, saving the results to a specified file.
@@ -181,9 +183,9 @@ def chat(prompts, system_messages, model="gpt-3.5-turbo", provider = "openai", c
     request_strings = chat_strings(prompts, system_messages, model, **kwargs)
 
     session = Session()
-    provider_to_request_url = {"openai":"https://api.openai.com/v1/chat/completions",
-                                               "anthropic":"https://api.anthropic.com/v1/messages",
-                                               "groq":"https://api.groq.com/openai/v1/chat/completions"}
+    provider_to_request_url = {"openai": "https://api.openai.com/v1/chat/completions",
+                               "anthropic": "https://api.anthropic.com/v1/messages",
+                               "groq": "https://api.groq.com/openai/v1/chat/completions"}
     assert provider in provider_to_request_url, f"Provider {provider} not in available providers"
     if api_key is None:
         try:
@@ -191,10 +193,10 @@ def chat(prompts, system_messages, model="gpt-3.5-turbo", provider = "openai", c
         except KeyError as e:
             raise KeyError(f'No {provider} API key. Set os.environ["{provider.upper()}_API_KEY"] = YOUR KEY') from e
     provider_to_request_header = {"openai": {"Authorization": f"Bearer {api_key}"},
-                                 "anthropic": {"x-api-key:": f"{api_key}",
-                                               "anthropic-version": "2023-06-01",
-                                               "Content-Type": "application/json"},
-                                      "groq": {"Authorization": f"Bearer {api_key}"},}
+                                  "anthropic": {"x-api-key:": f"{api_key}",
+                                                "anthropic-version": "2023-06-01",
+                                                "Content-Type": "application/json"},
+                                  "groq": {"Authorization": f"Bearer {api_key}"}, }
     request_header = provider_to_request_header[provider]
     ids, uncached_request_strings = session.request(provider, "chat", request_strings, cache)
 
@@ -205,7 +207,7 @@ def chat(prompts, system_messages, model="gpt-3.5-turbo", provider = "openai", c
                 request_strings=uncached_request_strings,
                 request_url=provider_to_request_url[provider],
                 request_header=request_header,
-                max_requests_per_minute=200 if "gpt-4" in request_strings[0] else 3_500 * 0.5, # TODO Update limits
+                max_requests_per_minute=200 if "gpt-4" in request_strings[0] else 3_500 * 0.5,  # TODO Update limits
                 max_tokens_per_minute=40_000 * 0.5 if "gpt-4" in request_strings[0] else 90_000 * 0.5,
             )
 
@@ -222,7 +224,7 @@ def chat(prompts, system_messages, model="gpt-3.5-turbo", provider = "openai", c
         return session.completions("chat", provider, request_strings, key=key)
 
 
-def get_embedding(texts, model="text-embedding-3-small", cache=True,  api_key=None, verbose=False):
+def get_embedding(texts, model="text-embedding-3-small", cache=True, api_key=None, verbose=False):
     """
     Retrieves embeddings for the given texts from the OpenAI API and saves the results in a file.
 

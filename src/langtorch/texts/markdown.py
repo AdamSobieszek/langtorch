@@ -1,6 +1,5 @@
 from typing import List, Union, Tuple, Any
 
-
 from .text import Text
 from ..grammars import utils
 
@@ -8,10 +7,11 @@ from ..grammars import utils
 class Markdown(Text):
     language = 'md'
 
-    def __new__(cls, *substrings, parse ="md", language="md", **kwargs):
+    def __new__(cls, *substrings, parse="md", language="md", **kwargs):
         instance = super().__new__(cls, *substrings, parse=parse, language=language, **kwargs)
 
         return instance
+
 
 """alternative implementation: """
 # from markdown_it import MarkdownIt

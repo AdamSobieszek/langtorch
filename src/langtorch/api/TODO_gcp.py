@@ -25,7 +25,6 @@ async def process_api_requests_from_file(
     seconds_to_pause_after_rate_limit_error = 15
     seconds_to_sleep_each_loop = 0.001  # 1 ms limits max throughput to 1,000 requests per second
 
-
     # infer API endpoint and construct request header
     api_endpoint = api_endpoint_from_url(request_url)
     request_header = {"Authorization": f"Bearer {api_key}"}
@@ -49,7 +48,7 @@ async def process_api_requests_from_file(
     with open(requests_filepath) as file:
         # `requests` will provide requests one at a time
         requests = file.__iter__()
-    # logging.debug(f"Entering main loop")
+        # logging.debug(f"Entering main loop")
 
         while True:
             # get next request (if one is not already waiting for capacity)

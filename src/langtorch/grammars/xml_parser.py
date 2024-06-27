@@ -2,13 +2,14 @@ import xml.etree.ElementTree as ET
 from xml.etree.ElementTree import ParseError
 from typing import Union, Tuple, List
 
+
 def xml_to_ast(xml_string: str) -> Union[Tuple[str, Union[str, Tuple]], Tuple]:
     """ Converts an XML string to a structured tuple representation of its AST. """
     # Parse the XML string into an ElementTree
     try:
         root = ET.fromstring(xml_string)
     except ParseError:
-        root = ET.fromstring("<xml_temp_root>"+xml_string+"</xml_temp_root>")
+        root = ET.fromstring("<xml_temp_root>" + xml_string + "</xml_temp_root>")
 
     def recurse(element):
         """ Recursively traverse the XML elements and build a tuple structure. """
@@ -32,7 +33,7 @@ def xml_to_ast(xml_string: str) -> Union[Tuple[str, Union[str, Tuple]], Tuple]:
     if root.tag != "xml_temp_root":
         return ((root.tag, parsed_result),)
     elif isinstance(parsed_result, str):
-        return  (parsed_result,)
+        return (parsed_result,)
     elif isinstance(parsed_result, tuple) and len(parsed_result) == 1:
         return (parsed_result,)
     else:
@@ -51,7 +52,6 @@ def xml_to_ast(xml_string: str) -> Union[Tuple[str, Union[str, Tuple]], Tuple]:
 # (('keyA', 'text text1'), ('keyA', 'text text1'))
 # (('keyA', [('', 'smth'), ('keyA', 'text text1')]),)
 # (('root', [('keyA', 'text text1'), ('keyA', 'text text1'), ('', 'text with an empty key'), ('keyA', [('', 'smth'), ('keyA', 'text text1')])]),)
-
 
 
 # def ast_to_xml(ast: Union[Tuple[str, Union[str, Tuple]], Tuple, List]) -> str:

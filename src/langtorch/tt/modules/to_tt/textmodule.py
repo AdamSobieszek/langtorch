@@ -138,19 +138,19 @@ class TextModule(torch.nn.Module):
         else:
             return output
 
-
     def _get_name(self):
         try:
-            return self.__class__.__name__+f": {self.input_class.__name__}->{self.output_class.__name__} "
+            return self.__class__.__name__ + f": {self.input_class.__name__}->{self.output_class.__name__} "
         except:
             return self.__class__.__name__
 
     def extra_repr(self):
         # This method is used to provide extra information for the print representation of the module
-        add_indent = lambda name, param: f'({name}): '+("\n"+" "*len(f'({name}):')).join(str(param).split("\n"))+",\n"
+        add_indent = lambda name, param: f'({name}): ' + ("\n" + " " * len(f'({name}):')).join(
+            str(param).split("\n")) + ",\n"
 
         if self._prompt is not None:
-            repr = add_indent("prompt",self._prompt)
+            repr = add_indent("prompt", self._prompt)
         else:
             repr = ''
         for name, param in self.named_parameters():

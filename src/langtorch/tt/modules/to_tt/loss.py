@@ -65,4 +65,3 @@ class BinaryTextLoss(_TextLoss):
     def forward(self, input: TextTensor, target: TextTensor):
         loss = super().forward(TextTensor(input).add_key_("input") + TextTensor(target).add_key_("target"))
         return loss
-

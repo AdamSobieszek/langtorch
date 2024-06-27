@@ -28,9 +28,10 @@ class ActivationFunction(torch.autograd.Function):
                 system_messages = system_messages * len(input)
         else:
             system_messages = [str(t) for t in activation.system_message]
-        assert len(input) == len(system_messages), f"Input and system messages must have the same length. Got input len={len(input)} and system_messages={system_messages} instead."
+        assert len(input) == len(
+            system_messages), f"Input and system messages must have the same length. Got input len={len(input)} and system_messages={system_messages} instead."
 
-            # Transform chat input into (role, content) pairs
+        # Transform chat input into (role, content) pairs
         for i, m in enumerate(input):
             if "system" in m.keys():
                 system_messages[i] = m.loc["system"].values()[-1]
@@ -50,7 +51,8 @@ class ActivationFunction(torch.autograd.Function):
 
         output = activation.generate(input, system_messages)
         assert output is not None
-        shape = tuple([activation.n]+[m for m in input_tensor.shape]) if activation.n != 1 else tuple(input_tensor.shape)
+        shape = tuple([activation.n] + [m for m in input_tensor.shape]) if activation.n != 1 else tuple(
+            input_tensor.shape)
         output_tensor = input_tensor.__class__(output, parse=activation.parse_output).reshape(shape)
         ctx.save_for_backward(input_tensor.clone(), output_tensor.clone())
         ctx.activation = activation
@@ -60,12 +62,13 @@ class ActivationFunction(torch.autograd.Function):
     @staticmethod
     def backward(ctx, grad_output):
         # Perform the backward pass computation
-        input_tensor,output_tensor = ctx.saved_tensors
-        print("backward_input:\n",grad_output,input_tensor,output_tensor)
-        input = grad_output.add_key_("grad")+input_tensor.add_key_("input")+output_tensor.add_key_("output")
-        grad_input = TextModule(ctx.activation.backward_prompt)(input)#, activation=grad_output.backward_activation)(input)
+        input_tensor, output_tensor = ctx.saved_tensors
+        print("backward_input:\n", grad_output, input_tensor, output_tensor)
+        input = grad_output.add_key_("grad") + input_tensor.add_key_("input") + output_tensor.add_key_("output")
+        grad_input = TextModule(ctx.activation.backward_prompt)(
+            input)  # , activation=grad_output.backward_activation)(input)
         # call with backward prompt
-        print("backward_output:\n",grad_input)
+        print("backward_output:\n", grad_input)
         return grad_input, None
 
 
@@ -86,8 +89,8 @@ class Activation(TextModule):
                  T: float = 0.8,
                  tools: Optional[List[dict]] = None,
                  parse_output: bool = False,
-                 key = None,
-                **kwargs):
+                 key=None,
+                 **kwargs):
         if any([arg == "default" for arg in [model, system_message]]):
             print(f"model = {model}, system_message = {system_message}")
             raise ValueError(
@@ -119,32 +122,33 @@ class Activation(TextModule):
 
         self.register_forward_hook(self.keep_history_hook)
 
-
     @staticmethod
     def keep_history_hook(module, input, output):
         if module.keep_history:
             return input + output.add_key_("assistant")
 
-
     def forward(self, inputs) -> TextTensor:
         return ActivationFunction.apply(inputs, self)
 
     def generate(activation, inputs, system_messages):
-        return chat(inputs, system_messages, model=activation.model, provider=activation.provider, cache=activation.cache, as_str=True,
-                      tools=activation.tool_jsons, key=activation.key,
-                      **activation.kwargs)
+        return chat(inputs, system_messages, model=activation.model, provider=activation.provider,
+                    cache=activation.cache, as_str=True,
+                    tools=activation.tool_jsons, key=activation.key,
+                    **activation.kwargs)
 
     def extra_repr(self):
         # This method is used to provide extra information for the print representation of the module
-        add_indent = lambda name, param: f'({name}): '+("\n"+" "*len(f'({name}):')).join(str(param).split("\n"))+",\n"
+        add_indent = lambda name, param: f'({name}): ' + ("\n" + " " * len(f'({name}):')).join(
+            str(param).split("\n")) + ",\n"
         if self.model:
-            repr = add_indent("model",self.model)
+            repr = add_indent("model", self.model)
         if self.system_message is not None:
-            repr += add_indent("system_message",self.system_message)
+            repr += add_indent("system_message", self.system_message)
 
         if self.key != None:
             repr += add_indent("key", self.key)
         return repr if not repr else repr[:-2] if repr[-2:] == ",\n" else repr
+
 
 class OpenAI(Activation):
     input_class = TextTensor

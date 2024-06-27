@@ -13,6 +13,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+
 class BackwardActivation(Activation):
     @staticmethod
     def _construct_prompt(instruction_chain, backward_info):

@@ -11,4 +11,3 @@ pypandoc
 transformers
 omegaconf
 hydra-core
-markdown-it-py

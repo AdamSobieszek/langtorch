@@ -34,7 +34,6 @@ class CoDModule(TextModule):
         super().__init__(self.template,
                          Activation(system_message="You are a summarizer.", T=0.9, model="gpt-3.5-turbo"))
 
-
 # Example usage
 # article = TextTensor(
 #     [Text(("Article", "This is an example article content that will be summarized using the CoD technique."))])

@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="LangTorch",
-    version="1.0.7",
+    version="1.0.8",
     description="Framework for intuitive LLM application development with tensors.",
     long_description=open("README.md", "r").read(),
     long_description_content_type="text/markdown",
@@ -12,7 +12,7 @@ setup(
     packages=find_packages(where="src"),
     package_dir={"": "src"},
     install_requires=[
-        "numpy",
+        "numpy<2.0.0",
         "torch >= 2.1.0",
         "aiohttp",
         "nest_asyncio",
@@ -24,8 +24,7 @@ setup(
         "pypandoc",
         "transformers",
         'omegaconf',
-        'hydra-core',
-        "markdown-it-py"
+        'hydra-core'
     ],
     python_requires='>=3.8',
     classifiers=[

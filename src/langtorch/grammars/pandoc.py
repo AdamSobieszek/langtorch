@@ -153,4 +153,3 @@ def pandoc_to_ast_from_file(file_path: str, language: Optional[str] = None) -> t
     # Convert the input string to Pandoc JSON format
     output = json.loads(pypandoc.convert_text(input_string, 'json', format=input_format))
     return pandoc_dict_to_tuple(output["blocks"]), input_format
-

@@ -42,7 +42,7 @@ async def process_api_requests_from_session(
     available_token_capacity = max_tokens_per_minute
     last_update_time = time.time()
     _num_tasks_failed = status_tracker.num_tasks_failed
-    _num_tasks_started= status_tracker.num_tasks_started
+    _num_tasks_started = status_tracker.num_tasks_started
     _num_rate_limit_errors = status_tracker.num_rate_limit_errors
 
     # initialize flags
@@ -67,7 +67,7 @@ async def process_api_requests_from_session(
                         id=id,
                         request_json=request_json,
                         token_consumption=num_tokens_consumed_from_request(request_json, api_endpoint,
-                                                                           token_encoding_name)  if "openai.com" in request_url else 0,
+                                                                           token_encoding_name) if "openai.com" in request_url else 0,
                         attempts_left=max_attempts,
                     )
                     status_tracker.num_tasks_started += 1

@@ -7,6 +7,7 @@ from torch.types import _TensorOrTensors
 import langtorch
 from .torch_utils import _OptionalTensor
 
+
 def zeros_like(other, **kwargs):
     size = other.content.size if isinstance(other, langtorch.TextTensor) else other.size
     return langtorch.TextTensor([langtorch.Text()] * size, **kwargs).reshape(other.shape)

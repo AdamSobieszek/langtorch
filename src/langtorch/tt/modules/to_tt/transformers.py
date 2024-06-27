@@ -25,7 +25,8 @@ class TransformersCausalLM(torch.nn.Module):
         self.model_kwargs = model_kwargs
 
     def forward(self, input_texttensor: TextTensor, skip_special_tokens=True, **gen_kwargs) -> TextTensor:
-        input_texttensor = TextTensor(input_texttensor, tokenizer = self.tokenizer, tokenizer_kwargs=self.tokenizer_kwargs)
+        input_texttensor = TextTensor(input_texttensor, tokenizer=self.tokenizer,
+                                      tokenizer_kwargs=self.tokenizer_kwargs)
 
         # Tokenize and generate responses
         inputs = input_texttensor.tokenize().to(self.model.device)

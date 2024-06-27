@@ -2,7 +2,7 @@ from pyparsing import *
 import logging
 import re
 
-escaped_char = Suppress("\\") + oneOf("{}:`") # TO DO fix these escaped chars
+escaped_char = Suppress("\\") + oneOf("{}:`")  # TO DO fix these escaped chars
 LBRACE, RBRACE, COLON, BACKTICK = map(Suppress, '{}:`')
 value = CharsNotIn('{}:`')
 value_w_colon = CharsNotIn('{}`')
@@ -54,6 +54,7 @@ named_string = (empty_named_string
 # Constructing the final parser pattern with preference for unnamed strings
 LangTorchGrammarParser = ZeroOrMore(named_string | unnamed_string) + StringEnd()
 
+
 def fix_double_brackets(s):
     # Regex Explanation:
     # (?<!\{) - Negative lookbehind to ensure no '{' immediately before our pattern
@@ -71,7 +72,6 @@ def fix_double_brackets(s):
     result = re.sub(pattern, replacement, s)
 
     return result
-
 
 
 BNF = """TextParser = { (NamedString | UnnamedString) } ;

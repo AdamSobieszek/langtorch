@@ -1,6 +1,7 @@
 from typing import Union, Tuple, List
 import logging
 
+
 def block_to_markdown(cls, entry: Union[str, Tuple[str, Union[str, List]]]) -> str:
     newline = '\n'
 
@@ -36,7 +37,7 @@ def block_to_markdown(cls, entry: Union[str, Tuple[str, Union[str, List]]]) -> s
         elif entry[0] in ['BulletList', 'OrderedList', 'BlockQuote']:
             # Handling of list items
             if isinstance(entry[1], tuple):
-                entry = (entry[0],[entry[1]])
+                entry = (entry[0], [entry[1]])
             result = ""
             for i, child in enumerate(entry[1]):
                 if isinstance(child, str):

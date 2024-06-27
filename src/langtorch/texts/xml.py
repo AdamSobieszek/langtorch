@@ -1,7 +1,7 @@
 from typing import List, Union, Tuple, Any
 
-
 from .text import Text
+
 
 class XML(Text):
     language = 'xml'
