@@ -37,5 +37,5 @@ class Linear(TextModule):
     out_features: int
     weight: TextTensor
 
-    def _forward(self, input) -> TextTensor:
-        return self.activation(self._prompt @ input) if self.activation else self._prompt @ input
+    def forward(self, input) -> TextTensor:
+        return self._prompt @ input

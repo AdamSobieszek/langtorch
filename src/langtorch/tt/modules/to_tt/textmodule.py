@@ -45,22 +45,25 @@ class TextModule(torch.nn.Module):
     output_class = TextTensor
 
     def __init__(self,
-                 prompt: Union[str, TextTensor, list] = [""],
+                 prompt: Union[str, TextTensor, list] = None,
                  activation=None,
                  key=None,
                  type_checking=False, *args, **kwargs):
         super(TextModule, self).__init__(*args, **kwargs)
 
-        if not isinstance(prompt, TextTensor):
-            self._prompt = TextTensor(prompt)
+        if prompt is None:
+            self._prompt = None
+        elif not isinstance(prompt, TextTensor):
+            self._prompt = torch.nn.Parameter(TextTensor(prompt))
         else:
-            self._prompt = prompt[tuple()]
+            self._prompt = torch.nn.Parameter(prompt[tuple()])
 
         if isinstance(activation, str):
             from langtorch import Activation
             self.activation = Activation(activation)
         else:
             self.activation = activation  # An identity function if nothing is passed
+
         self.target_embedding = None
         if not issubclass(self.output_class, TextTensor) and key is not None:
             raise ValueError(
@@ -68,8 +71,8 @@ class TextModule(torch.nn.Module):
         self.key = key
         if type_checking:
             self.register_forward_pre_hook(self.pre_forward_hook)
-
-        self.register_forward_hook(self.post_forward_hook)
+        if self.activation is not None or self.key is not None:
+            self.register_forward_hook(self.activation_and_key_hook)
 
     @staticmethod
     def pre_forward_hook(module, input: List[TextTensor]):
@@ -77,12 +80,15 @@ class TextModule(torch.nn.Module):
             assert isinstance(tensor, module.input_class)
 
     @staticmethod
-    def post_forward_hook(module, input, output):
+    def activation_and_key_hook(module, input, output):
+        if module.activation:
+            output = module.activation(output)
         if module.key is not None and issubclass(module.output_class, TextTensor):
             if not isinstance(output, TextTensor):
                 print(f"Could not set key '{module.key}', Module output is not a TextTensor")
             else:
                 output.set_key_(module.key)
+        return output
 
     @property
     def prompt(self):
@@ -104,11 +110,11 @@ class TextModule(torch.nn.Module):
         raise NotImplementedError(
             'Setting TextModule.content is ambiguous, as it holds all module parameters.\nUse text_module.prompt = "New prompt" instead.')
 
-    def forward(self, *input) -> TextTensor:
+    def forward(self, *inputs) -> TextTensor:
         """
                 By default, the TextModule forward formats the input using the prompt template tensors using TextTensor multiplication,
-                then if not None applies an activation function, then if not None a key is set for all entries of the output TextTensor.
-                Subclass this class to use forward hooks that check the input and output types and set the key.
+                Then, forward hooks (if not None) apply the activation function and (if not None) set the key for all entries of the output TextTensor.
+                Subclass this class to inherit this functionality.
 
                 Parameters:
                     input (TextTensor): The input `TextTensor` that needs to be processed.
@@ -118,30 +124,40 @@ class TextModule(torch.nn.Module):
                                 and assigned the specified key.
 
                 Examples:
-                    >>> input_text = TextTensor({"texts": "An example input texts."})
+                    >>> text_module = TextModule(TextTensor("Summarize: {text}", activation="gpt-3.5-turbo", key="summary",
+                    >>> input_text = TextTensor({"text": "An example input texts."})
                     >>> output = text_module(input_text)
-                    # output is a TextTensor with the processed content and key "key_points".
+                    # output is a TextTensor with the summary with a key "summary" processed by gpt-3.5-turbo.
                 """
+        if self._prompt is None:
+            return inputs
 
-        return self._forward(*input)
+        output = tuple(self._prompt * input for input in inputs)
+        if len(output) == 1:
+            return output[0]
+        else:
+            return output
 
-    def _forward(self, input) -> TextTensor:
-        return self.activation(self._prompt * input) if self.activation else self._prompt * input
+
+    def _get_name(self):
+        try:
+            return self.__class__.__name__+f": {self.input_class.__name__}->{self.output_class.__name__} "
+        except:
+            return self.__class__.__name__
 
     def extra_repr(self):
         # This method is used to provide extra information for the print representation of the module
-        # form = lambda name, param: f'{", " if repr else "  "}{name}={param}'
+        add_indent = lambda name, param: f'({name}): '+("\n"+" "*len(f'({name}):')).join(str(param).split("\n"))+",\n"
+
         if self._prompt is not None:
-            repr = f'  prompt={self._prompt},\n'
+            repr = add_indent("prompt",self._prompt)
         else:
             repr = ''
         for name, param in self.named_parameters():
             if name not in ['_prompt', 'activation']:
-                repr += f'  {name}={param},\n'
-        if self.activation:
-            repr += f'  activation={self.activation},\n'
+                repr += add_indent(name, param)
         if self.key != None:
-            repr += f'    key={self.key}'
+            repr += add_indent("key", self.key)
         return repr if not repr else repr[:-2] if repr[-2:] == ",\n" else repr
 
     def __contains__(self, item):
@@ -149,4 +165,5 @@ class TextModule(torch.nn.Module):
 
     def embed(self, *args, **kwargs):
         for param in self.content:
-            param.embed(*args, **kwargs)
+            if hasattr(param, 'embed'):
+                param.embed(*args, **kwargs)

@@ -11,14 +11,21 @@ session = ctx
 
 
 class _TextLoss(TextModule):
-    reduction: str
+    reduction: str = 'sum'
 
-    def __init__(self, prompt: str, activation=None, key="loss", reduce=None, reduction: str = 'None') -> None:
-        super().__init__(prompt, activation=activation, key=key)
-        if reduce is not None:
-            self.reduction: str = _Reduction.legacy_get_string(True, reduce)
+    def __init__(self, prompt: TextTensor, activation=None, key="loss", reduction: str = 'sum') -> None:
+        super(_TextLoss, self).__init__(prompt=prompt, activation=activation, key=key)
+        self.reduction = reduction
+        self.register_forward_hook(self.reduction_hook)
+
+    @staticmethod
+    def reduction_hook(module, input, loss):
+        if module.reduction == 'none':
+            return loss
+        elif module.reduction == 'sum':
+            return loss.sum()
         else:
-            self.reduction = reduction
+            raise ValueError(f"Unknown reduction: {loss.reduction}")
 
 
 class CompareAnswersLoss(torch.autograd.Function):
@@ -47,20 +54,15 @@ class CompareAnswersLoss(torch.autograd.Function):
         return grad_input, grad_target, None
 
 
-class TODO_TextLoss(_TextLoss):
+class TextLoss(_TextLoss):
+    key: str = "loss"
+
+
+class BinaryTextLoss(_TextLoss):
     def __init__(self, prompt: TextTensor, activation=None, key="loss", reduction: str = 'none'):
-        super(TODO_TextLoss, self).__init__(activation=activation, key=key, prompt=prompt, reduction=reduction)
-        self.loss_module = TextModule(prompt, activation=activation, key=key)
+        super(BinaryTextLoss, self).__init__(prompt=prompt, activation=activation, key=key, reduction=reduction)
 
     def forward(self, input: TextTensor, target: TextTensor):
-        # Or we could use _forward from the grandparent TextModule class
-        loss = self.loss_module(TextTensor(input).add_key_("input") + TextTensor(target).add_key_("target"))
-        if self.reduction == 'none':
-            return loss
-        elif self.reduction == 'mean':
-            import langtorch
-            return langtorch.mean()
-        elif self.reduction == 'sum':
-            return loss.sum()
-        else:
-            raise ValueError(f"Unknown reduction: {self.reduction}")
+        loss = super().forward(TextTensor(input).add_key_("input") + TextTensor(target).add_key_("target"))
+        return loss
+

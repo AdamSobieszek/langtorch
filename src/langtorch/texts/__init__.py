@@ -3,3 +3,4 @@ from .code import Code
 from .markdown import Markdown
 from .text import Text
 from .string import String
+from .xml import XML

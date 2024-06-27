@@ -191,3 +191,36 @@ def positive_indices(indices, shape):
             result.append(index)
 
     return tuple(result)
+
+
+def pad_sequences_and_create_masks(token_lists):
+    # Determine the maximum length of the token list
+    max_len = max(len(tokens) for tokens in token_lists)
+
+    # Initialize padded input_ids and attention_mask lists
+    padded_input_ids = []
+    attention_masks = []
+
+    # Iterate over each list of token_ids in the input
+    for tokens in token_lists:
+        # Calculate the number of padding elements needed
+        num_padding = max_len - len(tokens)
+
+        # Create padded version of the token list
+        padded_tokens = tokens + [0] * num_padding
+        padded_input_ids.append(padded_tokens)
+
+        # Create attention mask for the current token list
+        # 1 for real tokens and 0 for padding
+        attention_mask = [1] * len(tokens) + [0] * num_padding
+        attention_masks.append(attention_mask)
+
+    # Convert lists to PyTorch tensors
+    padded_input_ids = torch.tensor(padded_input_ids)
+    attention_masks = torch.tensor(attention_masks)
+
+    # Return a dictionary in the format expected by Transformers library
+    return {
+        'input_ids': padded_input_ids,
+        'attention_mask': attention_masks
+    }

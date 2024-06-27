@@ -9,81 +9,97 @@ import langtorch.utils
 from langtorch.api.call import chat
 from langtorch.decorators import set_defaults_from_ctx
 from langtorch.tensors import TextTensor
+from langtorch import context
 from .textmodule import TextModule
 
 
-class ActivationOpenAI(torch.autograd.Function):
+class ActivationFunction(torch.autograd.Function):
     @staticmethod
-    def forward(ctx, input):
+    def forward(ctx, input_tensor, activation):
         # Perform the forward pass computation
-        ctx.save_for_backward(input)
-        # TODO differntiable chat
+        input = list(input_tensor.content.flat)
+        if activation.system_message is None:
+            system_messages = [activation.system_message] * len(input)
+        elif isinstance(activation.system_message, str):
+            system_messages = [str(activation.system_message)] * len(input)
+        elif isinstance(activation.system_message, TextTensor):
+            system_messages = [str(t) for t in activation.system_message.content.flat]
+            if len(system_messages) == 1:
+                system_messages = system_messages * len(input)
+        else:
+            system_messages = [str(t) for t in activation.system_message]
+        assert len(input) == len(system_messages), f"Input and system messages must have the same length. Got input len={len(input)} and system_messages={system_messages} instead."
+
+            # Transform chat input into (role, content) pairs
+        for i, m in enumerate(input):
+            if "system" in m.keys():
+                system_messages[i] = m.loc["system"].values()[-1]
+                m.content = [(k, v) for k, v in m.items() if k != "system"]
+            if np.all([key in ["user", "assistant"] for key in m.keys()]):
+                input[i] = m.items()
+            elif "user" not in m.keys() or "assistant" not in m.keys():
+                # NOT STRICT
+                input[i] = [("user", str(m))]
+                logging.debug(
+                    f"A text without exclusively 'assistant' or 'user' keys was passed to OpenAI Chat. Assuming the whole Text is one user message: = '{str(m)[:25]}'... ")
+            else:
+                raise ValueError(
+                    f"Invalid input to Chat API. Ambiguous input: some but not all items in TextTensor entries have keys 'user' or 'assistant'. Change the input into a valid chat, or the input was a single user message remove these keys or use entry.add_key_('user'): \nentry.items()=={m.items()}")
+        logging.debug(f"Chat api input: {input}")
+        logging.debug(f"Chat api unique system messages: {set(system_messages)}")
+
+        output = activation.generate(input, system_messages)
+        assert output is not None
+        shape = tuple([activation.n]+[m for m in input_tensor.shape]) if activation.n != 1 else tuple(input_tensor.shape)
+        output_tensor = input_tensor.__class__(output, parse=activation.parse_output).reshape(shape)
+        ctx.save_for_backward(input_tensor.clone(), output_tensor.clone())
+        ctx.activation = activation
+
+        return output_tensor
 
     @staticmethod
     def backward(ctx, grad_output):
         # Perform the backward pass computation
-        input, = ctx.saved_tensors
-        return input
+        input_tensor,output_tensor = ctx.saved_tensors
+        print("backward_input:\n",grad_output,input_tensor,output_tensor)
+        input = grad_output.add_key_("grad")+input_tensor.add_key_("input")+output_tensor.add_key_("output")
+        grad_input = TextModule(ctx.activation.backward_prompt)(input)#, activation=grad_output.backward_activation)(input)
+        # call with backward prompt
+        print("backward_output:\n",grad_input)
+        return grad_input, None
 
 
 class Activation(TextModule):
     input_class = TextTensor
     output_class = TextTensor
-
-    @set_defaults_from_ctx
-    def __new__(cls, model: str = "default",
-                system_message: str = None,
-                provider: str = "openai",
-                cache: bool = False,
-                keep_history: bool = False,
-                T: float = 0.8,
-                tools: Optional[List[dict]] = None,
-                key: Optional[str] = None,
-                backward_prompt: Union[str, TextTensor] = "default",
-                *args, **kwargs):
-        if any([arg == "default" for arg in [model, system_message]]):
-            print(f"model = {model}, system_message = {system_message}")
-            raise ValueError(
-                "Activation requires a model and system_message,, but these were not loaded from defaults or passed.")
-        if cls is Activation:
-            # Return an instance of the OpenAI subclass instead of Activation
-            # In the future more subclasses of Activation will be added here
-                activation = OpenAI(model=model,
-                              system_message=system_message,
-                              cache=cache,
-                              keep_history=keep_history,
-                              T=T,
-                              tools=tools,
-                              key=key,
-                              backward_prompt=backward_prompt,
-                              *args, **kwargs)
-                activation.provider = provider
-                return activation
-        else:
-            # If a subclass of Activation is being instantiated, proceed as normal
-            return super().__new__(cls)
-
-
-class OpenAI(TextModule):
-    input_class = TextTensor
-    output_class = TextTensor
     provider = "openai"
 
+    @set_defaults_from_ctx
     def __init__(self,
                  model: Union[str, TextTensor] = "gpt-3.5-turbo",
                  system_message: Union[
                      str, TextTensor] = None,
-                 backward_prompt: Union[str, TextTensor] = "",
+                 backward_prompt: Union[str, TextTensor] = None,
+                 provider: str = None,
                  cache: bool = False,
                  keep_history: bool = False,
                  T: float = 0.8,
                  tools: Optional[List[dict]] = None,
-                 parse_output=False,
-                 *args, **kwargs):
-        super(OpenAI, self).__init__()
-        self.system_message = str(system_message) if system_message is not None else None
+                 parse_output: bool = False,
+                 key = None,
+                **kwargs):
+        if any([arg == "default" for arg in [model, system_message]]):
+            print(f"model = {model}, system_message = {system_message}")
+            raise ValueError(
+                "Activation requires a model and system_message, but these were not loaded from defaults or passed.")
+
+        super(Activation, self).__init__(key=key)
+        self.system_message = system_message if system_message is not None else None
         self.model = model
         self.backward_prompt = backward_prompt
+        if provider is not None:
+            self.provider = provider
+
         self.keep_history = True if keep_history or kwargs.get('echo', False) else False
         if not 'temperature' in kwargs:
             kwargs['temperature'] = T
@@ -101,49 +117,44 @@ class OpenAI(TextModule):
         self.n = kwargs.get('n', 1)
         self.parse_output = parse_output
 
-    def forward(self, input: TextTensor):
-        if isinstance(input, list):
-            shape = (-1, self.n) if self.n > 1 else -1
-            input = TextTensor(input)
-        elif isinstance(input, TextTensor):
-            shape = tuple([self.n]+[m for m in input.shape]) if self.n > 1 else tuple(input.shape)
-        else:
-            raise TypeError("Activation handles only lists and TextTensors")
+        self.register_forward_hook(self.keep_history_hook)
 
-        input = list(input.content.flat)
-        system_messages = [self.system_message] * len(input)
 
-        # Transform chat input into (role, content) pairs
-        for i, m in enumerate(input):
-            if "system" in m.keys():
-                system_messages[i] = m.loc["system"].values()[-1]
-                m = m.loc[["user", "assistant"]]
-            if np.all([key in ["user", "assistant"] for key in m.keys()]):
-                input[i] = m.items()
-            elif "user" not in m.keys() or "assistant" not in m.keys():
-                # NOT STRICT
-                input[i] = [("user", str(m))]
-                logging.debug(
-                    f"A text without exclusively 'assistant' ot 'user' keys was passed to OpenAI Chat. Assuming the whole Text is one user message: = '{str(m)[:25]}'... ")
-            else:
-                raise ValueError(
-                    f"Invalid input to OpenAI Chat. Ambiguous input: some but not all items in TextTensor entries have keys 'user' or 'assistant'. Change the input into a valid chat, or the input was a single user message remove these keys or use entry.add_key_('user'): \nentry.items()=={m.items()}")
-        logging.debug(f"Chat api input: {input}")
-        logging.debug(f"Chat api unique system messages: {set(system_messages)}")
+    @staticmethod
+    def keep_history_hook(module, input, output):
+        if module.keep_history:
+            return input + output.add_key_("assistant")
 
-        result = chat(input, system_messages, model=self.model, provider=self.provider, cache=self.cache, as_str=True, tools=self.tool_jsons,
-                      **self.kwargs)
 
-        assert result is not None
-        if not self.keep_history:
-            return TextTensor(result, parse=self.parse_output).reshape(shape)
-        else:
-            return input + TextTensor(result, parse=self.parse_output).reshape(shape)
+    def forward(self, inputs) -> TextTensor:
+        return ActivationFunction.apply(inputs, self)
+
+    def generate(activation, inputs, system_messages):
+        return chat(inputs, system_messages, model=activation.model, provider=activation.provider, cache=activation.cache, as_str=True,
+                      tools=activation.tool_jsons, key=activation.key,
+                      **activation.kwargs)
+
+    def extra_repr(self):
+        # This method is used to provide extra information for the print representation of the module
+        add_indent = lambda name, param: f'({name}): '+("\n"+" "*len(f'({name}):')).join(str(param).split("\n"))+",\n"
+        if self.model:
+            repr = add_indent("model",self.model)
+        if self.system_message is not None:
+            repr += add_indent("system_message",self.system_message)
+
+        if self.key != None:
+            repr += add_indent("key", self.key)
+        return repr if not repr else repr[:-2] if repr[-2:] == ",\n" else repr
+
+class OpenAI(Activation):
+    input_class = TextTensor
+    output_class = TextTensor
+    provider = "openai"
 
 
 ChatGPT, GPT = OpenAI, OpenAI
 
-GPT4 = lambda *args, **kwargs: Activation("gpt-4", *args, **kwargs)
+GPT4 = lambda *args, **kwargs: Activation("gpt-4-turbo", *args, **kwargs)
 
 
 class TODO_LLM(torch.nn.Module):

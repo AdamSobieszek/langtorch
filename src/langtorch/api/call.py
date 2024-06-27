@@ -151,7 +151,7 @@ def chat_strings(prompts, system_messages, model="gpt-3.5-turbo-0613", temperatu
     return [json.dumps(job, ensure_ascii=False) for job in jobs]
 
 
-def chat(prompts, system_messages, model="gpt-3.5-turbo", provider = "openai", cache=True, api_key=None, verbose=False, as_str=False,
+def chat(prompts, system_messages, model="gpt-3.5-turbo", provider = "openai", cache=True, api_key=None, verbose=False, as_str=False, key=None,
          **kwargs):
     """
     Processes a list of chat prompts in parallel, saving the results to a specified file.
@@ -205,8 +205,7 @@ def chat(prompts, system_messages, model="gpt-3.5-turbo", provider = "openai", c
                 request_strings=uncached_request_strings,
                 request_url=provider_to_request_url[provider],
                 request_header=request_header,
-                logging_level=logging.INFO if verbose else logging.ERROR,
-                max_requests_per_minute=200 if "gpt-4" in request_strings[0] else 3_500 * 0.5,
+                max_requests_per_minute=200 if "gpt-4" in request_strings[0] else 3_500 * 0.5, # TODO Update limits
                 max_tokens_per_minute=40_000 * 0.5 if "gpt-4" in request_strings[0] else 90_000 * 0.5,
             )
 
@@ -220,7 +219,7 @@ def chat(prompts, system_messages, model="gpt-3.5-turbo", provider = "openai", c
                     raise RuntimeError(
                         f"Asyncio get current event loop failed with {E1}. Tried to fall back on new event loop with asyncio.run(job) but failed with error: {E2}.\nThis indicates error with the API code or provider and could be hard to fix.")
 
-        return session.completions("chat", provider, request_strings)
+        return session.completions("chat", provider, request_strings, key=key)
 
 
 def get_embedding(texts, model="text-embedding-3-small", cache=True,  api_key=None, verbose=False):
@@ -265,8 +264,7 @@ def get_embedding(texts, model="text-embedding-3-small", cache=True,  api_key=No
             max_requests_per_minute=3_000 * 0.5,
             max_tokens_per_minute=250_000 * 0.5,
             token_encoding_name="cl100k_base",
-            max_attempts=3,
-            logging_level=logging.INFO if verbose else logging.ERROR,
+            max_attempts=3
         )
 
         try:

@@ -3,6 +3,7 @@ cfg_yaml_aliases = {
     "default_activation_model": "cfg.tt.to_tt.activation.Activation.model",
     "default_system_message": "cfg.tt.to_tt.activation.Activation.system_message",
     "default_activation_backward": "cfg.tt.to_tt.activation.Activation.backward",
+    "activation_backward": "cfg.tt.to_tt.activation.Activation.backward",
     "default_strict_mode": "cfg.strict",
     "default_save_path": "cfg.default_path",
     "default_model_for_functions": "cfg.default_model_for_functions",
@@ -32,5 +33,6 @@ cfg_yaml_aliases = {
     "openai_api_key_or_path": "cfg.api.openai.api_key_or_path",
     "openai_organization": "cfg.api.openai.organization",
     "torch_no_grad": "cfg.torch.no_grad",
+    "no_grad": "cfg.torch.no_grad",
     "torch_device": "cfg.torch.device"
 }

@@ -7,9 +7,9 @@ import torch
 from langtorch.torch_utils import _OptionalTensor
 
 
-def worker_func(queue, gradients, retain_graph, create_graph, lock):
+def grad_worker_func(queue, gradients, retain_graph, create_graph, lock):
     """
-    The function that each worker thread runs.
+    The function that each worker thread runs in the parallel backward.
 
     Args:
         queue: The queue of nodes to process in the computational graph.
@@ -18,6 +18,7 @@ def worker_func(queue, gradients, retain_graph, create_graph, lock):
         create_graph: Whether to create a computational graph for higher order gradients.
         lock: A threading lock for thread-safety.
     """
+    from langtorch import TextTensor
 
     # While there are nodes in the queue
     while not queue.empty():
@@ -30,7 +31,16 @@ def worker_func(queue, gradients, retain_graph, create_graph, lock):
             save = False
             # Execute backward
             if hasattr(node, "apply"):
+                # print(node)
+                # for x in node.apply(grad_tensor):
+                #     if isinstance(x, torch.Tensor):
+                #         print(x.content)
                 grads = node.apply(grad_tensor)
+                for x in grads:
+                    if isinstance(x, TextTensor) and not hasattr(x, "backward_activation"):
+                        x.backward_activation = grad_tensor.backward_activation
+                # if not hasattr(grads, "backward_activation"):
+                #     grads.backward_activation = grad_tensor.backward_activation
             elif hasattr(node, "__call__"):
                 if type(node).__name__ == "AccumulateGrad":
                     save = True
@@ -68,7 +78,7 @@ def run_backward(tensors, grad_tensors_, retain_graph, create_graph, inputs, all
 
     # 1. Check if any of the tensors require gradients
     for tensor in tensors:
-        assert tensor.requires_grad, f"Tensor {tensor} does not require gradients."
+        assert tensor.requires_grad, f"Tensor {tensor} does not require gradients.\n{tensors}"
 
     # 2. Prepare an empty list to store computed gradients
     gradients = []
@@ -85,7 +95,7 @@ def run_backward(tensors, grad_tensors_, retain_graph, create_graph, inputs, all
     worker_threads = []
     NUM_WORKERS = 8
     for _ in range(NUM_WORKERS):
-        worker_thread = Thread(target=worker_func, args=(queue, gradients, retain_graph, create_graph, lock))
+        worker_thread = Thread(target=grad_worker_func, args=(queue, gradients, retain_graph, create_graph, lock))
         worker_thread.start()
         worker_threads.append(worker_thread)
 

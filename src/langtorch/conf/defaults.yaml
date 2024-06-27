@@ -4,6 +4,7 @@ cfg:
   default_path: ""  # Default path for saving/loading tensors
 
   default_model_for_functions: "gpt-3.5-turbo"
+  default_model_for_backward: "gpt-4o"
   default_embedding_model: "text-embedding-3-small"
 
   ### Printing ###
@@ -44,7 +45,7 @@ cfg:
           Activation:
             model: "gpt-3.5-turbo"
             system_message: null
-            backward_prompt: "Our objective is:\n{grad}\n\nTo achieve this, we performed the following task:\n{input}\n\nAnd hot the result:\n{output}\n\nDid we succeed or failed to perform the task given our goal? Respond with a one-sentence explanation or reason why or why not."
+            backward_prompt: "We are addressing this feedback:\n{grad}\n\nIt is in regards to our model output that when prompted with:\n{input}\n\nProduced the response:\n{output}\n\nDid we succeed or failed to perform the task (given our goal)? Respond with a one-sentence explanation or reason why yes or why not."
 
 
 

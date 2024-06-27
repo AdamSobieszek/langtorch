@@ -18,8 +18,7 @@ async def process_api_requests_from_session(
         max_requests_per_minute: float,
         max_tokens_per_minute: float,
         token_encoding_name: str,
-        max_attempts: int,
-        logging_level: int,
+        max_attempts: int
 ):
     """Processes API requests in parallel, throttling to stay under rate limits."""
     # constants
@@ -27,8 +26,6 @@ async def process_api_requests_from_session(
     seconds_to_sleep_each_loop = 0.001  # 1 ms limits max throughput to 1,000 requests per second
 
     # initialize logging and session
-    logging.basicConfig(level=logging_level)
-    logging.debug(f"Logging initialized at level {logging_level}")
     session = Session()
 
     # infer API endpoint and construct request header
@@ -54,7 +51,7 @@ async def process_api_requests_from_session(
     # initialize file reading
     requests = [(id, json.loads(m)) for id, m in zip(ids, request_strings)].__iter__()
     # `requests` will provide requests one at a time
-    logging.debug(f"File opened. Entering main loop")
+    # logging.debug(f"Entering main loop")
     while True:
         # get next request (if one is not already waiting for capacity)
         if next_request is None:
@@ -78,7 +75,7 @@ async def process_api_requests_from_session(
                     logging.debug(f"Reading request {next_request.task_id}: {next_request}")
                 except StopIteration:
                     # if file runs out, set flag to stop reading it
-                    logging.debug("Read file exhausted")
+                    # logging.debug("Read file exhausted")
                     file_not_finished = False
 
         # update available capacity

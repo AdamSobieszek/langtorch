@@ -1,16 +1,17 @@
 import base64
-import contextlib
 import contextvars
 import hashlib
 import logging
 import os
 from collections import OrderedDict
 from dataclasses import dataclass  # for storing API metadata
+
 import torch
 import yaml
 from omegaconf import OmegaConf, UnsupportedValueType
 
 from .conf import cfg_yaml_aliases
+
 
 class SingletonMeta(type):
     # This dict holds a single instance of a given singleton class, indexed by the class itself
@@ -75,22 +76,22 @@ class Session(metaclass=SingletonMeta):
     default_config = os.path.join(os.path.dirname(os.path.abspath(__file__)), "conf/defaults.yaml")
     session_file_template = os.path.join(os.path.dirname(os.path.abspath(__file__)), "conf/new_session_template.yaml")
 
-    def __init__(self, path=None, overwrite_existing=False):
+    def __init__(self, path=None, override=False, **kwargs):
         self._tensors = dict()
         self._requests = dict()
         self._responses = dict()
-        self._overwrite = overwrite_existing
-        self._path = path if path is None else  f"{os.path.splitext(path)[0]}.yaml"
+        self._override = override
+        self._path = path if path is None else f"{os.path.splitext(path)[0]}.yaml"
         self._cache_file = None
-        self.load(path, overwrite_existing)
+        self.load(path, override, **kwargs)
         self._status_tracker = StatusTracker()
 
-    def load(self, path=None, overwrite_existing=False):
+    def load(self, path=None, override=False, **kwargs):
         try:
             self._config = OmegaConf.load(self.default_config)
             if path:
                 self._path = path
-            if self._path and not overwrite_existing:
+            if self._path and not override:
                 session_config = OmegaConf.load(path)
                 self._config = OmegaConf.merge(self._config, session_config)
 
@@ -107,6 +108,8 @@ class Session(metaclass=SingletonMeta):
         except Exception as e:
             logging.error(f"Error loading session configuration: {e}")
             self._config = OmegaConf.load(self.session_file_template)
+        for k, v in kwargs.items():
+            setattr(self, k, v)
         return self
 
     def save(self, path=None):
@@ -124,7 +127,7 @@ class Session(metaclass=SingletonMeta):
         for k, v in underscore_attrs.items():
             self._config[k] = v
 
-        with open(self._path, 'w', encoding="utf-8") as f:
+        with open(path, 'w', encoding="utf-8") as f:
             OmegaConf.save(self._config, f, resolve=True)
 
         # Save the tensor cache
@@ -135,7 +138,7 @@ class Session(metaclass=SingletonMeta):
             }, self._cache_file)
 
     def __setattr__(self, name, value, save=True):
-        if name in ["_config", "_tensors", "_session_file", "_overwrite"]:
+        if name in ["_config", "_tensors", "_session_file", "_override"]:
             super().__setattr__(name, value)
             if name == "_config" and self._path and save:
                 self.save()
@@ -148,13 +151,12 @@ class Session(metaclass=SingletonMeta):
                 try:
                     self._config[name] = value
                     if name in self._tensors:
-                        print(f"Saving non-tensor with the same name as a saved tensor {name}, the tensor will be unobtainable (but remains saved)")
+                        print(
+                            f"Saving non-tensor with the same name as a saved tensor {name}, the tensor will be unobtainable (but remains saved)")
                 except UnsupportedValueType as e:
                     raise UnsupportedValueType("Session can only hold primitive types and TextTenor objects.") from e
             if self._path and save:
                 self.save()
-
-
 
     @property
     def path(self):
@@ -181,10 +183,10 @@ class Session(metaclass=SingletonMeta):
         ids = [self.get_hash(s) for s in strings]
 
         if cache:
-            criterion = lambda id: id not in self._responses or any([isinstance(r,dict) for r in self._responses[id]])
+            criterion = lambda id: id not in self._responses or any([isinstance(r, dict) for r in self._responses[id]])
             ids, request_strings = [id for id in ids if criterion(id)], [request for id, request in
-                                                                                     zip(ids, request_strings) if
-                                                                                     criterion(id)]
+                                                                         zip(ids, request_strings) if
+                                                                         criterion(id)]
         for id, request in zip(ids, request_strings):
             self._requests[id] = request
         return ids, request_strings
@@ -210,7 +212,7 @@ class Session(metaclass=SingletonMeta):
     def prompts(self, ids):
         return [self._requests[id] if id in self._requests else None for id in ids]
 
-    def completions(self, type, provider, request_strings):
+    def completions(self, type, provider, request_strings, key=None):
         if len(request_strings) == 0:
             return []
 
@@ -220,19 +222,25 @@ class Session(metaclass=SingletonMeta):
             if response is None:
                 raise ValueError(f"Could not find response for {request_strings[i]}")
 
+
         if type == "embeddings":
-            return torch.vstack(responses)#.permute((1,0))
+            return torch.vstack(responses)  # .permute((1,0))
         else:
+            for i, response in enumerate(responses):
+                for j, text in enumerate(response):
+                    if key is None and len(text.items())==1 and text.items()[0][0] == "assistant":
+                        responses[i][j].content = [text.items()[0][1]]
             from langtorch import TextTensor
+            # Here, sublists represent choices for different prompts and sublist elements are Text objects
             responses = [
-                [text.add_key("assistant") if len(text.items()) != 0 and text.items()[0][0] != "assistant" else text for
+                [text.add_key(key) if (
+                            key is not None and len(text.items()) != 0 and text.items()[0][0] != key) else text for
                  text in response] for
                 response in responses]
-            return TextTensor(responses, parse=False)#.permute((1, 0))
-
+            return TextTensor(responses, parse=False)  # .permute((1, 0))
 
     def __setattr__(self, name, value, save=True):
-        if name in ["_config", "_tensors", "_session_file", "_overwrite"]:
+        if name in ["_config", "_tensors", "_session_file", "_override"]:
             super().__setattr__(name, value)
             if name == "_config" and self._path and save:
                 self.save()
@@ -245,7 +253,8 @@ class Session(metaclass=SingletonMeta):
                 try:
                     self._config[name] = value
                     if name in self._tensors:
-                        print(f"Saving non-tensor with the same name as a saved tensor {name}, the tensor will be unobtainable (but remains saved)")
+                        print(
+                            f"Saving non-tensor with the same name as a saved tensor {name}, the tensor will be unobtainable (but remains saved)")
                 except UnsupportedValueType as e:
                     raise UnsupportedValueType("Session can only hold primitive types and TextTenor objects.") from e
             if self._path and save:
@@ -264,7 +273,7 @@ class Session(metaclass=SingletonMeta):
         return self._config
 
     def __getattr__(self, name):
-        if name in ["_config", "_session_file", "_cache_file", "_tensors", "_overwrite"]:
+        if name in ["_config", "_session_file", "_cache_file", "_tensors", "_override"]:
             return super().__getattribute__(name)
 
         if not hasattr(self._config, name) and name in self._tensors:
@@ -297,7 +306,9 @@ class Session(metaclass=SingletonMeta):
             def create_property(path):
                 def property_func(self):
                     return getattr(self, path)
+
                 return property(property_func)
+
             setattr(cls, alias, create_property(path))
 
     def __getitem__(self, entry):
@@ -307,7 +318,8 @@ class Session(metaclass=SingletonMeta):
         setattr(self, key, value)
 
     def __str__(self):
-        return "---   Session Config   ---\n" + yaml.dump(OmegaConf.to_object(self._config)) + "---   --------------   ---\n"
+        return "---   Session Config   ---\n" + yaml.dump(
+            OmegaConf.to_object(self._config)) + "---   --------------   ---\n"
 
     def __repr__(self):
         return self.__str__()
@@ -331,5 +343,7 @@ class Session(metaclass=SingletonMeta):
             logging.error(f"An error occurred: {exc_val.__class__}")
         return False  # False means don't suppress exceptions
 
+
 ctx = Session()
 ctx.create_aliases(cfg_yaml_aliases)
+context = ctx

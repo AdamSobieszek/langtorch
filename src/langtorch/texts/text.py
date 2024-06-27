@@ -112,9 +112,10 @@ class Text(str):
                 assert isinstance(content[i], str) or (0 < len(content[i]) <= 2)
         # returns the final content tuple
         parser = "langtorch-f-string" if parse is True else (False if parse is None else parse)
-        content = cls._parse_content(content, parser=parser)
+        content = ast.parse_content(content, parser=parser)
 
-        assert cls._is_valid_tree(content, is_tuple=True), f"Creating Text with an invalid content tree: {content}"
+
+        assert ast.is_valid_tree(content, is_tuple=True), f"Creating Text with an invalid content tree: {content}"
 
         instance = super().__new__(cls, cls.str_formatter(content))
         instance._content = content
@@ -124,10 +125,6 @@ class Text(str):
                 f"Invalid key found in {instance.keys()}. For class {cls.__name__} only {instance.allowed_keys} keys are allowed.")
         return instance
 
-    _is_valid_tree = ast.is_valid_tree
-    _is_terminal_node = ast.is_terminal_node
-    _to_ast = ast.to_ast
-    _parse_content = ast.parse_content
 
     @classmethod
     def str_formatter(cls, instance, language="str") -> str:
@@ -245,8 +242,8 @@ class Text(str):
 
         if isinstance(content, list):
             content = tuple(content)
-        assert isinstance(content, tuple)
-        self._content = self._to_ast(content, parser=False, is_tuple=True)
+        assert isinstance(content, tuple), f"Content must be a list or tuple (of strings or tuples), not {type(content)}"
+        self._content = ast.to_ast(content, parser=False, is_tuple=True)
 
     def items(self):
         """
@@ -321,7 +318,7 @@ class Text(str):
                 self.content), f"Number of keys ({len(key)}) must match number of entries ({len(self.content)})"
             content = tuple((k, v) for k, v in zip(key, self.content))
         elif isinstance(key, str):
-            content = ((key, self._to_ast(self.items(), parser=False)),)
+            content = ((key, tuple(self.items())),)
 
         if inplace:
             self.content = content
@@ -569,18 +566,30 @@ class Text(str):
             else:
                 return other.__class__([self * t for t in other.flat], ttype=self.__class__, parse=False)
         elif not isinstance(other, Text):
+            if other == 0:
+                return self.__class__()
+            elif other == 1:
+                return self
             try:
                 other = Text(other)
             except ParseException:
                 other = Text(other, parse=False)
 
-        def flatten_keys(parent_key, value, sep='.'):
+        def flatten_keys(parent_key, value, sep='.', iterate=False):
             if isinstance(value, tuple):
                 if not parent_key:
-                    return flatten_keys(value[0], value[1])
-                return flatten_keys(f"{parent_key}{sep + value[0] if value[0] else ''}", value[1])
+                    flatter_tuple = flatten_keys(value[0], value[1], iterate=iterate)
+                else:
+                    flatter_tuple = flatten_keys(f"{parent_key}{sep + value[0] if value[0] else ''}", value[1], iterate=iterate)
+                if iterate:
+                    return flatter_tuple+[(parent_key, value)]
+                else:
+                    return flatter_tuple
             else:
-                return (parent_key, value)
+                if iterate:
+                    return [(parent_key, value)]
+                else:
+                    return (parent_key, value)
 
         def match_mul_rule(k, v, k_, v_, i, result, formatted_indices, indices_to_delete):
             k, v = flatten_keys(k, v)
@@ -645,11 +654,13 @@ class Text(str):
         indices_to_delete = []
         for j, (k_, v_) in enumerate(items_other):
             if j not in replacement_map.values():
-                k_, v_ = flatten_keys(k_, v_)
-                for i, (k, v) in enumerate(items):
-                    if match_mul_rule(k, v, k_, v_, i, result, formatted_indices, indices_to_delete):
-                        break
-                else:
+                for k_, v_ in flatten_keys(k_, v_, iterate=True):
+                    if j is not None:
+                        for i, (k, v) in enumerate(items):
+                            if match_mul_rule(k, v, k_, v_, i, result, formatted_indices, indices_to_delete):
+                                j = None
+                                break
+                if j is not None:
                     result.append((k_, v_))
 
         def del_ind(subresult, index):

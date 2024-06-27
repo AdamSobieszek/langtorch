@@ -17,6 +17,8 @@ def parse_content(content, parser):
 
 def to_ast(*args, parser="langtorch-f-string", is_tuple=False):
     """Reformats a wide array of construtor patterns into a unified AST-like format"""
+    if len(args) == 0 or (len(args) == 1 and not args[0]):
+        return ""
     if len(args) == 1 and isinstance(args[0], list):
         args = args[0]
     if len(args) == 1 and ((isinstance(args[0], tuple) and len(args[0]) > 2) or isinstance(args[0], list)):
@@ -58,13 +60,13 @@ def to_ast(*args, parser="langtorch-f-string", is_tuple=False):
         elif isinstance(arg, tuple) and len(arg) > 2:
             # Assume a tuple of length != 2 was supposed to be a list
             logging.debug(
-                f"Tuples of length 2 represent (key, value) in Text objects. When parsing a Text entry was a tuple of length {len(arg)},\nit was converted to a list and may lead to errors.")
+                f"Tuples of length 2 represent (key, value) in Text objects. When parsing Text entry {arg} was a tuple of length {len(arg)},\nit was converted to a list and may lead to errors.")
             arg = list(arg)
 
         # Not a named string
         if isinstance(arg, list) and len(arg) == 1:
-            return simplify(arg[0])
-        elif isinstance(arg, (list, np.ndarray, torch.Tensor)):
+            return simplify(arg[0], parser=parser)
+        elif isinstance(arg, (list, np.ndarray, torch.Tensor)) and arg:
             return [simplify(element, parser=parser) for element in arg]
         elif is_Text(arg):
             if len(arg.items()) == 1:
@@ -79,7 +81,6 @@ def to_ast(*args, parser="langtorch-f-string", is_tuple=False):
         else:  # Cast to string
             return str(arg)
         # Maybe consider: raise ParseException(f"Could not parse {arg} of type {type(arg).__name__}")
-
     content = [simplify(arg, parser=parser) for arg in args]
     if not is_tuple:  # Recursive case: In these cases we are returning a node or tree with a single root node
         return content[0] if isinstance(content, list) and len(content) == 1 else content

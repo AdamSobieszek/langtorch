@@ -1,6 +1,8 @@
 from pyparsing import *
+import logging
+import re
 
-escaped_char = Suppress("\\") + oneOf("{}:`")
+escaped_char = Suppress("\\") + oneOf("{}:`") # TO DO fix these escaped chars
 LBRACE, RBRACE, COLON, BACKTICK = map(Suppress, '{}:`')
 value = CharsNotIn('{}:`')
 value_w_colon = CharsNotIn('{}`')
@@ -10,8 +12,8 @@ key = CharsNotIn('{}', min=1)  # Ensure key has at least one character
 # Redefining unnamed string patterns with improved backtick handling
 unnamed_string1 = (LBRACE + value("value") + (Optional(COLON) ^ StringEnd()) + RBRACE)
 unnamed_string2 = (LBRACE + BACKTICK + value("value") + BACKTICK + COLON + RBRACE)
-unnamed_string3 = (LBRACE + BACKTICK + value("value") + BACKTICK + RBRACE)
-unnamed_string4 = (LBRACE + BACKTICK + value("value") + BACKTICK + COLON + RBRACE)
+unnamed_string3 = (LBRACE + BACKTICK + value_backticked("value") + BACKTICK + RBRACE)
+unnamed_string4 = (LBRACE + BACKTICK + value_backticked("value") + BACKTICK + COLON + RBRACE)
 empty_unnamed_string1 = (LBRACE + RBRACE).setParseAction(lambda t: '')
 empty_unnamed_string2 = (BACKTICK + BACKTICK).setParseAction(lambda t: '')
 unnamed_string5 = value_w_colon("value")
@@ -52,13 +54,24 @@ named_string = (empty_named_string
 # Constructing the final parser pattern with preference for unnamed strings
 LangTorchGrammarParser = ZeroOrMore(named_string | unnamed_string) + StringEnd()
 
+def fix_double_brackets(s):
+    # Regex Explanation:
+    # (?<!\{) - Negative lookbehind to ensure no '{' immediately before our pattern
+    # {{ - Matches '{{'
+    # ([^{}]+) - Captures one or more characters that are not '{' or '}'
+    # }} - Matches '}}'
+    # (?![^{]*\}) - Negative lookahead to ensure our pattern is not within an outer '{...}'
+    pattern = r'(?<!\{){{([^{}]+)}}(?![^{]*\})'
 
-def LangTorch_f_string(txt):
-    parsed_result = LangTorchGrammarParser.parseString(txt)
-    items = [(res.key if "key" in res else "", res.value if "value" in res else "") if isinstance(res,
-                                                                                                  ParseResults) else res
-             for res in parsed_result]
-    return items
+    # Replacement pattern
+    # We use a lambda to format the replacement string with backticks around the captured group
+    replacement = lambda m: '{`{' + m.group(1) + '}`}'
+
+    # Substitute using the pattern and replacement
+    result = re.sub(pattern, replacement, s)
+
+    return result
+
 
 
 BNF = """TextParser = { (NamedString | UnnamedString) } ;

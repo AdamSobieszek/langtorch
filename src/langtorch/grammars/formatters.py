@@ -10,6 +10,10 @@ def f_markdown(instance: 'Text') -> str:
     # TODO Emph and Bold
     return "\n\n".join([block_to_markdown(instance.__class__, (k, v)) for (k, v) in instance.items()])
 
+f = lambda k,v: f(k,"".join(f(kk,vv) for kk,vv in v)) if isinstance(v, list) else (f"<{k}>{f('',v)}</{k}>" if k else (v if isinstance(v, str) else f("",v)))
+def f_xml(instance: 'Text') -> str:
+    return "".join([f(k, v) for (k, v) in instance.items()])
+
 
 def f_concatenate_terminals(instance: 'Text') -> str:
     if hasattr(instance, "content"):
@@ -60,13 +64,15 @@ def format_entry(entry, max_lines, max_width, wrap_text):
     # Split the entry into lines, process them (truncate or wrap), pad them to match the max width,
     # and ensure each entry has the same number of lines
     lines = entry.split('\n')
-    processed_lines = [line for line in lines for line in process_line(str(line), max_width, wrap_text)]
+    processed_lines = [l for line in lines for l in process_line(str(line), max_width, wrap_text)]
+
     padded_lines = [str(line).ljust(max_width) for line in processed_lines]
     padded_lines += [' ' * max_width] * (max_lines - len(processed_lines))  # Pad with empty lines if needed
     return padded_lines
 
 def format_2d(array_2d, max_width=200, wrap_text=False, indent=" ", spacing=2):
     # Calculate max width for each column, but limit the width to column_limit
+    if len(indent)==0: indent = ' '
     n_columns = len(array_2d[0])
     max_width_per_col = [
         min(max(max([len(str(line)) for line in element.split('\n')]) for element in col), max_width // n_columns)
@@ -75,17 +81,19 @@ def format_2d(array_2d, max_width=200, wrap_text=False, indent=" ", spacing=2):
     formatted_rows = []
     spacer = ' ' * spacing
     for row in array_2d:
-        max_lines_in_row = max(len(process_line(str(line), max_width_per_col[i], wrap_text)) for i, line in enumerate(row))
+        max_lines_in_row = max(len(process_line(str(line).replace("\n",""), max_width_per_col[i], wrap_text)) for i, line in enumerate(row))
         formatted_entries = [format_entry(entry, max_lines_in_row, max_width, wrap_text)
                              for entry, max_width in zip(row, max_width_per_col)]
         max_lines_in_row = max(len(m) for m in formatted_entries)
+
         formatted_entries = [m + [' ' * len(m[0])] * (max_lines_in_row - len(m)) for i, m in enumerate(formatted_entries)]
+
         transposed_entries = list(zip_longest(*formatted_entries, fillvalue=' ' * max(max_width_per_col)))
 
         for j, transposed_line in enumerate(transposed_entries):
             line = (spacer).join(transposed_line)
             if j == 0:
-                line = indent[1:]+'[' + line + (']' if len(transposed_entries) == 1 else '')
+                line = indent[1:]+'[' + line + (']' if len(transposed_entries) == 1 else ' ')
             elif j == len(transposed_entries) - 1:
                 line = indent + line + ']'
             else:
@@ -94,8 +102,8 @@ def format_2d(array_2d, max_width=200, wrap_text=False, indent=" ", spacing=2):
     return formatted_rows
 
 def format_1d_as_row(array_1d, column_limit=200, wrap_text=False):
-    formatted_rows = format_2d(array_1d.reshape(1, -1), column_limit, wrap_text)
-    return formatted_rows[0]
+    formatted_rows = format_2d(array_1d.reshape(1, -1), column_limit, wrap_text, spacing=3)
+    return ('\n' + " ").join(formatted_rows)
 
 def format_1d(array_1d, column_limit=200, wrap_text=False):
     # Treat the 1D array as a 2D array with a single column
@@ -107,7 +115,8 @@ def tensor_str_formatter(cls, array: np.ndarray, indent: str = " ") -> str:
     if array.ndim == 0:
         return str(array.item())
     if array.ndim == 1:
-        if len(str(array)) > 100:
+        row_repr = format_1d_as_row(array, max_width, wrap_text)
+        if len(row_repr.split("\n")) > 4*max([len(str(t).split('\n')) for t in array.flat]):
             formatted_lines = format_1d(array, max_width, wrap_text)
             return '[' + ('\n' + indent).join(formatted_lines) + ']'
         else:

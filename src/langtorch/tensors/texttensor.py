@@ -1,10 +1,12 @@
 from copy import deepcopy
-from typing import Optional, Union, List, Callable, Iterable
+from typing import Any, Optional, Union, List, Callable, Iterable
 
 import numpy as np
 import torch
-from pyparsing import ParseException
 from torch.types import _TensorOrTensors
+from pyparsing import ParseException
+import tiktoken
+import os
 
 import langtorch
 from .. import utils
@@ -37,7 +39,9 @@ def chararray_to_TextArray(arr, ttype=Text, shape=None, **kwargs):
     text_arr = np.array(text_arr, dtype=object).reshape(arr.shape if shape is None else shape)
     return text_arr
 
-from typing import Any, Callable
+
+
+
 
 
 class TextTensor(torch.Tensor, metaclass=_ParameterMeta):
@@ -86,46 +90,13 @@ class TextTensor(torch.Tensor, metaclass=_ParameterMeta):
 
     _ttype = Text  # The class of a Tensor entry, replaced in subclasses. May in the future move this logic to the metaclass
     _embedding_model = "text-embedding-3-small"  # TextTensor to Tensor with an embedding model
-    _tokenizer = None  # TextTensor to Tensor with a transformer tokenizer
+    _tokenizer = 'cl100k_base'  # TextTensor to Tensor with a tokenizer (tiktoken or transformers)
     _embedding, _tokens = None, None
     _tokenizer_kwargs = {"return_tensors": "pt", "padding": True, "truncation": True}
+    _tiktoken_tokenizers = ['cl100k_base', 'p50k_base', 'r50k_base']
     parse = 'auto'
     is_gradient = False
     is_param = False
-
-    @classmethod
-    def input_formatter(cls, content):
-        # Default implementation, to be overridden by subclasses if needed
-        return content
-
-    @classmethod
-    def linter(cls, tensor):
-        # Default implementation, ensures correct class of Tensor content entries
-        tensor.content = chararray_to_TextArray(tensor.content, cls._ttype)
-        return tensor
-
-    @classmethod
-    def recursive_walk_replace(cls, obj: Any, target_class: type, func: Callable[[Any], Any]) -> Any:
-        """
-        Recursively walks through any iterable structure, finds all instances of target_class,
-        and replaces them with the result of func applied to them.
-
-        :param obj: The object to walk through.
-        :param target_class: The class to look for in the structure.
-        :param func: The function to apply to instances of target_class.
-        :return: A new object with the replacements made.
-        """
-        if isinstance(obj, target_class):
-            return func(obj)
-        elif isinstance(obj, dict):
-            return {k: cls.recursive_walk_replace(v, target_class, func) for k, v in obj.items()}
-        elif isinstance(obj, (list, set)):
-            cls2 = type(obj)
-            return cls2(cls.recursive_walk_replace(item, target_class, func) for item in obj)
-        elif isinstance(obj, tuple):
-            return func(obj)  # Directly replace tuple with _ttype
-        else:
-            return obj
 
     def __new__(cls, content="", parse=True, metadata=None,
                 ttype: Text = None,
@@ -143,30 +114,14 @@ class TextTensor(torch.Tensor, metaclass=_ParameterMeta):
                 metadata[attr] = eval(attr)
 
 
-        def dict_to_tt(cls, d, parse):  # TODO create from dict of tensors
-            if not d:
-                return None
-
-            def item_to_tt(cls, k, v, parse):
-                tt = cls.__new__(cls, v, parse=parse)
-                return cls([(k,t) for t in tt.flat], parse=False).reshape(tt.shape)
-
-            items = iter(d.items())
-            first = next(items)
-            content = item_to_tt(cls, first[0], first[1], parse=parse)
-            first_shape = content.shape
-            for k, v in items:
-                content += item_to_tt(cls, k, v, parse=parse).reshape(first_shape)
-            return content
+        if isinstance(metadata["content"], dict):
+            metadata["content"] = cls._dict_to_tt(metadata["content"], parse=parse)
 
         def replace_tuple_with_ttype(tpl):
             nonlocal cls
             return cls._ttype(*tpl)
-
-        # if isinstance(metadata["content"], dict):
-        #     metadata["content"] = dict_to_tt(cls, metadata["content"], parse=parse)
         # Replace tuples with Text entries
-        metadata["content"] = cls.recursive_walk_replace(metadata["content"], tuple, replace_tuple_with_ttype)
+        metadata["content"] = cls._recursive_walk_replace(metadata["content"], tuple, replace_tuple_with_ttype)
         # Set content to be an object array with cls.text_class entries
         metadata["content"] = cls.content_to_object_array(metadata["content"], parse=parse)
         # Apply input formatter
@@ -194,6 +149,59 @@ class TextTensor(torch.Tensor, metaclass=_ParameterMeta):
 
         return tensor
 
+    @classmethod
+    def input_formatter(cls, content):
+        # Default implementation, to be overridden by subclasses if needed
+        return content
+
+    @classmethod
+    def linter(cls, tensor):
+        # Default implementation, ensures correct class of Tensor content entries
+        tensor.content = chararray_to_TextArray(tensor.content, cls._ttype)
+        return tensor
+
+    @classmethod
+    def _recursive_walk_replace(cls, obj: Any, target_class: type, func: Callable[[Any], Any]) -> Any:
+        """
+        Recursively walks through any iterable structure, finds all instances of target_class,
+        and replaces them with the result of func applied to them.
+
+        :param obj: The object to walk through.
+        :param target_class: The class to look for in the structure.
+        :param func: The function to apply to instances of target_class.
+        :return: A new object with the replacements made.
+        """
+        if isinstance(obj, target_class):
+            return func(obj)
+        elif isinstance(obj, dict):
+            return {k: cls._recursive_walk_replace(v, target_class, func) for k, v in obj.items()}
+        elif isinstance(obj, (list, set)):
+            cls2 = type(obj)
+            return cls2(cls._recursive_walk_replace(item, target_class, func) for item in obj)
+        elif isinstance(obj, tuple):
+            return func(obj)  # Directly replace tuple with _ttype
+        else:
+            return obj
+
+    @classmethod
+    def _dict_to_tt(cls, d, parse):
+        if not d:
+            return None
+        def item_to_tt(cls, k, v, parse):
+            tt = cls.__new__(cls, v, parse=parse).add_key(k)
+            return tt
+
+        items = iter(d.items())
+        first_k, first_v = next(items)
+        content = item_to_tt(cls, first_k, first_v, parse=parse)
+        first_shape = content.shape
+        try:
+            for k, v in items:
+                content = content + item_to_tt(cls, k, v, parse=parse)
+        except Exception as e:
+            raise ValueError(
+                f"Could not convert dictionary of TextTensors to a single. Failed to add with broadcasting entry:\n{k}: {v}\nException: {e}")
+        return content
     def __init__(self, *args, **kwargs):
         super().__init__()
 
@@ -273,9 +281,8 @@ class TextTensor(torch.Tensor, metaclass=_ParameterMeta):
 
     @tokenizer.setter
     def tokenizer(self, tokenizer):
-        if isinstance(tokenizer, str):
-            from transformers import AutoTokenizer
-            self._tokenizer = AutoTokenizer.from_pretrained(tokenizer)
+        if not isinstance(tokenizer, str) and not callable(tokenizer):
+            raise ValueError("Tokenizer must be a string with a tokenizer name or a callable tokenizer")
         self._tokenizer = tokenizer
 
     @property
@@ -289,9 +296,24 @@ class TextTensor(torch.Tensor, metaclass=_ParameterMeta):
     def tokenize(self, tokenizer=None, **kwargs):
         if tokenizer is not None:
             self.tokenizer = tokenizer
-        assert self.tokenizer is not None
-        kwargs = {**self._tokenizer_kwargs, **kwargs}
-        self.tokens = self.tokenizer([str(m) for m in self.content.flat], **kwargs)
+        assert self.tokenizer is not None, "No tokenizer set"
+        kwargs = {**self._tokenizer_kwargs, **kwargs} # Kwargs only for transformers AutoTokenizer
+
+        if isinstance(self.tokenizer, str):
+            if self.tokenizer in self._tiktoken_tokenizers:
+                # Load the specific encoding from tiktoken
+                tokenize_function = lambda content: utils.pad_sequences_and_create_masks([tiktoken.get_encoding(self.tokenizer).encode(x) for x in content])
+            else:
+                # Use transformers' AutoTokenizer for other models
+                from transformers import AutoTokenizer
+                os.environ["HF_HUB_DISABLE_SYMLINKS_WARNING"] = "1"
+                tokenize_function = lambda content: AutoTokenizer.from_pretrained(self.tokenizer)(content, **kwargs)
+        else:
+            tokenize_function = self.tokenizer
+
+        content = [str(m) for m in self.content.flat]
+        self.tokens = tokenize_function(content)
+
         return self.tokens
 
     @property
@@ -505,12 +527,11 @@ class TextTensor(torch.Tensor, metaclass=_ParameterMeta):
         return self.set_key(keys, inplace=True)
 
     def add_key(self, keys, inplace=False) -> 'TextTensor':
-        reshaped_keys = utils.full_like(self.content, keys)
+        reshaped_keys = utils.full_like(self, keys)
         if inplace:
             result = self
         else:
             result = self.copy()
-
         # Apply set_key to each entry
         for index, text_entry in np.ndenumerate(result.content):
             result.content[index] = text_entry.add_key(reshaped_keys[index].item())
@@ -541,6 +562,8 @@ class TextTensor(torch.Tensor, metaclass=_ParameterMeta):
     def inv(self):
         # Apply inverse operation on each element of the char array
         self.content = np.vectorize(lambda x: x.inv())(self.content)
+
+
 
     @property
     def metadata(self):
@@ -633,15 +656,17 @@ class TextTensor(torch.Tensor, metaclass=_ParameterMeta):
 
     def __ne__(self, other):
         return ~self.__eq__(other)
-    def sum(self, dim: Union[int, List[int]] = None, keepdim: bool = False, sep: str = "") -> 'TextTensor':
+    def sum(self, dim: Union[int, List[int]] = None, keepdim: bool = False, sep: str = None, unique: bool = False) -> 'TextTensor':
         """Reduces the input tensor over the specified dimensions, optionally keeping dimensions."""
         if len(self.shape) == 0:
             return self
 
-        if dim is None and not sep:
+        if dim is None and sep is None:
             dim = list(range(len(self.shape)))
             connecting_char = ([" "] + ["\n" * (i + 1) for i in range(len(self.content.shape) - 1)])[::-1]
         else:
+            if sep is None:
+                sep = ""
             if isinstance(dim, int):
                 dim = [dim]
             connecting_char = [sep] * len(dim)
@@ -670,7 +695,7 @@ class TextTensor(torch.Tensor, metaclass=_ParameterMeta):
         return FormatTextTensor.apply(self, kwargs)
 
     def to_list(self):
-        return [self._ttype(m, parse=False) for m in self.content.flat]
+        return list(self.content.flat)
 
     def __pow__(self, power):
         if power == -1:
@@ -710,7 +735,36 @@ class TextTensor(torch.Tensor, metaclass=_ParameterMeta):
 
     def items(self):
         """Get (key, value) pairs from all Text entries in tensors"""
-        return np.array([{"items": tuple(t.items())} for t in self.content.flat], dtype=object).reshape(
+
+        class TextItems(tuple):
+            def __init__(self, text):
+                # Store the pairs as a list of tuples to allow duplicates
+                self._items = text.items()
+
+            def __hash__(self):
+                return id(self)
+
+            def __iter__(self):
+                # Allow iteration over the pairs
+                return iter(self._items)
+
+            def __contains__(self, item):
+                # Membership testing to check if an item is in the pairs
+                return item in self._items
+
+            def __len__(self):
+                # Return the number of items
+                return len(self._items)
+
+            def __getitem__(self, item):
+                return self._items[item]
+
+            def __array__(self, *args, **kwargs ):
+                return np.array(set((self,)), dtype=object)
+            def __repr__(self):
+                # String representation for debugging
+                return f"text_items({self._items})"
+        return np.array([TextItems(t) for t in self.content.flat], dtype=object).reshape(
             self.content.shape)
 
     def __getattr__(self, name):
@@ -872,6 +926,8 @@ class TextTensor(torch.Tensor, metaclass=_ParameterMeta):
                 return tensor
 
     def expand(tensor, *sizes):
+        if len(sizes) == 1 and isinstance(sizes[0], tuple):
+            sizes = sizes[0]
         # Check if the number of dimensions of the tensors is less than the length of the target sizes
         if tensor.dim() < len(sizes):
             # Add singleton dimensions to the front of the tensors
@@ -893,13 +949,16 @@ class TextTensor(torch.Tensor, metaclass=_ParameterMeta):
             else:
                 # If the size of the tensors in this dimension is equal to the target size,
                 # it doesn't need to be expanded
-                expanded_sizes.append(tensor_size)
+                expanded_sizes.append(1)
 
         # Reverse the list of expanded sizes to match the original order of dimensions
         expanded_sizes = list(reversed(expanded_sizes))
 
         # Use the repeat method to create a new tensors that repeats the original tensors along each dimension
         return tensor.repeat(*expanded_sizes)
+
+    def expand_as(self, other) -> 'TextTensor':
+        return self.expand(other.shape)
 
     def swapaxes(self, axis1: int, axis2: int):
         # Create a list of axes in order
@@ -918,6 +977,8 @@ class TextTensor(torch.Tensor, metaclass=_ParameterMeta):
             parse=False)
 
     def repeat(tensor, *sizes):
+        if len(sizes) == 1 and isinstance(sizes[0], tuple):
+            sizes = sizes[0]
         # Ensure the number of dimensions of tensors and sizes match
         if len(tensor.shape) != len(sizes):
             raise ValueError("Number of dimensions of tensors and sizes must match")
@@ -925,7 +986,7 @@ class TextTensor(torch.Tensor, metaclass=_ParameterMeta):
         # Manually create a repeated tensors
         content = tensor.content
         for dim, size in enumerate(sizes):
-            slices = [content] * size
+            slices = [content] * int(size)
             content = np.concatenate(slices, axis=dim)
         tensor = tensor.__class__(content, parse=False)
         return tensor
@@ -975,6 +1036,7 @@ class TextTensor(torch.Tensor, metaclass=_ParameterMeta):
             create_graph: bool = False,
             grad_variables: Optional[_TensorOrTensors] = None,
             inputs: Optional[_TensorOrTensors] = None,
+            activation: Optional['Activation'] = None
     ) -> None:
         r"""See. docs"""
         if torch._C._are_functorch_transforms_active():
@@ -999,6 +1061,7 @@ class TextTensor(torch.Tensor, metaclass=_ParameterMeta):
             grad_tensors = (TextTensor(grad_tensors),)
 
         tensors = (tensors,) if isinstance(tensors, torch.Tensor) else tuple(tensors)
+
         inputs = (inputs,) if isinstance(inputs, torch.Tensor) else \
             tuple(inputs) if inputs is not None else tuple()
         grad_tensors_ = langtorch.torch_utils.tensor_or_tensors_to_tuple(grad_tensors, len(tensors))
@@ -1006,9 +1069,20 @@ class TextTensor(torch.Tensor, metaclass=_ParameterMeta):
         if retain_graph is None:
             retain_graph = create_graph
 
-        # The reason we repeat same the comment below is that
-        # some Python versions print out the first line of a multi-line function
-        # calls in the traceback and some print out the last line
+        # Add the backward activation to grad tensors
+        for t in grad_tensors_:
+            if not hasattr(t, "backward_activation") or t.backward_activation is None:
+                if activation is None:
+                    activation = langtorch.ctx.default_model_for_backward
+                assert activation is not None, "No activation provided for backward pass"
+                from langtorch import Activation
+                if isinstance(activation, Activation):
+                    t.backward_activation = activation
+                elif isinstance(activation, str):
+                    t.backward_activation = Activation(activation)
+                else:
+                    raise ValueError("Activation must be an Activation instance or a string")
+
         langtorch.autograd.run_backward(  # langtorch version of a C++ engine that torch uses to run the backward pass
             tensors, grad_tensors_, retain_graph, create_graph, inputs,
             allow_unreachable=True,

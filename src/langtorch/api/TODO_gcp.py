@@ -18,17 +18,13 @@ async def process_api_requests_from_file(
         max_requests_per_minute: float,
         max_tokens_per_minute: float,
         token_encoding_name: str,
-        max_attempts: int,
-        logging_level: int,
+        max_attempts: int
 ):
     """Processes API requests in parallel, throttling to stay under rate limits."""
     # constants
     seconds_to_pause_after_rate_limit_error = 15
     seconds_to_sleep_each_loop = 0.001  # 1 ms limits max throughput to 1,000 requests per second
 
-    # initialize logging
-    logging.basicConfig(level=logging_level)
-    logging.debug(f"Logging initialized at level {logging_level}")
 
     # infer API endpoint and construct request header
     api_endpoint = api_endpoint_from_url(request_url)
@@ -53,7 +49,7 @@ async def process_api_requests_from_file(
     with open(requests_filepath) as file:
         # `requests` will provide requests one at a time
         requests = file.__iter__()
-        logging.debug(f"File opened. Entering main loop")
+    # logging.debug(f"Entering main loop")
 
         while True:
             # get next request (if one is not already waiting for capacity)
@@ -77,7 +73,7 @@ async def process_api_requests_from_file(
                         logging.debug(f"Reading request {next_request.task_id}: {next_request}")
                     except StopIteration:
                         # if file runs out, set flag to stop reading it
-                        logging.debug("Read file exhausted")
+                        # logging.debug("Read file exhausted")
                         file_not_finished = False
 
             # update available capacity

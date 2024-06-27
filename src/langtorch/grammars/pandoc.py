@@ -110,10 +110,9 @@ def pandoc_dict_to_tuple(d):
             if len(d["c"]) == 3 and isinstance(d["c"][0], int):
                 d["t"] += str(d["c"][0])
             return (d["t"], pandoc_dict_to_tuple(d["c"]))
-    # if isinstance(d, str):
-    #     return d
 
-def pandoc_to_ast(input_string: str, input_format: str) -> str:
+
+def pandoc_to_ast(input_string: str, input_format: str) -> tuple:
     """
     Converts a given string into a Pandoc AST JSON format.
 
@@ -122,7 +121,7 @@ def pandoc_to_ast(input_string: str, input_format: str) -> str:
         input_format (str): The format/language of the input string.
 
     Returns:
-        str: A string containing Pandoc AST in JSON format.
+        tuple: A Text AST from pandoc JSON format.
     """
 
     # Convert the input string to Pandoc JSON format
@@ -130,7 +129,7 @@ def pandoc_to_ast(input_string: str, input_format: str) -> str:
     return pandoc_dict_to_tuple(output["blocks"])
 
 
-def pandoc_to_ast_from_file(file_path: str, language: Optional[str] = None) -> str:
+def pandoc_to_ast_from_file(file_path: str, language: Optional[str] = None) -> tuple:
     """
     Converts a given file into a Pandoc AST JSON format.
 
@@ -154,3 +153,4 @@ def pandoc_to_ast_from_file(file_path: str, language: Optional[str] = None) -> s
     # Convert the input string to Pandoc JSON format
     output = json.loads(pypandoc.convert_text(input_string, 'json', format=input_format))
     return pandoc_dict_to_tuple(output["blocks"]), input_format
+

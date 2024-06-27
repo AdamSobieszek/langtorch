@@ -32,12 +32,8 @@ class CoDModule(TextModule):
         """.format(iterations)
 
         super().__init__(self.template,
-                         ActivationGPT(system_message="You are a summarizer.", T=0.9, model="gpt-3.5-turbo"))
+                         Activation(system_message="You are a summarizer.", T=0.9, model="gpt-3.5-turbo"))
 
-    def forward(self, article: TextTensor) -> TextTensor:
-        # Process the article with the CoD prompt
-        result = self.activation(self.prompt * article)
-        return result
 
 # Example usage
 # article = TextTensor(
