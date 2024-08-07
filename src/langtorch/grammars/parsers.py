@@ -1,7 +1,7 @@
 from pyparsing import ParseResults
 import logging
 
-from .langtorch_default_parser import LangTorchGrammarParser, fix_double_brackets
+from .langtorch_default_parser import LangTorchGrammarParser, fix_double_brackets, fix_substitution
 from .pandoc import pandoc_to_ast
 from .xml_parser import xml_to_ast
 
@@ -19,6 +19,7 @@ def pandoc_parser(txt, language="md"):
 def langtorch_parser(txt):
     try:
         txt_ = fix_double_brackets(txt)
+        txt_ = fix_substitution(txt_)
     except:
         logging.debug(f"The double bracket containing string could not be parsed: {txt}")
         txt_ = txt

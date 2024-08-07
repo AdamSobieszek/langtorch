@@ -50,6 +50,7 @@ async def process_api_requests_from_session(
     logging.debug(f"Initialization complete.")
     # initialize file reading
     requests = [(id, json.loads(m)) for id, m in zip(ids, request_strings)].__iter__()
+
     # `requests` will provide requests one at a time
     # logging.debug(f"Entering main loop")
     while True:

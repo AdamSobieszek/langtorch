@@ -9,6 +9,7 @@ import langtorch.utils
 from langtorch.api.call import chat
 from langtorch.decorators import set_defaults_from_ctx
 from langtorch.tensors import TextTensor
+from langtorch.texts import Text
 from langtorch import context
 from .textmodule import TextModule
 
@@ -17,7 +18,15 @@ class ActivationFunction(torch.autograd.Function):
     @staticmethod
     def forward(ctx, input_tensor, activation):
         # Perform the forward pass computation
-        input = list(input_tensor.content.flat)
+        input_tensor = input_tensor.copy()
+        if hasattr(activation, "forward_mask"):
+            input_tensor[activation.forward_mask] = 'nan'
+        input = [m for m in input_tensor[input_tensor!='nan'].content.flat]
+        if not input:
+            ctx.save_for_backward(input_tensor.clone(), input_tensor.clone())
+            ctx.activation = activation
+            return input_tensor
+
         if activation.system_message is None:
             system_messages = [activation.system_message] * len(input)
         elif isinstance(activation.system_message, str):
@@ -37,7 +46,7 @@ class ActivationFunction(torch.autograd.Function):
                 system_messages[i] = m.loc["system"].values()[-1]
                 m.content = [(k, v) for k, v in m.items() if k != "system"]
             if np.all([key in ["user", "assistant"] for key in m.keys()]):
-                input[i] = m.items()
+                input[i] = [(k,str(v)) for k,v in m.items()]
             elif "user" not in m.keys() or "assistant" not in m.keys():
                 # NOT STRICT
                 input[i] = [("user", str(m))]
@@ -46,14 +55,19 @@ class ActivationFunction(torch.autograd.Function):
             else:
                 raise ValueError(
                     f"Invalid input to Chat API. Ambiguous input: some but not all items in TextTensor entries have keys 'user' or 'assistant'. Change the input into a valid chat, or the input was a single user message remove these keys or use entry.add_key_('user'): \nentry.items()=={m.items()}")
-        logging.debug(f"Chat api input: {input}")
+        str_inputs = ',\n'.join([str(i) for i in input])
+        logging.debug(f"Chat api input: {str_inputs}")
         logging.debug(f"Chat api unique system messages: {set(system_messages)}")
 
         output = activation.generate(input, system_messages)
+        print(output)
+
         assert output is not None
         shape = tuple([activation.n] + [m for m in input_tensor.shape]) if activation.n != 1 else tuple(
             input_tensor.shape)
-        output_tensor = input_tensor.__class__(output, parse=activation.parse_output).reshape(shape)
+        output_tensor = input_tensor.__class__(langtorch.full_like(input_tensor, torch.nan))
+
+        output_tensor[~input_tensor.isnan()] = input_tensor.__class__(output, parse=activation.parse_output).to_list()
         ctx.save_for_backward(input_tensor.clone(), output_tensor.clone())
         ctx.activation = activation
 
@@ -63,12 +77,27 @@ class ActivationFunction(torch.autograd.Function):
     def backward(ctx, grad_output):
         # Perform the backward pass computation
         input_tensor, output_tensor = ctx.saved_tensors
-        print("backward_input:\n", grad_output, input_tensor, output_tensor)
-        input = grad_output.add_key_("grad") + input_tensor.add_key_("input") + output_tensor.add_key_("output")
-        grad_input = TextModule(ctx.activation.backward_prompt)(
-            input)  # , activation=grad_output.backward_activation)(input)
-        # call with backward prompt
-        print("backward_output:\n", grad_input)
+        activation = ctx.activation
+        if not isinstance(activation.backward_prompt, Text):
+            activation.backward_prompt = Text(activation.backward_prompt)
+        keys = activation.backward_prompt.values()
+        namespace = context._tensors | {
+                        "grad":grad_output,
+                        "input":input_tensor,
+                        "output":output_tensor}
+        inputs = langtorch.zeros_like(grad_output)
+        inputs[grad_output.isnan()] = 'nan'
+        if hasattr(activation, "gradient_mask"):
+            inputs[activation.gradient_mask] = 'nan'
+        for i, (k,v) in enumerate(namespace.items()):
+            if k in keys:
+                inputs=inputs*{k:v}
+
+        print("backward_input:\n", ctx.activation.backward_prompt*inputs)
+        grad_input = TextModule(ctx.activation.backward_prompt,
+                                activation=grad_output.backward_activation)(inputs)
+        print("backward_out:\n", grad_input)
+        grad_input.backward_activation = grad_output.backward_activation
         return grad_input, None
 
 
@@ -96,10 +125,11 @@ class Activation(TextModule):
             raise ValueError(
                 "Activation requires a model and system_message, but these were not loaded from defaults or passed.")
 
+        self.kwargs = {}
         super(Activation, self).__init__(key=key)
         self.system_message = system_message if system_message is not None else None
         self.model = model
-        self.backward_prompt = backward_prompt
+        self.backward_prompt = Text(backward_prompt)
         if provider is not None:
             self.provider = provider
 
@@ -124,6 +154,7 @@ class Activation(TextModule):
 
     @staticmethod
     def keep_history_hook(module, input, output):
+        input = input[0]
         if module.keep_history:
             return input + output.add_key_("assistant")
 
@@ -148,6 +179,26 @@ class Activation(TextModule):
         if self.key != None:
             repr += add_indent("key", self.key)
         return repr if not repr else repr[:-2] if repr[-2:] == ",\n" else repr
+
+    # Definitions for changing generation kwargs using e.g. activation.temperature = 0
+    def __setattr__(self, key, value):
+        default_values = {"temperature": 1, "top_p": 1, "n": 1, "stop": None, "max_tokens": None, "presence_penalty": 0,
+                          "frequency_penalty": 0, "tools": None, "tool_choice": "none"}
+
+        if key=='T':
+            key = 'temperature'
+        if key!="kwargs" and (key in self.kwargs or key in default_values):
+            self.kwargs[key] = value
+        else:
+            super().__setattr__(key, value)
+
+    def __getattr__(self, key):
+        if key=='T':
+            key = 'temperature'
+        if key!="kwargs" and key in self.kwargs:
+            return self.kwargs[key]
+        else:
+            return super().__getattribute__(key)
 
 
 class OpenAI(Activation):

@@ -6,6 +6,7 @@ import torch
 import langtorch.torch_utils
 import langtorch.utils
 from langtorch.tensors import TextTensor
+from langtorch.texts import Text
 
 
 class TextModule(torch.nn.Module):
@@ -48,23 +49,26 @@ class TextModule(torch.nn.Module):
                  prompt: Union[str, TextTensor, list] = None,
                  activation=None,
                  key=None,
-                 type_checking=False, *args, **kwargs):
+                 backward_prompt = None,
+                 type_checking=False,
+                 is_param=True, *args, **kwargs):
         super(TextModule, self).__init__(*args, **kwargs)
-
-        if prompt is None:
-            self._prompt = None
-        elif not isinstance(prompt, TextTensor):
-            self._prompt = torch.nn.Parameter(TextTensor(prompt))
+        if not isinstance(prompt, TextTensor):
+            prompt = (TextTensor(prompt)) if prompt is not None else prompt
         else:
-            self._prompt = torch.nn.Parameter(prompt[tuple()])
+            prompt = prompt.copy()
+        if is_param and prompt is not None:
+            prompt = torch.nn.Parameter(prompt)
+        self._prompt = prompt
 
         if isinstance(activation, str):
             from langtorch import Activation
             self.activation = Activation(activation)
         else:
             self.activation = activation  # An identity function if nothing is passed
+        if backward_prompt and self.activation:
+            self.activation.backward_prompt = Text(backward_prompt)
 
-        self.target_embedding = None
         if not issubclass(self.output_class, TextTensor) and key is not None:
             raise ValueError(
                 f"Could not set key '{key}', Module output inidcated in the output_class attr is not a TextTensor")
@@ -87,7 +91,8 @@ class TextModule(torch.nn.Module):
             if not isinstance(output, TextTensor):
                 print(f"Could not set key '{module.key}', Module output is not a TextTensor")
             else:
-                output.set_key_(module.key)
+                with langtorch.skip_mul_grad():
+                    output.add_key_(module.key)
         return output
 
     @property
@@ -99,7 +104,6 @@ class TextModule(torch.nn.Module):
         self._prompt = prompt._prompt if isinstance(prompt, TextModule) else prompt if isinstance(prompt,
                                                                                                   TextTensor) else TextTensor(
             prompt)
-        assert self._prompt is not None
 
     @property
     def content(self):
@@ -133,6 +137,8 @@ class TextModule(torch.nn.Module):
             return inputs
 
         output = tuple(self._prompt * input for input in inputs)
+        for o in output:
+            print(o.requires_grad)
         if len(output) == 1:
             return output[0]
         else:
@@ -167,3 +173,17 @@ class TextModule(torch.nn.Module):
         for param in self.content:
             if hasattr(param, 'embed'):
                 param.embed(*args, **kwargs)
+
+    def __or__(self, other):
+        def chain(self, other):
+            torch.nn.Sequential.__or__ = chain
+            if isinstance(self, torch.nn.Sequential):
+                # If this is already a Sequential, append other at the end
+                chain_module = torch.nn.Sequential(*self, other)
+                return chain_module
+            else:
+                # If not, create a new Sequential with self and other'
+                chain_module = torch.nn.Sequential(self, other)
+                return  chain_module
+
+        return chain(self, other)

@@ -3,6 +3,7 @@ import logging
 import numpy as np
 import torch
 from pyparsing import *
+from ast import *
 
 from .parsers import language_to_parser
 from ..utils import is_Text, is_str
@@ -61,6 +62,10 @@ def to_ast(*args, parser="langtorch-f-string", is_tuple=False):
             # Assume a tuple of length != 2 was supposed to be a list
             logging.debug(
                 f"Tuples of length 2 represent (key, value) in Text objects. When parsing Text entry {arg} was a tuple of length {len(arg)},\nit was converted to a list and may lead to errors.")
+
+            nonlocal args
+            print("\n\n\n\n------",args)
+            raise Exception
             arg = list(arg)
 
         # Not a named string
@@ -100,7 +105,7 @@ def to_ast(*args, parser="langtorch-f-string", is_tuple=False):
 
         content = tuple(check_for_lists(arg) for arg in content)
 
-        return content
+        return tuple((arg[0], arg[1]) if isinstance(arg, tuple) else ('', arg) for arg in content)
 
 
 def parse_string(arg, parser):

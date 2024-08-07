@@ -49,6 +49,11 @@ def set_defaults_from_ctx(func):
 
     return wrapper
 
+# TODO decorator for adding warning to methods that unintuitively are not differentiable
+
+# if self.requires_grad:
+#     warnings.warn("", UserWarning)
+
 
 class TextToText(torch.nn.Module):
     """

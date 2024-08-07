@@ -42,6 +42,9 @@ def is_str(obj):
 def is_TextTensor(obj):
     return isinstance(obj, torch.Tensor) and hasattr(obj, "content")
 
+def is_same_size(self, other: 'TextTensor') -> bool:
+    return self.content.size == other.content.size
+
 
 def iter_subarrays(arr, dim):
     # Check that dim is a valid dimension

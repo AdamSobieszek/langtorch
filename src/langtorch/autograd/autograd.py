@@ -5,6 +5,7 @@ from typing import List, Tuple, Sequence
 import torch
 
 from langtorch.torch_utils import _OptionalTensor
+from langtorch import utils
 
 
 def grad_worker_func(queue, gradients, retain_graph, create_graph, lock):
@@ -19,7 +20,6 @@ def grad_worker_func(queue, gradients, retain_graph, create_graph, lock):
         lock: A threading lock for thread-safety.
     """
     from langtorch import TextTensor
-
     # While there are nodes in the queue
     while not queue.empty():
         # Get a node from the queue
@@ -35,7 +35,13 @@ def grad_worker_func(queue, gradients, retain_graph, create_graph, lock):
                 # for x in node.apply(grad_tensor):
                 #     if isinstance(x, torch.Tensor):
                 #         print(x.content)
-                grads = node.apply(grad_tensor)
+                try:
+                    grads = node.apply(grad_tensor)
+                except Exception as e:
+                    print("Error in backward: ", e)
+                    print("Node: ", node)
+                    print("Grad tensor: ", grad_tensor)
+                    raise e
                 for x in grads:
                     if isinstance(x, TextTensor) and not hasattr(x, "backward_activation"):
                         x.backward_activation = grad_tensor.backward_activation
@@ -48,6 +54,7 @@ def grad_worker_func(queue, gradients, retain_graph, create_graph, lock):
             else:
                 print("An unsupported backward graph node:", node, "dir: ", dir(node))
 
+            print(node)
             # Store the computed gradients
             if save:
                 with lock:
@@ -57,8 +64,10 @@ def grad_worker_func(queue, gradients, retain_graph, create_graph, lock):
             if node.next_functions:
                 # Put the parent nodes in the queue
                 for (next_node, _), grad in zip(node.next_functions, grads):
+                    print("next_node: ", next_node, _)
                     with lock:
-                        queue.put((next_node, grad))
+                        # if grad is not None:# and not all(torch.isnan(grad)):
+                            queue.put((next_node, grad))
 
 
 def run_backward(tensors, grad_tensors_, retain_graph, create_graph, inputs, allow_unreachable=True,
@@ -75,7 +84,6 @@ def run_backward(tensors, grad_tensors_, retain_graph, create_graph, inputs, all
         allow_unreachable: Whether to allow unreachable nodes. If False, an error will be raised if not all nodes can be reached.
         accumulate_grad: Whether to accumulate gradients in `.grad` variables.
     """
-
     # 1. Check if any of the tensors require gradients
     for tensor in tensors:
         assert tensor.requires_grad, f"Tensor {tensor} does not require gradients.\n{tensors}"
@@ -89,6 +97,7 @@ def run_backward(tensors, grad_tensors_, retain_graph, create_graph, inputs, all
 
     # 4. Initialize queue with starting nodes
     for tensor, grad in zip(tensors, grad_tensors_):
+        # print("tensor: ", grad.item().items())
         queue.put((tensor.grad_fn, grad))
     # PARALLELIZED PART STARTS HERE
     # 5. Spawn worker threads for backpropagation
@@ -106,7 +115,7 @@ def run_backward(tensors, grad_tensors_, retain_graph, create_graph, inputs, all
 
     # 9. If we are accumulating gradients, add the computed gradients to the `.grad` attributes of the tensors
     for tensor, grad in gradients:
-        # print("gradient assignment: ", tensor)
+        print("gradient assignment: ", tensor)
         if tensor.requires_grad and grad is not None:
             # print(tensor, type(grad))
             if (tensor.is_leaf or tensor.retain_grad):
@@ -161,23 +170,93 @@ def make_grads(outputs: Sequence[torch.Tensor], grads: Sequence[_OptionalTensor]
                                        + str(grad_shape) + " and output["
                                        + str(outputs.index(out)) + "] has a shape of "
                                        + str(out_shape) + ".")
-            if out.dtype.is_complex != grad.dtype.is_complex:
-                raise RuntimeError("For complex Tensors, both grad_output and output"
-                                   " are required to have the same dtype."
-                                   " Mismatch in dtype: grad_output["
-                                   + str(grads.index(grad)) + "] has a dtype of "
-                                   + str(grad.dtype) + " and output["
-                                   + str(outputs.index(out)) + "] has a dtype of "
-                                   + str(out.dtype) + ".")
             new_grads.append(grad)
         elif grad is None:
             if out.requires_grad:
                 if out.numel() != 1:
                     raise RuntimeError("grad can be implicitly created only for scalar outputs")
-                new_grads.append(torch.ones_like(out, memory_format=torch.preserve_format))
+                new_grads.append(utils.zeros_like(out))
             else:
                 new_grads.append(None)
         else:
             raise TypeError("gradients can be either Tensors or None, but got " +
                             type(grad).__name__)
     return tuple(new_grads)
+
+
+def run_backward(tensors, grad_tensors_, retain_graph, create_graph, inputs, allow_unreachable=True, accumulate_grad=True):
+    for tensor in tensors:
+        assert tensor.requires_grad, f"Tensor {tensor} does not require gradients. {tensor.grad_fn}"
+
+    gradients = {}
+    queue = Queue()
+    lock = Lock()
+
+    for tensor, grad in zip(tensors, grad_tensors_):
+        queue.put((tensor.grad_fn, grad))
+
+    def grad_worker_func():
+        from langtorch import TextTensor
+        while True:
+            with lock:
+                if queue.empty():
+                    break
+                node, grad_tensor = queue.get()
+
+            if node is None:
+                continue
+
+            try:
+                if hasattr(node, "apply"):
+                    grads = node.apply(grad_tensor)
+                elif callable(node):
+                    if type(node).__name__ == "AccumulateGrad":
+                        with lock:
+
+                            if node.variable in gradients:
+                                gradients[node.variable] += grad_tensor
+                            else:
+                                gradients[node.variable] = grad_tensor
+                        continue
+                    grads = node(grad_tensor)
+                else:
+                    raise ValueError(f"Unsupported backward graph node: {type(node)}")
+
+                for x in grads:
+                    if isinstance(x, TextTensor) and not hasattr(x, "backward_activation"):
+                        x.backward_activation = grad_tensor.backward_activation
+                if not isinstance(grads, tuple):
+                    grads = (grads,)
+                for grad, (next_node, _) in zip(grads, node.next_functions):
+                    if grad is not None and not (isinstance(grad, torch.Tensor) and torch.isnan(grad).all()):
+                        if create_graph:
+                            grad.requires_grad_()
+                        with lock:
+                            queue.put((next_node, grad))
+
+            except Exception as e:
+                print(f"Error in backward for node {type(node)}: {str(e)}")
+                raise e
+
+    NUM_WORKERS = 8
+    workers = [Thread(target=grad_worker_func) for _ in range(NUM_WORKERS)]
+    for worker in workers:
+        worker.start()
+    for worker in workers:
+        worker.join()
+
+    for tensor, grad in gradients.items():
+        print("t:g",tensor, "\n".join(str(grad).split("\n")[:3])+"\n...")
+        if (tensor.requires_grad) and grad is not None:
+            if tensor.is_leaf or tensor.retain_grad:
+                if accumulate_grad and tensor.grad is not None:
+                    tensor.grad = tensor.grad + grad.reshape(tensor.shape)
+                else:
+                    tensor.grad = grad.reshape(tensor.shape)
+
+        if not retain_graph:
+            for tensor in tensors:
+                # tensor.detach_()
+                pass
+
+    return gradients

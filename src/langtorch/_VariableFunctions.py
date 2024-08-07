@@ -215,6 +215,11 @@ def vstack(input: TextTensor, *args, **kwargs):
     return stack(input, *args, **kwargs)
 
 
+add = lambda x,y: x.add(y)
+add_ = lambda x,y: x.add_(y)
+mul = lambda x,y: x.mul(y)
+mul_ = lambda x,y: x.mul_(y)
+isnan = lambda x: x.isnan()
 # Alises
 concatenate = concat
 cat = concat

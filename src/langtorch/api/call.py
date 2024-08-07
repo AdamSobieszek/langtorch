@@ -142,11 +142,11 @@ def chat_strings(prompts, system_messages, model="gpt-3.5-turbo-0613", temperatu
 
     default_values = {"temperature": 1, "top_p": 1, "n": 1, "stop": None, "max_tokens": None, "presence_penalty": 0,
                       "frequency_penalty": 0, "tools": None, "tool_choice": "none"}
-
+    print(prompts)
     jobs = [{"model": model,
              "messages": ([{"role": "system", "content": system_message}] if system_message else []) + (
                  [{"role": "user", "content": prompt}] if isinstance(prompt, str) else
-                 [{"role": r, "content": c} for r, c in prompt]),
+                     [{"role": r, "content": c} for r, c in prompt]),
              **{param: value for param, value in params.items() if value != default_values[param]}}
             for prompt, system_message in zip(prompts, system_messages)]
     return [json.dumps(job, ensure_ascii=False) for job in jobs]
@@ -185,7 +185,8 @@ def chat(prompts, system_messages, model="gpt-3.5-turbo", provider="openai", cac
     session = Session()
     provider_to_request_url = {"openai": "https://api.openai.com/v1/chat/completions",
                                "anthropic": "https://api.anthropic.com/v1/messages",
-                               "groq": "https://api.groq.com/openai/v1/chat/completions"}
+                               "groq": "https://api.groq.com/openai/v1/chat/completions",
+                               "fireworks": "https://api.fireworks.ai/inference/v1/chat/completions",}
     assert provider in provider_to_request_url, f"Provider {provider} not in available providers"
     if api_key is None:
         try:
@@ -197,7 +198,7 @@ def chat(prompts, system_messages, model="gpt-3.5-turbo", provider="openai", cac
                                                 "anthropic-version": "2023-06-01",
                                                 "Content-Type": "application/json"},
                                   "groq": {"Authorization": f"Bearer {api_key}"}, }
-    request_header = provider_to_request_header[provider]
+    request_header = provider_to_request_header.get(provider,{"Authorization": f"Bearer {api_key}"})
     ids, uncached_request_strings = session.request(provider, "chat", request_strings, cache)
 
     with Session(session.path) as session:

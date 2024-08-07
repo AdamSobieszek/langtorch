@@ -4,6 +4,7 @@ from itertools import zip_longest
 from .text_content_ast import is_terminal_node
 from .utils import block_to_markdown
 from ..session import ctx
+import torch
 
 
 def f_markdown(instance: 'Text') -> str:
@@ -11,11 +12,11 @@ def f_markdown(instance: 'Text') -> str:
     return "\n\n".join([block_to_markdown(instance.__class__, (k, v)) for (k, v) in instance.items()])
 
 
-f = lambda k, v: f(k, "".join(f(kk, vv) for kk, vv in v)) if isinstance(v, list) else (
-    f"<{k}>{f('', v)}</{k}>" if k else (v if isinstance(v, str) else f("", v)))
 
 
 def f_xml(instance: 'Text') -> str:
+    f = lambda k, v: f(k, "".join(f(kk, vv) for kk, vv in v)) if isinstance(v, list) else (
+        f"<{k}>{f('', v)}</{k}>" if k else (v if isinstance(v, str) else f("", v)))
     return "".join([f(k, v) for (k, v) in instance.items()])
 
 
@@ -57,7 +58,7 @@ def wrap_line(line, max_width):
     if len(line) <= max_width:
         return [line]
     return [line[i:i + max_width - 1] + '↵' if i + max_width < len(line) else line[i:i + max_width - 1] for i in
-            range(0, len(line), max_width - 1)]
+            range(0, len(line), max((1,max_width - 1)))]
 
 
 def truncate_line(line, max_width):
@@ -75,7 +76,7 @@ def process_line(line, max_width, wrap_text):
 def format_entry(entry, max_lines, max_width, wrap_text):
     # Split the entry into lines, process them (truncate or wrap), pad them to match the max width,
     # and ensure each entry has the same number of lines
-    lines = entry.split('\n')
+    lines = str(entry).split('\n')
     processed_lines = [l for line in lines for l in process_line(str(line), max_width, wrap_text)]
 
     padded_lines = [str(line).ljust(max_width) for line in processed_lines]
@@ -83,13 +84,34 @@ def format_entry(entry, max_lines, max_width, wrap_text):
     return padded_lines
 
 
+def calculate_optimal_column_widths(array_2d, max_width):
+    n_columns = len(array_2d[0])
+
+    # Calculate initial max widths for each column
+    max_width_per_col = np.array([
+        min(max(max([len(str(line)) for line in str(element).split('\n')]) for element in col), max_width // n_columns)
+        for col in zip(*array_2d)])
+    width_per_col = np.array([
+        max(max([len(str(line)) for line in str(element).split('\n')]) for element in col)
+        for col in zip(*array_2d)])
+
+    total_width = sum(max_width_per_col)
+
+    while total_width < max_width and any(width_per_col>max_width_per_col):
+        for i in range(n_columns):
+            if width_per_col[i] > max_width_per_col[i]:
+                max_width_per_col[i] += 1
+                total_width += 1
+                if total_width >= max_width:
+                    break
+    max_width_per_col[max_width_per_col>(max_width // n_columns)*3] = (max_width // n_columns)*3
+
+    return max_width_per_col
+
 def format_2d(array_2d, max_width=200, wrap_text=False, indent=" ", spacing=2):
     # Calculate max width for each column, but limit the width to column_limit
     if len(indent) == 0: indent = ' '
-    n_columns = len(array_2d[0])
-    max_width_per_col = [
-        min(max(max([len(str(line)) for line in element.split('\n')]) for element in col), max_width // n_columns)
-        for col in zip(*array_2d)]
+    max_width_per_col = calculate_optimal_column_widths(array_2d, max_width)
     # Create a list of lists for each formatted line
     formatted_rows = []
     spacer = ' ' * spacing

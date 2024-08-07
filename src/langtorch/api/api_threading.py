@@ -8,8 +8,8 @@ async def execute_api_requests_in_parallel(
         request_strings: list,
         request_url: str,
         request_header: dict,
-        max_requests_per_minute: float = 3_000 * 0.5,
-        max_tokens_per_minute: float = 250_000 * 0.5,
+        max_requests_per_minute: float = 5_000,
+        max_tokens_per_minute: float = 250_000,
         token_encoding_name: str = "cl100k_base",
         max_attempts: int = 3
 ):

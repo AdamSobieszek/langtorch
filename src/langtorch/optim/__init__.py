@@ -1,1 +1,2 @@
-from .optimizer import TextOptimizer
+from .optimizer import TextOptimizer, TextualGradientDescent
+

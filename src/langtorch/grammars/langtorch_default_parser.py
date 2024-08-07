@@ -57,6 +57,7 @@ LangTorchGrammarParser = ZeroOrMore(named_string | unnamed_string) + StringEnd()
 
 def fix_double_brackets(s):
     # Regex Explanation:
+    # Add that 0 or 1 $ symbol can appear between both  left and right {${
     # (?<!\{) - Negative lookbehind to ensure no '{' immediately before our pattern
     # {{ - Matches '{{'
     # ([^{}]+) - Captures one or more characters that are not '{' or '}'
@@ -73,7 +74,13 @@ def fix_double_brackets(s):
 
     return result
 
+import re
 
+def fix_substitution(s):
+    pattern = r'(?<!\$)\$\{([^{}]+)\}(?![^{]*\})'
+    replacement = lambda m: '{$' + m.group(1) + '}'
+    result = re.sub(pattern, replacement, s)
+    return result
 BNF = """TextParser = { (NamedString | UnnamedString) } ;
 
 (* Unnamed strings *)

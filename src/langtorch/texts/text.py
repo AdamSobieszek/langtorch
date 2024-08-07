@@ -1,3 +1,4 @@
+import copy
 import json
 import logging
 import re
@@ -10,7 +11,11 @@ from pyparsing import *
 from ..grammars import formatters
 from ..grammars import parsers
 from ..grammars import text_content_ast as ast
+from ..autograd.textmask import TextMask
 from ..utils import is_TextTensor, is_Text
+from langtorch import ctx
+
+
 
 
 class Text(str):
@@ -78,8 +83,9 @@ class Text(str):
     formatters = formatters.language_to_formatter
     language = "str"
     allowed_keys = None
+    _grad_mask: TextMask = None
 
-    def __new__(cls, *substrings, parse: Union[str, bool] = "langtorch-f-string", language="str", **named_substrings):
+    def __new__(cls, *substrings, parse: Union[str, bool] = "langtorch-f-string", language="str", grad_mask=False, **named_substrings):
         """
         Construct a new Text instance. Allows for various input formats.
 
@@ -103,6 +109,7 @@ class Text(str):
         if len(substrings) == 0 or (len(substrings) == 1 and substrings[0] is None):
             instance = super().__new__(cls, "")
             instance._content = tuple()
+            instance._grad_mask = TextMask([])
             return instance
         content = [c if c is not None else cls.identity for c in (list(substrings) + list(named_substrings.items()))]
         # cast TextTensors to strings
@@ -112,20 +119,32 @@ class Text(str):
                 assert isinstance(content[i], str) or (0 < len(content[i]) <= 2)
         # returns the final content tuple
         parser = "langtorch-f-string" if parse is True else (False if parse is None else parse)
+
+        if grad_mask==False and (len(substrings) == 1 and isinstance(substrings[0], Text)):
+            grad_mask = substrings[0].grad_mask
+
         content = ast.parse_content(content, parser=parser)
 
         assert ast.is_valid_tree(content, is_tuple=True), f"Creating Text with an invalid content tree: {content}"
 
-        instance = super().__new__(cls, cls.str_formatter(content))
+        instance = super().__new__(cls, cls.str_formatter(content, language))
         instance._content = content
         instance.language = language
+        if isinstance(grad_mask, TextMask):
+            instance._grad_mask = grad_mask
+        elif grad_mask==False:
+            instance._grad_mask = TextMask([])
+        elif grad_mask==True:
+            instance._grad_mask = TextMask(instance._index_list())
+        else:
+            instance._grad_mask = TextMask(grad_mask)
         if instance.allowed_keys is not None and any([k not in instance.allowed_keys for k in instance.keys()]):
             raise ValueError(
                 f"Invalid key found in {instance.keys()}. For class {cls.__name__} only {instance.allowed_keys} keys are allowed.")
         return instance
 
     @classmethod
-    def str_formatter(cls, instance, language="str") -> str:
+    def str_formatter(cls, instance, language="str", add_grad_tags=False) -> str:
         """
         Formats the human-readable string of a Text instance. Subclasses of Text can reimplement this method!
 
@@ -135,6 +154,18 @@ class Text(str):
         Returns:
             (str): A string representation of the instance.
         """
+        if add_grad_tags:
+            items = instance.items()
+            indices = instance.full_grad_mask()
+            mask = instance.grad_mask
+            for start, end in instance.require_grad_indices():
+                import numpy as np
+                print(np.where(indices==start))
+                quit()
+                items[:] = Text("<REQUIRES_GRAD>") + instance[start]
+                print( Text("<REQUIRES_GRAD>") + instance[start])
+                instance.iloc[end] = instance[end] + "</REQUIRES_GRAD>"
+            print(">>",instance.items())
         return cls.formatters[language](instance)
 
     def __str__(self):
@@ -146,6 +177,8 @@ class Text(str):
         """Text from a list of dicts with keys 'role' and 'content'"""
         if len(messages) == 0:
             return cls()
+        if len(messages) == 1 and isinstance(messages[0], list):
+            messages = messages[0]
         if all(isinstance(m, list) for m in messages):
             return [cls.from_messages(*m, **kwargs) for m in messages]
 
@@ -175,6 +208,50 @@ class Text(str):
 
         text = cls.from_messages([m["choices"] for m in messages], **kwargs)
         return cls(*text, **kwargs)
+
+    @classmethod
+    def nan(cls):
+        return cls("nan")
+
+    @property
+    def grad_mask(self):
+        return self._grad_mask
+
+    @grad_mask.setter
+    def grad_mask(self, value):
+        self._grad_mask = TextMask(value)
+
+
+    def require_grad_indices(self):
+        other = self._full_grad_mask()
+        return self._grad_mask.contiguous_portions(other)
+
+    def _index_list(self, items=None):
+        def _index_sublist(item, idx):
+            if isinstance(item, tuple):
+                return _index_sublist(item[1], idx)
+            elif isinstance(item, str):
+                return [idx]
+            elif isinstance(item, list):
+                indices = []
+                for sub_idx, subitem in enumerate(item):
+                    indices += _index_sublist(subitem, idx+(sub_idx,))
+                return indices
+
+        indices = []
+        items = self.items() if items is None else items
+        for idx,item in enumerate(items):
+            indices+=_index_sublist(item, (idx,))
+        return indices
+
+    def _full_grad_mask(self):
+        return TextMask(self._index_list())
+
+    full_grad_mask = _full_grad_mask
+
+    def requires_grad_(self, requires_grad: bool = True):
+        self._grad_mask = TextMask(self._index_list()) if requires_grad else TextMask([])
+        return self
 
     def keyed_print(self):
         """
@@ -308,15 +385,16 @@ class Text(str):
         # The use of Text.str_formatter(t) instead of str(t) here and elsewhere is for subclasses of Text to reimplement __str__
         if isinstance(key, Text):
             key = key.values()
-            if len(key) == 1:
-                key = key[0]
+        if len(key) == 1:
+            key = key[0]
 
-        if isinstance(key, list) and len(key) > 1:
+        if isinstance(key, (list, tuple)) and len(key) > 1:
             assert len(key) == len(
                 self.content), f"Number of keys ({len(key)}) must match number of entries ({len(self.content)})"
-            content = tuple((k, v) for k, v in zip(key, self.content))
+            content = tuple((k, v if v[0] else v[1]) for k, v in zip(key, self.items()))
         elif isinstance(key, str):
-            content = ((key, tuple(self.items())),)
+            content = self.items()
+            content = ((key, "" if len(content)==0 else list(content) if len(content)>1 else content[0]),)
 
         if inplace:
             self.content = content
@@ -339,18 +417,27 @@ class Text(str):
 
             def __getitem__(self, index):
                 items = self.text_instance.items()
-                if isinstance(index, int):
+                if isinstance(index, (int, tuple)):
                     # Support negative indices
-                    if index < 0:
-                        index += len(items)
+                    if isinstance(index, int):
+                        index = (index,)
+                    if index and index[0] < 0:
+                        index = (len(items)+index[0],)+index[1:]
                     try:
-                        item = items[index]
-                        return self.text_instance.__class__(item, parse=False)
+                        for i in index:
+                            skip_tuple = lambda t: skip_tuple(t[1]) if isinstance(t, tuple) else t
+                            items = skip_tuple(items)[i]
+                        grad_mask = self.text_instance._grad_mask.starts_with(index, strip=True) if len(index)>0 else self.text_instance._grad_mask
+                        return self.text_instance.__class__(items, parse=False, grad_mask=grad_mask)
                     except IndexError:
                         raise IndexError(f"Index {index} out of range")
                 elif isinstance(index, slice):
                     sliced_items = items[index]
-                    return self.text_instance.__class__(sliced_items, parse=False)
+                    start = 0 if index.start is None else index.start
+                    stop = len(self.text_instance.items()) if index.stop is None else index.stop
+                    grad_mask = self.text_instance._grad_mask
+                    grad_mask = grad_mask[(grad_mask>=start) & (grad_mask<stop)]
+                    return self.text_instance.__class__(sliced_items, parse=False, grad_mask = grad_mask)
                 elif isinstance(index, list):
                     # Ensure all elements are integers
                     if not all(isinstance(i, int) for i in index):
@@ -362,16 +449,37 @@ class Text(str):
 
             def __setitem__(self, index, value):
                 # Convert single value to tuple for consistency
-                if not isinstance(value, tuple) or len(value) == 2:
-                    value = (value,)
+                if is_Text(value):
+                    grad_mask = value._grad_mask
+                    value = value.items()
+                else:
+                    grad_mask = None
+                if isinstance(value, list) and len(value)==1:
+                    value = value[0]
+                if not isinstance(value, tuple):
+                    value = ("",value)
 
                 # Handle single index assignment
-                if isinstance(index, int):
-                    if index < 0:
-                        index += len(self.text_instance._content)
-                    self.text_instance._content = (
-                            self.text_instance._content[:index] + value + self.text_instance._content[index + 1:]
-                    )
+                if isinstance(index, (int, tuple)):
+                    # Support negative indices
+                    if isinstance(index, int):
+                        index = (index,)
+                    if index and index[0] < 0:
+                        index = (len(self.text_instance.full)+index[0],)+index[1:]
+                    try:
+                        mask = self.text_instance.full_grad_mask()
+                        low = sum(mask<index)
+                        high = sum(mask>index)
+
+                        self.text_instance.content = self.text_instance.items()[:low] + [value] + self.text_instance.items()[high*-1:]
+                        if grad_mask is not None:
+                            self.text_instance._grad_mask.set(index, grad_mask)
+
+                        return
+                    except IndexError:
+                        raise IndexError(f"Cannot set index {index}, may be out of range")
+
+
 
                 # Handle slice assignment
                 elif isinstance(index, slice):
@@ -506,7 +614,7 @@ class Text(str):
     def __getitem__(self, index):
         if isinstance(index, str):
             return self.loc[index]
-        return str(self)[index]
+        return self.iloc[index]
 
     def __or__(self, other):
         return
@@ -515,10 +623,12 @@ class Text(str):
         return len(str(self.content))
 
     def __eq__(self, other):
+        if id(self) == id(other):
+            return True
         if isinstance(other, Text):
-            return self.content == other.content
+            return self.items() == other.items()
         elif isinstance(other, str):
-            s = str(Text(self)).replace("u200b", "")
+            s = str(Text(self, parse=False)).replace("u200b", "")
             return s == other
         return False
 
@@ -526,6 +636,8 @@ class Text(str):
         for s in self.content:
             yield s
 
+    def __hash__(self):
+        return id(self)
     # def _handle_other(self, other, method):
     #     if isinstance(other, str) and not isinstance(other, Text):
     #         return other
@@ -541,20 +653,29 @@ class Text(str):
 
     def __add__(self, other):
         if isinstance(other, str) and not isinstance(other, Text):
-            return self.__class__(*self.content, other, parse=False)
+            items_other = ["",other]
+            grad_mask_other = TextMask([])
         elif isinstance(other, Text):
-            return self.__class__(*self.content, *other.content, parse=False)
+            items_other = other.items()
+            grad_mask_other = other.grad_mask
         elif is_TextTensor(other):
             if len(other.flat) == 1:
-                return self.__class__(*self.content, *other.item().content, parse=False)
+                items_other = other.item().items()
+                grad_mask_other = other.item().grad_mask
             else:
                 return other.__class__([self + t for t in other.flat], ttype=self.__class__, parse=False)
         else:
             try:
-                return self.__class__(*self.content, other, parse=False)
+                return self.__class__(*self.content, other, parse=False, grad_mask=self.grad_mask)
             except ValueError as e:
                 raise ValueError(
                     f"Cannot add other={other} to Text. Failed to create a Text instance from other.") from e
+        return self.__class__(*self.content, *items_other, parse=False,
+                              grad_mask=self.grad_mask + grad_mask_other.shift_by(len(self.content)))
+
+    def __radd__(self, other):
+        return self.__class__(other, *self.content, parse=False, grad_mask=self.grad_mask.shift_by(1))
+
 
     def __mul__(self, other):
         if is_TextTensor(other):
@@ -571,6 +692,9 @@ class Text(str):
                 other = Text(other)
             except ParseException:
                 other = Text(other, parse=False)
+        if (isinstance(other, Text) and other=="nan") or self == "nan":
+            return Text.nan()
+
 
         def flatten_keys(parent_key, value, sep='.', iterate=False):
             if isinstance(value, tuple):
@@ -590,8 +714,8 @@ class Text(str):
                     return (parent_key, value)
 
         def match_mul_rule(k, v, k_, v_, i, result, formatted_indices, indices_to_delete):
+            nonlocal grad_mask, other
             k, v = flatten_keys(k, v)
-
             if isinstance(v, list):
                 subresult = v  # still a refence to the original
                 for subi, subv in enumerate(v):
@@ -609,21 +733,28 @@ class Text(str):
                     return True
                 elif v == k_:
                     result[ind] = (k, v_)
+                    grad_mask.set(i, other)
                     formatted_indices.append(i)
                     return True
             return False
 
-        items = self.items()
-        result = items[:]
+        items = copy.deepcopy(self.items())
+        result = copy.deepcopy(items)
         items_other = other.items()
+        grad_mask = self.grad_mask.copy()
 
         for i, (k, v) in enumerate(items):
-            if v == "*":
+            # k,v = flatten_keys(k,v)
+            if v == "*": #TODO recursive case
                 if k == "":
-                    result = result[:i] + list(other.items()) + result[i + 1:]
+                    formatted_indices = [i+ii for ii in range(len(items_other))]
+                    result = result[:i] + list(items_other) + result[i + 1:]
+                    # grad_mask = grad_mask[grad_mask<i] + (other.grad_mask.shift_by(i) if i not in grad_mask.content else other._full_grad_mask().shift_by(i)) + grad_mask[grad_mask>i].shift_by(len(items_other))
                 else:
-                    result[i] = (k, other.items())
-                return self.__class__(*result, parse=False)
+                    formatted_indices = [i]
+                    result[i] = (k, items_other if len(items_other)!=1 or items_other[0][0]!="" else items_other[0][1] )
+                    # grad_mask.set(i, other)
+                return self.__class__(*result, parse=False, grad_mask=grad_mask)
 
         # if v_ == "*":
         #     result = [(k_, [item for i, item in enumerate(result) if i not in indices_to_delete])]
@@ -642,11 +773,13 @@ class Text(str):
         # Replace entries of result according to replacement_map
         for i, j in replacement_map.items():
             if items_other[j][0] == "":
-                result[i] = (result[i][0], items_other[j][1])
+                item = (result[i][0], items_other[j][1])
             elif result[i][0] == "":
-                result[i] = items_other[j]
+                item = items_other[j]
             else:
-                result[i] = (result[i][0], items_other[j])
+                item = (result[i][0], items_other[j])
+            result[i] = item
+            # grad_mask.set(i, Text(item, parse=False))
 
         formatted_indices = list(replacement_map.keys())
         indices_to_delete = []
@@ -654,22 +787,28 @@ class Text(str):
             if j not in replacement_map.values():
                 for k_, v_ in flatten_keys(k_, v_, iterate=True):
                     if j is not None:
-                        for i, (k, v) in enumerate(items):
+                        for i, (k, v) in enumerate(items): # Enumerating over the original let's us not format the previously appended items_other
                             if match_mul_rule(k, v, k_, v_, i, result, formatted_indices, indices_to_delete):
                                 j = None
                                 break
                 if j is not None:
                     result.append((k_, v_))
+                    formatted_indices.append(len(result) - 1) # This is here only to know which portions require_grad later
 
-        def del_ind(subresult, index):
+        def del_ind(subresult, deleted_idx):
+            nonlocal formatted_indices, grad_mask
+
+            # Adjust formatted_indices and mask
+            formatted_indices.delete(deleted_idx)
+            grad_mask.delete(deleted_idx)
+
             if isinstance(subresult, tuple):
-                return (subresult[0], del_ind(subresult[1], index))
-            if isinstance(index, int):
-                return subresult[:index] + subresult[index + 1:]
+                return (subresult[0], del_ind(subresult[1], deleted_idx))
+            if isinstance(deleted_idx, int):
+                return subresult[:deleted_idx] + subresult[deleted_idx + 1:]
             else:
-                sublist = del_ind(subresult[index[0]], index[1:] if len(index[1:]) > 1 else index[1])
-                return subresult[:index[0]] + [sublist] + subresult[index[0] + 1:]
-
+                sublist = del_ind(subresult[deleted_idx[0]], deleted_idx[1:] if len(deleted_idx[1:]) > 1 else deleted_idx[1])
+                return subresult[:deleted_idx[0]] + [sublist] + subresult[deleted_idx[0] + 1:]
         # Sort the indices in reverse order based on their depth and values
         def sort_key(index):
             if isinstance(index, int):
@@ -677,12 +816,28 @@ class Text(str):
             else:
                 return (len(index), index)
 
+
+        formatted_indices = TextMask([i for i in formatted_indices if i not in indices_to_delete])
         indices_to_delete.sort(key=sort_key, reverse=True)
 
         for i in indices_to_delete:
             result = del_ind(result, i)
 
-        return self.__class__(*result, parse=False)
+        print(self._index_list(result), formatted_indices)
+        # for i in formatted_indices:
+        #     def print_ind(subresult, i):
+        #         if isinstance(subresult, tuple):
+        #             print_ind(subresult[1],i)
+        #         elif isinstance(i, tuple):
+        #             print_ind(subresult[i[0]], i[1:] if len(i[1:]) > 1 else i[1])
+        #         else:
+        #             print(">",subresult[i])
+        #     print_ind(result, i)
+
+        return self.__class__(*result, parse=False, grad_mask=grad_mask)
+
+    def __rmul__(self, other):
+        return self.__class__(other, parse=False) * self
 
     def format(self, *args, **kwargs):
         other = Text(*args, parse=False) + Text(kwargs, parse=False)
@@ -695,7 +850,28 @@ class Text(str):
         return self.__mul__(other, strict=True)
 
     def inv(self):
-        return self.__class__(*[(v, k) for k, v in self.items()], parse=False)
+        def flatten(k,v):
+            if isinstance(v, str):
+                return (v,k)
+            elif isinstance(v,list):
+                return [flatten(k,flatten(*vv)) for vv in v]
+            else:
+                return flatten(*flatten_keys(k,v))
+        def flatten_keys(parent_key, value, sep='.'):
+            if isinstance(value, tuple):
+                if not parent_key:
+                    flatter_tuple = flatten_keys(value[0], value[1])
+                else:
+                    flatter_tuple = flatten_keys(f"{parent_key}{sep + value[0] if value[0] else ''}", value[1])
+                return flatter_tuple
+            else:
+                return (parent_key, value)
+
+        flat_items = []
+        for k,v in self.items():
+            kv = flatten(k,v)
+            flat_items += kv if isinstance(kv,list) else [kv]
+        return self.__class__(*flat_items, parse=False)
 
     def __pow__(self, power):
         if power == -1:
@@ -823,6 +999,24 @@ class Text(str):
         return Text.guess_format(text)
 
     @classmethod
+    def variable_substitution(cls, _string):
+        # match the pattern ${*}
+        _pattern = r"\$\{[^\}]*\}"
+        _namespace =  ctx
+        _matches = re.findall(_pattern, _string)
+        for _match in _matches:
+            _k = _match[2:-1]
+            _v = getattr(_namespace, _k, None)
+            if _v is not None:
+
+                _string = _string.replace(_match, str(_v))
+        return _string
+
+    def eval(self):
+        f = lambda t: Text.variable_substitution(t) if isinstance(t,str) else ([f(tt) for i,tt in enumerate(t)] if isinstance(t,list) else (t[0], f(t[1] )))
+        self.content = [(k,f(v)) for k,v in self.items()]
+
+    @classmethod
     def load(cls, path: str, encoding="utf-8", parse: Union[bool, str] = True):
 
         if not os.path.isabs(path):
@@ -851,3 +1045,101 @@ class Text(str):
 
     from_file = load
     to_file = save
+
+
+
+    def to_ast(self) -> ast.AST:
+        """
+        Convert the Text content to an abstract syntax tree (AST) using the ast module.
+        """
+
+        def build_ast_node(node: Union[str, Tuple, List]) -> ast.AST:
+            if isinstance(node, str):
+                return ast.Constant(value=node)
+            elif isinstance(node, tuple) and len(node) == 2:
+                return ast.Tuple(elts=[
+                    ast.Constant(value=node[0]),
+                    build_ast_node(node[1])
+                ], ctx=ast.Load())
+            elif isinstance(node, list):
+                return ast.List(elts=[build_ast_node(child) for child in node], ctx=ast.Load())
+            else:
+                raise ValueError(f"Unexpected node type: {type(node)}")
+
+        return ast.Module(body=[ast.Expr(value=build_ast_node(self.items()))], type_ignores=[])
+
+    @staticmethod
+    def _ast_to_python(node: ast.AST) -> Any:
+        """
+        Convert an AST node back to a Python object.
+        """
+        if isinstance(node, ast.Constant):
+            return node.value
+        elif isinstance(node, ast.Tuple):
+            return tuple(Text._ast_to_python(elt) for elt in node.elts)
+        elif isinstance(node, ast.List):
+            return [Text._ast_to_python(elt) for elt in node.elts]
+        elif isinstance(node, ast.Expr):
+            return Text._ast_to_python(node.value)
+        else:
+            raise ValueError(f"Unexpected AST node type: {type(node)}")
+
+    def get_by_index(self, index: Union[int, Tuple[int, ...]]) -> 'Text':
+        """
+        Access a node in the AST using the described index convention.
+        """
+
+        def traverse(node: ast.AST, idx: Union[int, Tuple[int, ...]]) -> ast.AST:
+            if isinstance(idx, int):
+                idx = (idx,)
+
+            current = node
+            for i in idx:
+                while isinstance(current, ast.Tuple):
+                    current = current.elts[1]  # Always take the second element of a tuple
+
+                if isinstance(current, ast.List):
+                    current = current.elts[i]
+                else:
+                    raise IndexError(f"Cannot index {type(current)} with integer")
+
+            return current
+
+        tree = self.to_ast()
+        result = traverse(tree.body[0].value, index)
+        return Text(self._ast_to_python(result))
+    def replace_subtree(self, index: Union[int, Tuple[int, ...]], new_subtree: 'Text') -> 'Text':
+        """
+        Replace a subtree in the AST with a new subtree.
+        """
+
+        def replace_node(node: ast.AST, idx: Union[int, Tuple[int, ...]], new_node: ast.AST) -> None:
+            if isinstance(idx, int):
+                if isinstance(node, (ast.List, ast.Tuple)):
+                    node.elts[idx] = new_node
+                else:
+                    raise IndexError(f"Cannot index {type(node)} with integer")
+            elif isinstance(idx, tuple):
+                current = node
+                for i in idx[:-1]:
+                    if isinstance(current, (ast.List, ast.Tuple)):
+                        current = current.elts[i]
+                    else:
+                        raise IndexError(f"Cannot index {type(current)} with integer")
+                replace_node(current, idx[-1], new_node)
+            else:
+                raise TypeError("Index must be an int or a tuple of ints")
+
+        tree = self.to_ast()
+        new_ast = new_subtree.to_ast().body[0].value
+        replace_node(tree.body[0].value, index, new_ast)
+
+        self.content = self._ast_to_python(tree.body[0].value)
+        return self
+
+    @classmethod
+    def from_ast(cls, tree: ast.AST) -> 'Text':
+        """
+        Create a Text instance from an AST.
+        """
+        return cls(cls._ast_to_python(tree))

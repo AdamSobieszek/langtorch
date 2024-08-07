@@ -7,7 +7,8 @@ from langtorch import TextTensor, Activation
 class TextOptimizer(Optimizer):
     def __init__(self,
                  params: Union[Iterable[torch.Tensor], Iterable[Dict[str, Any]]],
-                 defaults: Dict[str, Any] = {}) -> None:
+                 defaults: Dict[str, Any] = {},
+                 activation = None) -> None:
         """Base class for all text optimizers.
 
     Args:
@@ -17,7 +18,12 @@ class TextOptimizer(Optimizer):
             options (used when a parameter group doesn't specify them).
         activation: (langtorch.Activation): an activation LLM to use during an optimizer step.
     """
+        self.activation = activation
         super(TextOptimizer, self).__init__(params, defaults)
+        for group in self.param_groups:
+            for param in group['params']:
+                assert isinstance(param,TextTensor), f"All params have to be TextTensors, but there is param = {param}"
+
 
     def step(self, closure=None):
         """Performs a single optimization step.
@@ -72,23 +78,7 @@ class TextualGradientDescent(TextOptimizer):
     def __init__(self,
                  params,
                  activation: Activation = None):
-        """TextualGradientDescent optimizer
-
-        :param engine: the engine to use for updating variables
-        :type engine: EngineLM
-        :param parameters: the parameters to optimize
-        :type parameters: List[Variable]
-        :param verbose: whether to print iterations, defaults to 0
-        :type verbose: int, optional
-        :param constraints: a list of natural language constraints, defaults to []
-        :type constraints: List[str], optional
-        :param optimizer_system_prompt: system prompt to the optimizer, defaults to textgrad.prompts.OPTIMIZER_SYSTEM_PROMPT. Needs to accept new_variable_start_tag and new_variable_end_tag
-        :type optimizer_system_prompt: str, optional
-        :param in_context_examples: a list of in-context examples, defaults to []
-        :type in_context_examples: List[str], optional
-        :param gradient_memory: the number of past gradients to store, defaults to 0
-        :type gradient_memory: int, optional
-        """
+        """TextualGradientDescent optimizer"""
         super().__init__(params, {})
 
         if isinstance(activation, str):
@@ -118,9 +108,6 @@ class TextualGradientDescent(TextOptimizer):
             new_text = self.engine(prompt_update_parameter, system_prompt=self.optimizer_system_prompt)
             parameter.set_value(
                 new_text.split(self.new_variable_tags[0])[1].split(self.new_variable_tags[1])[0].strip())
-            if self.verbose:
-                print("-----------------------TextualGradientDescent------------------------")
-                print(parameter.value)
-
-            if self.do_gradient_memory:
-                self.update_gradient_memory(parameter)
+            # if self.verbose:
+            #     print("-----------------------TextualGradientDescent------------------------")
+            #     print(parameter.value)

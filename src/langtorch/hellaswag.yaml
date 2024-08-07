@@ -1,0 +1,4277 @@
+cfg:
+  strict: false
+  default_path: ''
+  default_model_for_functions: gpt-3.5-turbo
+  default_model_for_backward: gpt-4o
+  default_embedding_model: text-embedding-3-small
+  soft_wrap: true
+  max_width: 140
+  texts:
+    text.Text:
+      parse: auto
+      allowed_keys: null
+      syntax: grammars/langtorch_default_grammar.py
+      detect_language: true
+    chat.Chat:
+      parse: false
+    codeCode:
+      parse: code
+    langtorchcode.LangTorchCode:
+      parse: code
+    markdown.Markdown:
+      parse: markup
+  tt:
+    modules:
+      to_tt:
+        textmodule.TextModule:
+          activation: null
+        activation:
+          Activation:
+            model: gpt-3.5-turbo
+            system_message: null
+            backward_prompt: 'We are addressing this feedback:
+
+              {grad}
+
+
+              It is in regards to our model output that when prompted with:
+
+              {input}
+
+
+              Produced the response:
+
+              {output}
+
+
+              Did we succeed or failed to perform the task (given our goal)? Respond
+              with a one-sentence explanation or reason why yes or why not.'
+  tensors:
+    texttensor.TextTensor:
+      parse: auto
+      allowed_keys: null
+      syntax: grammars/langtorch_default_grammar.py
+      detect_language: true
+      embedding_model: text-embedding-3-small
+      always_embed: false
+      tokenizer: null
+      always_tokenize: false
+    chattensor.Chat:
+      ttype: Chat
+      parse: false
+    codetensor.Code:
+      ttype: Code
+      parse: code
+    langtorchcode.LangTorchCode:
+      ttype: LangTorchCode
+    markdown.Markdown:
+      ttype: Markdown
+      parse: md
+    example_new_tensor.ExampleNewTensor:
+      ttype: Text
+      __str__: return 'This is a fancy new tensors:'+super().__str__()
+      requires_grad: true
+      parse: html
+  api:
+    openai:
+      api_key: null
+      organization: null
+  torch:
+    no_grad: false
+    device: '''cuda'' if torch.cuda.is_available() else ''cpu'''
+methods:
+- methods/*
+cache_file: hellaswag.pt
+a:
+- ind: 250
+  activity_label: Waterskiing
+  ctx_a: A man is holding onto a bar as he is standing on a water ski.
+  ctx_b: he
+  ctx: Mężczyzna trzyma się drążka, stojąc na nartach wodnych. On
+  endings:
+  - stoi na drążku, rozmawia i wykonuje na nim stania na rękach.
+  - jest ciągnięty przez wodę za pomocą motorówki.
+  - zaczął unosić się na wodzie i męczy się.
+  - wykonywał kilka sztuczek, stojąc na nartach wodnych.
+  source_id: activitynet~v_1DvNkSGk-JA
+  split: train
+  split_type: indomain
+  label: '1'
+- ind: 2428
+  activity_label: River tubing
+  ctx_a: A young girl sinks down in the middle of her inner-tube and jumps back up
+    with her head soaked. Someone shows a first person view floating down the river.
+  ctx_b: various other people
+  ctx: Młoda dziewczyna zapada się w środku swojej opony do pływania i wyskakuje z
+    powrotem z mokrą głową. Ktoś pokazuje widok z perspektywy pierwszej osoby, unoszący
+    się na rzece. Różni inni ludzie
+  endings:
+  - przepływają obok i pojawia się statyczny obraz instruktażowy, jak płynąć rzeką.
+  - są pokazani na oponach do pływania i w kajakach na wodzie.
+  - zaczynają poza wodą i unoszą się do góry wodospadu.
+  - są pokazani oddychający pod wodą, podczas gdy unoszą się i są bardzo zmarznięci,
+    ale też się ogrzewają.
+  source_id: activitynet~v_T9JSNxOyUQA
+  split: train
+  split_type: indomain
+  label: '1'
+- ind: 2094
+  activity_label: Making a sandwich
+  ctx_a: A boy stands behind a table of food.
+  ctx_b: he
+  ctx: Chłopiec stoi za stołem z jedzeniem. On
+  endings:
+  - zjada kawałki jedzenia, które unoszą się w powietrzu, zanim zostaną z powrotem
+    zeskrobane.
+  - zaczyna smarować majonezem kromki chleba.
+  - kroi jajko i kładzie je na patelni.
+  - wsypuje makaron do miski.
+  source_id: activitynet~v_O8JVA-scYlM
+  split: train
+  split_type: indomain
+  label: '1'
+- ind: 1366
+  activity_label: River tubing
+  ctx_a: A group of people are also on different colored floating donuts, playing,
+    falling in the water and having a good time.
+  ctx_b: a brown haired woman standing in a pile of floating donuts
+  ctx: Grupa ludzi bawi się na różnokolorowych pływających kołach, wpadając do wody
+    i dobrze się bawiąc. Kobieta o brązowych włosach stoi wśród pływających kołów
+  endings:
+  - jest nowo wprowadzona do obrazu i nagle budzi się i zaczyna chodzić po pokoju.
+  - jest bardziej zanurzona w wodzie niż całkowicie.
+  - trzyma mikrofon i mówi, a inne klipy zaczynają się odtwarzać, pokazując krajobrazy
+    jeziora, przeprowadzając wywiady z różnymi ludźmi w różnym wieku i obu płci, ludźmi
+    spacerującymi z ich pływającymi kołami, znakami przy jeziorze, bawiącymi się ludźmi
+    itp.
+  - staje się znana na dużym telewizyjnym ekranie.
+  source_id: activitynet~v_FaKQvJBhMPg
+  split: train
+  split_type: indomain
+  label: '2'
+- ind: 1350
+  activity_label: Playing congas
+  ctx_a: A young child wearing a green shirt is playing some conga percussion instruments.
+  ctx_b: an older boy wearing a burgundy shirt
+  ctx: Małe dziecko ubrane w zieloną koszulkę gra na kongach. Starszy chłopiec w bordowej
+    koszulce
+  endings:
+  - wchodzi do następnego pomieszczenia i zdejmuje koszulkę.
+  - siedzi na krześle.
+  - wchodzi w kadr za dzieckiem grającym na kongach i zaczyna tańczyć.
+  - gra na dudach w innym pomieszczeniu.
+  source_id: activitynet~v_FMUaey1tigI
+  split: train
+  split_type: indomain
+  label: '2'
+- ind: 2704
+  activity_label: Mooping floor
+  ctx_a: A close up of a sink is shown followed by a person turning on a faucet and
+    grabbing the camera. She faces a table and sprays down a rag followed by pushing
+    the rag along the floor.
+  ctx_b: the woman
+  ctx: Pokazano zbliżenie na zlew, po czym osoba włącza kran i chwyta kamerę. Kobieta
+    stoi przy stole i spryskuje ścierkę, a następnie przesuwa ją po podłodze.
+  endings:
+  - pokazuje płótno i przenośne naczynie, po czym zaczyna czyścić dno zlewu.
+  - następnie zaczyna latać po podłodze, przewracając szuflady i naczynia w trakcie.
+  - wraca i ponownie przesuwa ścierkę wzdłuż zlewu.
+  - kontynuuje sprzątanie podłogi i wraca do kamery.
+  source_id: activitynet~v_W4aPcuQSxFI
+  split: train
+  split_type: indomain
+  label: '3'
+- ind: 240
+  activity_label: Tai chi
+  ctx_a: Three women are standing in a park in a field doing yoga.
+  ctx_b: man
+  ctx: Trzy kobiety stoją w parku na polanie i wykonują jogę. Mężczyzna
+  endings:
+  - biega w parku za kobietami.
+  - stoi w siłowni, rozmawia z kamerą i pokazuje ćwiczenia.
+  - siedzi na stojaku i rozmawia z trzema kobietami.
+  - rozmawia z kamerą, zdejmuje szlafrok, odsłaniając swoje piękne nogi i wykonuje
+    pozę monyou.
+  source_id: activitynet~v_19SHLOheCmo
+  split: train
+  split_type: indomain
+  label: '0'
+- ind: 2201
+  activity_label: Preparing salad
+  ctx_a: Beets are being chopped up on a chopping block.
+  ctx_b: they
+  ctx: Buraki są siekane na desce do krojenia. one
+  endings:
+  - są siekane na kształt wielkich zębów, podobnych do dyni cuervo.
+  - zapalają drewno, jedząc je w całości.
+  - przemieniają drewno w złoto.
+  - są wkładane do patelni i zalewane wodą.
+  source_id: activitynet~v_Q2PC60uwjdY
+  split: train
+  split_type: indomain
+  label: '3'
+- ind: 613
+  activity_label: Playing congas
+  ctx_a: A band is seen playing several instruments on a stage while people dance
+    around them.
+  ctx_b: the band
+  ctx: Zespół jest widziany, jak gra na kilku instrumentach na scenie, podczas gdy
+    ludzie tańczą wokół nich.
+  endings:
+  - kontynuuje grę razem i kończy z ekranem zakończenia.
+  - gra, robiąc zdjęcia i pokazując swoje imiona do kamery.
+  - kontynuuje grę, podczas gdy światła błyskają dookoła nich, a ludzie kontynuują
+    taniec.
+  - kontynuuje grę z bliska i głośno, jak również na parkiecie tanecznym.
+  source_id: activitynet~v_60yOoxs9AFc
+  split: train
+  split_type: indomain
+  label: '2'
+- ind: 263
+  activity_label: Polishing shoes
+  ctx_a: The train is moving along the station as a crowd walks by. The shiner returns
+    to buffing the right shoe.
+  ctx_b: the shiner
+  ctx: Pociąg przemieszcza się wzdłuż stacji, podczas gdy tłum przechodzi obok. Pucybut
+    wraca do polerowania prawego buta.
+  endings:
+  - wyciera but szmatką.
+  - jest uszkodzony, ale prezentuje się błyszcząco jako prezent.
+  - zatrzymuje się na sekundę przy lewym bucie i przycina obszar wokół lewej kostki.
+  - znika, gdy przechodzi do następnego buta.
+  source_id: activitynet~v_1OJa2iiFxfk
+  split: train
+  split_type: indomain
+  label: '0'
+- ind: 1629
+  activity_label: Plastering
+  ctx_a: A closeup of a bag of cement mix is shown.
+  ctx_b: one man
+  ctx: Pokazano zbliżenie na worek mieszanki cementowej. Jeden mężczyzna
+  endings:
+  - następnie maluje wokół prostokątnego gwoździa, tworząc logo.
+  - używa skrobaka, aby oczyścić powierzchnię.
+  - dolewa wodę do pojemnika, podczas gdy inny obserwuje.
+  - jest widziany podczas spawania, podczas gdy inny maluje od środka.
+  source_id: activitynet~v_JBTiD2-FcR0
+  split: train
+  split_type: indomain
+  label: '2'
+- ind: 3110
+  activity_label: Playing water polo
+  ctx_a: People are standing in a swimming pool.
+  ctx_b: they
+  ctx: Ludzie stoją w basenie. Oni
+  endings:
+  - grają w mecz piłki wodnej.
+  - zakładają ochronne czepeczki, aby ochronić się przed zimnem.
+  - maczają gąbkę w wodzie.
+  - przepychają się przez otwór w wodzie.
+  source_id: activitynet~v_aEnq40UPxJ0
+  split: train
+  split_type: indomain
+  label: '0'
+- ind: 2312
+  activity_label: Cricket
+  ctx_a: An intro is shown for a cricket game. Several players begin to play a cricket
+    game on a field.
+  ctx_b: a man
+  ctx: Pokazano wstęp do meczu krykieta. Kilku graczy zaczyna grać w krykieta na boisku.
+    Mężczyzna
+  endings:
+  - rozmawia z innym mężczyzną na każdym meczu przed zakończeniem gry.
+  - potyka się o jeden z słupków krykietowych.
+  - rozmawia z kamerą i jednym z jego graczy w sąsiednim pokoju, a następnie pojawia
+    się na podobnym boisku rozmawiając.
+  - przemawia do kamery, trzymając trofeum.
+  source_id: activitynet~v_RLdlDewtKbE
+  split: train
+  split_type: indomain
+  label: '1'
+- ind: 2394
+  activity_label: Shoveling snow
+  ctx_a: A shirtless man is shoving snow outside at the curb. He waves his hands around
+    and motions at the passing cars.
+  ctx_b: he
+  ctx: Bez koszulki mężczyzna odśnieża chodnik przy krawężniku. Macha rękami i daje
+    znaki przejeżdżającym samochodom. On
+  endings:
+  - ma na sobie czerwoną koszulkę.
+  - kontynuuje odgarnianie śniegu spod swojego samochodu.
+  - nadal macha i kręci rękami w powietrzu, gdy obok przejeżdża więcej samochodów.
+  - je kanapkę obok chodnika pokrytego śniegiem.
+  source_id: activitynet~v_ShT4biEuQDo
+  split: train
+  split_type: indomain
+  label: '2'
+- ind: 2243
+  activity_label: Bullfighting
+  ctx_a: A male attaches a hollow stick on a bull whom chases him.
+  ctx_b: a guy
+  ctx: Mężczyzna przyczepia pustą rurkę do byka, który go goni.
+  endings:
+  - drażni byka.
+  - gotuje piwo w małej lodówce.
+  - strzela do eksponatu muzealnego bez rurki.
+  - używa sprzętu spawalniczego do usunięcia metalowych cząstek.
+  source_id: activitynet~v_QLVgy-1ydr0
+  split: train
+  split_type: indomain
+  label: '0'
+- ind: 2468
+  activity_label: Swimming
+  ctx_a: Announcers talk to the camera. Men in the side of pool talk. Man in yellow
+    talks to the camera.
+  ctx_b: man in pink leotard
+  ctx: Komentatorzy rozmawiają do kamery. Mężczyźni przy basenie rozmawiają. Mężczyzna
+    w żółtym mówi do kamery. Mężczyzna w różowym trykocie
+  endings:
+  - wyskakuje z basenu.
+  - idzie do baru i pije z białej butelki.
+  - rozmawia z kamerą przed meczem.
+  - poślizguje się i wpada do basenu.
+  source_id: activitynet~v_TPu-vPWJtIA
+  split: train
+  split_type: indomain
+  label: '0'
+- ind: 1594
+  activity_label: Using the rowing machine
+  ctx_a: There's a person dressed in a blue track suit demonstrating how to use a
+    rowing machine. He sits on the bar of the machine and secures his feet into the
+    foot rest.
+  ctx_b: then he
+  ctx: Osoba ubrana w niebieski dres demonstruje, jak korzystać z wioślarza. Siada
+    na poprzeczce maszyny i mocuje stopy w podnóżku, a następnie
+  endings:
+  - klęka i rozpoczyna ćwiczenia.
+  - zaczyna wiosłować, trzymając stopy przytwierdzone do poprzeczki.
+  - rozpoczyna, ciągnąc linę w kierunku swojej klatki piersiowej, prostując nogi.
+  - robi to samo z prawą stopą umieszczoną w maszynie.
+  source_id: activitynet~v_IjBMVPd2Rcs
+  split: train
+  split_type: indomain
+  label: '2'
+- ind: 346
+  activity_label: Ballet
+  ctx_a: Several performers walk out of a box and it ends up being one male and one
+    female.
+  ctx_b: the lady
+  ctx: Kilku wykonawców wychodzi z pudełka, a na końcu zostaje jeden mężczyzna i jedna
+    kobieta. Kobieta
+  endings:
+  - następnie zaczyna poruszać się w dziwny sposób, kontynuując opowiadanie historii
+    w formie baletowej.
+  - wraca na podium, odbija się, jest gratulowana i podaje rękę innym wykonawcom.
+  - pokazuje widzom okładkę swojego albumu, stronę z groove i schemat, jak łączy części
+    zespołu.
+  - następnie bierze swoją kolej i kiedy kończy, wszyscy inni zaczynają wręczać nagrody.
+  source_id: activitynet~v_2SMmL6kIx-w
+  split: train
+  split_type: indomain
+  label: '0'
+- ind: 2644
+  activity_label: Hula hoop
+  ctx_a: The woman drops the hula hoop and lets it spin around her body then catches
+    it. The woman practices swinging the hoop between two legs.
+  ctx_b: the woman
+  ctx: Kobieta upuszcza hula-hoop i pozwala mu obracać się wokół swojego ciała, a
+    następnie łapie go. Kobieta ćwiczy przesuwanie obręczy między nogami. kobieta
+  endings:
+  - wykonuje na przemian ruchy głową i górną częścią ciała.
+  - siada obok innej kobiety i rozmawia.
+  - łapie obracające się hula-hoop, gdy spada między jej nogi.
+  - demonstruje skacząc w górę i w dół oraz wykonując ruchy rękami i biodrami.
+  source_id: activitynet~v_VOxaxr5LPiQ
+  split: train
+  split_type: indomain
+  label: '2'
+- ind: 1400
+  activity_label: Mixing drinks
+  ctx_a: A woman talks in a bar, then she puts ice in a stainless steel glass. Then
+    the woman adds to the cup two measures of liquor, juice and sugar.
+  ctx_b: after
+  ctx: Kobieta rozmawia w barze, a następnie wkłada lód do szklanki ze stali nierdzewnej.
+    Następnie dodaje do szklanki dwie miarki alkoholu, sok i cukier. Po
+  endings:
+  - dodaniu płynu do napoju przez papier.
+  - ', dodaje miód i śmietanę do szklanki.'
+  - ', wlewa do szklanki kilka rodzajów alkoholu, a następnie dodaje do szklanki z
+    lodem cytrynę, po czym miesza alkohole kawałkiem cytryny.'
+  - ', kobieta kładzie szklankę na wierzch i potrząsa nią, a następnie serwuje w szklance
+    z plasterkiem cytryny.'
+  source_id: activitynet~v_FwV1XbjLJHY
+  split: train
+  split_type: indomain
+  label: '3'
+- ind: 1562
+  activity_label: Playing guitarra
+  ctx_a: A close up of a guitar is seen with a hand plucking the strings. A man is
+    then seen singing into a microphone while still playing the guitar.
+  ctx_b: the man
+  ctx: Widzimy zbliżenie na gitarę, a na strunach grająca dłoń. Następnie widać mężczyznę
+    śpiewającego do mikrofonu, nadal grającego na gitarze.
+  endings:
+  - przestaje brzdąkać i patrzy w dal, nadal trzymając rękę na strunach.
+  - przesuwa palce w górę i w dół po gitarze, nadal śpiewając do mikrofonu.
+  - kontynuuje grę na gitarze i kończy, śpiewając i zatrzymując się, aby spojrzeć
+    w kamerę.
+  - wydaje się dobrze bawić na gitarze, jednocześnie robiąc notatki na boku.
+  source_id: activitynet~v_IIKwRyf4Oyg
+  split: train
+  split_type: indomain
+  label: '1'
+- ind: 1125
+  activity_label: Brushing teeth
+  ctx_a: A small toddler is in the bathroom brushing his teeth.
+  ctx_b: as he
+  ctx: Małe dziecko stoi w łazience i myje zęby. Gdy
+  endings:
+  - gorączkowo szczotkuje, kobieta przychodzi mu z pomocą, gdy wskazuje na różne przedmioty
+    na blacie.
+  - tak jest, pokazuje się zielonkawa substancja, po czym pojawiają się różne jedzenia.
+  - żuje, zaczyna pompować krew i wypluwa ją do zlewu.
+  - to robi, widzi tor do gry w shuffleboard.
+  source_id: activitynet~v_Cz2ut3p7nw0
+  split: train
+  split_type: indomain
+  label: '0'
+- ind: 563
+  activity_label: Starting a campfire
+  ctx_a: A shirtless man is standing on porch while instructing how to build a redneck
+    fire.
+  ctx_b: he
+  ctx: Bez koszulki mężczyzna stoi na werandzie, instruując jak zbudować ognisko w
+    stylu redneck. On
+  endings:
+  - zaczyna od ułożenia kłód, a następnie jak najszybciej układa drewno na werandzie.
+  - pokazuje płomień o niebieskim świetle za pomocą swoich rąk.
+  - rozpoczyna od kilku kłód w kształcie nietoperza, aby stworzyć płomień, który sam
+    się rozpala.
+  - pokazuje butelkę piwa i kilka innych puszek z alkoholem.
+  source_id: activitynet~v_5TV-V6Cxero
+  split: train
+  split_type: indomain
+  label: '3'
+- ind: 2935
+  activity_label: Cleaning windows
+  ctx_a: The woman wipes the window behind her with a towel. The woman sprays a liquid
+    on the window.
+  ctx_b: the woman
+  ctx: Kobieta wyciera ręcznikiem okno za sobą. Kobieta spryskuje okno płynem. kobieta
+  endings:
+  - kontynuuje wycieranie okna.
+  - następnie demonstruje, jak używać węża z dystrybutora przepompowującego przez
+    okno.
+  - włącza dyszę spryskiwacza.
+  - bierze butelkę i spryskuje okno.
+  source_id: activitynet~v_Z0GbQKiufUE
+  split: train
+  split_type: indomain
+  label: '0'
+- ind: 2456
+  activity_label: Mixing drinks
+  ctx_a: A girl standing behind the bar explains what ingredients she is using for
+    the drink, the amounts she is using, and mixes them all together in a glass and
+    presents the drink.
+  ctx_b: the camera
+  ctx: Dziewczyna stojąca za barem tłumaczy, jakie składniki używa do przygotowania
+    drinka, w jakich ilościach, a następnie miesza je wszystkie razem w szklance i
+    prezentuje napój. kamera
+  endings:
+  - przybliża drinka i stopniowo przechodzi do czerni, kończąc wideo.
+  - przerywa do ludzi bawiących się i reagujących na obecne w barze szczęśliwe dzieci,
+    które pokazują limonki, kawałki czekolady, lody i różne rodzaje napojów.
+  - zagotowuje się z obu stron i skupia na szklance.
+  - skupia się na torcie, następnie śledzi ruchy dziewczyny, gdy dodaje niektóre składniki,
+    wlewając je do szklanki wypełnionej lodem.
+  source_id: activitynet~v_TOfBNYOlv8c
+  split: train
+  split_type: indomain
+  label: '0'
+- ind: 2072
+  activity_label: Fixing bicycle
+  ctx_a: The man has a pair of blue pliers in his hand and begins fixing the chain
+    on the bike.
+  ctx_b: once the chain
+  ctx: Mężczyzna trzyma w ręce niebieskie kombinerki i zaczyna naprawiać łańcuch na
+    rowerze. Gdy łańcuch
+  endings:
+  - jest na miejscu, zaczyna obracać pedał i demonstruje, jak działa łańcuch.
+  - jest w pełni naprawiony, siada na rowerze i pomaga zejść z niego, używając śrubokręta
+    tu i ówdzie, aby go rozmontować.
+  - jest naprawiony, mężczyzna podchodzi do kamery i zaczyna szaleć na podłodze.
+  - jest na miejscu, mężczyzna sprawdza przednią oponę.
+  source_id: activitynet~v_NpKBAtQ5M6I
+  split: train
+  split_type: indomain
+  label: '0'
+- ind: 1258
+  activity_label: Making a cake
+  ctx_a: We see a title screen for a cake. We then see a lady cooking. The lady puts
+    gelato in a bowl.
+  ctx_b: the lady
+  ctx: Widzimy ekran tytułowy dla ciasta. Następnie widzimy kobietę gotującą. Kobieta
+    wkłada lody gelato do miski. Kobieta
+  endings:
+  - jest widoczna z reklamą.
+  - dodaje cynamon do ciasta.
+  - posypuje to ryżowymi chrupkami.
+  - wyjmuje lody gelato szczypcami.
+  source_id: activitynet~v_E7rhlhVA0SY
+  split: train
+  split_type: indomain
+  label: '2'
+- ind: 2592
+  activity_label: Hitting a pinata
+  ctx_a: A woman spins a blindfold person holding a stick on front a pinata. Then,
+    the person hits the strong, while the pinata is moving.
+  ctx_b: the person laugh
+  ctx: Kobieta kręci osobę z zawiązanymi oczami trzymającą kij przed piniatą. Następnie
+    osoba uderza mocno, podczas gdy piniata się porusza. Osoba się śmieje
+  endings:
+  - kiedy zawiązuje piniatę i kontynuuje taniec i śmiech.
+  - a kobieta zbliża się do niej.
+  - i rzuca piniatą.
+  - i łapie kwadratowy przedmiot.
+  source_id: activitynet~v_Us795clHJmw
+  split: train
+  split_type: indomain
+  label: '1'
+- ind: 1704
+  activity_label: Ballet
+  ctx_a: One of the girls goes out of sync from the rest and starts moving her feet
+    as she's doing her routine and everything other girl is just standing on their
+    feet and moving just their arms.
+  ctx_b: the girls
+  ctx: Jedna z dziewcząt wychodzi z synchronizacji z resztą i zaczyna poruszać nogami,
+    wykonując swoją rutynę, podczas gdy inne dziewczyny stoją na nogach i poruszają
+    tylko rękami.
+  endings:
+  - kontynuują taniec, gdy publiczność przesuwa się tam i z powrotem, a one kontynuują
+    taniec na przestrzeni.
+  - kończą swoją rutynę i uciekają, a główna prowadząca zaczyna wydawać swoje recenzje,
+    które przekazuje swoim przyjaciółkom, które albo stresują się, albo zdenerwują
+    na to, jak śmieją się w jej stronę i siadają sobie na kolanach.
+  - zaczynają teraz śpiewać, kontynuując taniec, a ta sama dziewczyna, która wcześniej
+    tańczyła inaczej niż reszta, nadal tańczy inaczej niż większość młodych dziewcząt.
+  - kontynuują taniec bez przerwy, a wideo kończy się na kolejnej gimnastyczce, która
+    obsługuje poręcz na swoim urządzeniu do ćwiczeń, gwizdając i uśmiechając się,
+    ponieważ rozmawia z kobietą, wydaje się również demonstrować ruchy jogi rękami.
+  source_id: activitynet~v_JxEnKQ7iXUI
+  split: train
+  split_type: indomain
+  label: '2'
+- ind: 1388
+  activity_label: Tai chi
+  ctx_a: Tai chi combat along with his website and various other website icons are
+    located on the bottom right.
+  ctx_b: the man
+  ctx: Tai chi combat wraz z jego stroną internetową oraz różnymi innymi ikonami stron
+    znajdują się w dolnym prawym rogu. mężczyzna
+  endings:
+  - kontynuuje jogę na rowerze, podczas gdy kobieta idzie za nim i obserwuje.
+  - następnie pokazuje, jak podnosić ciężary.
+  - następnie demonstruje kilka ruchów, które przechodzą przez 360-stopniowy eliptyczny
+    combat.
+  - następnie stoi sam na zewnątrz, gdzie wciąż ma na sobie tę samą białą strój i
+    mówi bardzo emocjonalnie, używając gestów rąk i licznych mimik twarzy.
+  source_id: activitynet~v_Fp_uU-qMDSc
+  split: train
+  split_type: indomain
+  label: '3'
+- ind: 3239
+  activity_label: Putting on shoes
+  ctx_a: The camera shifts right to several individuals in the room, waiting for the
+    woman to put her shoes on. The camera shifts back to the woman, still putting
+    her shoe on.
+  ctx_b: the woman
+  ctx: Kamera przesuwa się w prawo na kilka osób w pokoju, czekających, aż kobieta
+    założy buty. Kamera wraca do kobiety, która wciąż zakłada but.
+  endings:
+  - zakłada buty, wiąże sznurówki, a następnie włącza urządzenie, aby sprawdzić sznurówki.
+  - zaczyna zakładać drugi but.
+  - zaczyna zakładać but, w końcu trzymając go, co stanowi zmianę na koniec.
+  - pochyla się i kładzie swoją długą suknię na ziemi, następnie wstaje i znów jest
+    w pokoju, patrząc na kamerę.
+  source_id: activitynet~v_bW5HfDWUP3U
+  split: train
+  split_type: indomain
+  label: '1'
+- ind: 696
+  activity_label: Hand car wash
+  ctx_a: Business details are written in white text on a black background.
+  ctx_b: men wearing jackets pressure
+  ctx: Szczegóły biznesowe są napisane białym tekstem na czarnym tle. Mężczyźni w
+    marynarkach wywierają
+  endings:
+  - presję na mycie białego samochodu na parkingu.
+  - nacisk na swoje snowboardy, zjeżdżając z dużą prędkością z górskiego zbocza.
+  - maszynę na zewnątrz i układają śnieg na maszynie.
+  - i napinają swoje bicepsy, a następnie smarują je kulkami.
+  source_id: activitynet~v_7bUu05RIksU
+  split: train
+  split_type: indomain
+  label: '0'
+- ind: 258
+  activity_label: Polishing shoes
+  ctx_a: There is a man sitting on the ground shining a shoe. He applies ointment
+    to the shoe and resumes buffing the shoe.
+  ctx_b: the customer
+  ctx: Na ziemi siedzi mężczyzna, który poleruje but. Nakłada maść na but i kontynuuje
+    polerowanie. klient
+  endings:
+  - przygotowuje je, a następnie zamyka pudełko na buty, gdy but przestaje być polerowany.
+  - przesuwa prawą stopę w dół i umieszcza lewą stopę na podstawce, a mężczyzna zaczyna
+    polerować but.
+  - chwyta za stop i wraca do polerowania buta.
+  - kończy polerowanie i wstaje.
+  source_id: activitynet~v_1OJa2iiFxfk
+  split: train
+  split_type: indomain
+  label: '1'
+- ind: 1739
+  activity_label: Playing polo
+  ctx_a: These riders get on their horses and start trying to score for their team.
+    Someone makes it and one of the groups in the audience clap.
+  ctx_b: when the game
+  ctx: Ci jeźdźcy wsiadają na swoje konie i zaczynają zdobywać punkty dla swojej drużyny.
+    Ktoś zdobywa punkt i jedna z grup na widowni klaska. Kiedy gra
+  endings:
+  - trwa, wszyscy po stronie dają sobie nawzajem piątki.
+  - się kończy, wszyscy przytulają się do siebie i zeskakują z koni.
+  - dojdzie do końca, wszyscy jeźdźcy uściskują sobie dłonie.
+  - zakończy się, wszyscy jeźdźcy odjeżdżają i razem histerycznie świętują.
+  source_id: activitynet~v_KOFXi1RYx_g
+  split: train
+  split_type: indomain
+  label: '2'
+- ind: 2789
+  activity_label: Archery
+  ctx_a: A man talks about a bow he is using in front of an open field. The man shows
+    how to use the bow by hitting a target in the field.
+  ctx_b: several vehicles
+  ctx: Mężczyzna opowiada o łuku, którego używa na otwartym polu. Mężczyzna pokazuje,
+    jak używać łuku, trafiając w cel na polu. Kilka pojazdów
+  endings:
+  - przemierza drogę.
+  - jedzie drogą za polem.
+  - zatrzymuje się, a mężczyzna może być widziany odjeżdżający niezauważony.
+  - jest zaparkowanych przed celem, zbierając materiały.
+  source_id: activitynet~v_XCXcwMyrqYM
+  split: train
+  split_type: indomain
+  label: '1'
+- ind: 174
+  activity_label: Rock climbing
+  ctx_a: A close up of a landscape is shown followed by a woman climbing up a rock
+    on it's side.
+  ctx_b: the woman
+  ctx: Pokazano zbliżenie krajobrazu, a następnie kobietę wspianającą się na skałę.
+    kobieta
+  endings:
+  - podnosi skałę, aby przyjrzeć się jej bliżej, a w końcu pojawia się inna osoba,
+    która również wspina się i wychodzi na drugą stronę.
+  - kontynuuje wspinaczkę i kończy, osiągając szczyt i wyrzucając ręce do góry.
+  - zaczyna jechać w rurze, przemierzając tereny, które wyglądają na nierówne.
+  - pełza po skale kilka razy i kończy, rozciągając się na ziemi.
+  source_id: activitynet~v_0Z_mhRoqG2E
+  split: train
+  split_type: indomain
+  label: '1'
+- ind: 3197
+  activity_label: Playing saxophone
+  ctx_a: The man looks around then he is playing his saxophone.
+  ctx_b: a website a person the screen in the lower left corner
+  ctx: Mężczyzna rozgląda się, a następnie gra na saksofonie. strona internetowa osoba
+    ekran w lewym dolnym rogu
+  endings:
+  - podaje nazwę i stronę internetową Justina van Ilberta, następnie kobieta w fioletowym
+    swetrze tworzy kolejny obraz na ekranie, potem kobieta w zielonym swetrze, a następnie
+    pokazany jest film z innym mężczyzną kończącym występ.
+  - i ekran gaśnie.
+  - ekran informuje widzów, jak korzystać z internetu, który ma połączenie z internetem.
+  - pojawia się i zaczyna się szum.
+  source_id: activitynet~v_bEt8fGREAAA
+  split: train
+  split_type: indomain
+  label: '1'
+- ind: 2601
+  activity_label: Dodgeball
+  ctx_a: There are people standing in a large indoor court, on two different sides,
+    with balls in the middle of the court.
+  ctx_b: suddenly people
+  ctx: Ludzie stoją w dużej krytej hali, po dwóch różnych stronach, z piłkami na środku
+    boiska. Nagle ludzie
+  endings:
+  - pojawiają się w ruchu okrężnym, podnosząc liny i upuszczając piłki.
+  - zaczną biec w stronę piłek i zaczynają grać w dwa ognie, podnosząc je i rzucając
+    w siebie nawzajem, aż w jednej z drużyn zostanie tylko jedna osoba stojąca.
+  - zaczynają pojawiać się ponownie w różnych klipach grając w kręgle.
+  - zaczną skakać i wykonywać serię salta i trików.
+  source_id: activitynet~v_UySzNwvkQKQ
+  split: train
+  split_type: indomain
+  label: '1'
+- ind: 845
+  activity_label: Preparing pasta
+  ctx_a: The blended ingredients are put back onto the man and a red substance from
+    a can is poured onto the pan and mixed in.
+  ctx_b: the sauce
+  ctx: Zmieszane składniki są z powrotem umieszczane na patelni, a czerwona substancja
+    z puszki jest wlewana na patelnię i mieszana. sos
+  endings:
+  - jest w końcu gotowy i umieszczany w sosie, aby się zrumienił i 'pękł'.
+  - jest ukończony i wlewany na makaron.
+  - jest teraz ugotowany i smakuje inaczej niż w jego kuchni.
+  - jest zdejmowany z grilla, a kucharz wyjmuje czosnek z grilla.
+  source_id: activitynet~v_9FAPy8NVDgY
+  split: train
+  split_type: indomain
+  label: '1'
+- ind: 2035
+  activity_label: Long jump
+  ctx_a: A gymnast runs fast, then he jumps long in a stadium full of people. Two
+    men walk holding javelins. After, the gymnast jumps happily.
+  ctx_b: people
+  ctx: Gimnastyk biegnie szybko, a następnie wykonuje długi skok na stadionie pełnym
+    ludzi. Dwaj mężczyźni idą, trzymając oszczepy. Potem gimnastyk skacze radośnie.
+  endings:
+  - pokazują tytuły filmów.
+  - uczestniczy w zawodach z medalami i nagrodami.
+  - przytulają gimnastyka, podczas gdy miasto jest wybrukowane sędziami.
+  - robią zdjęcia gimnastykowi.
+  source_id: activitynet~v_NPt1niJMbvE
+  split: train
+  split_type: indomain
+  label: '3'
+- ind: 504
+  activity_label: Tumbling
+  ctx_a: A woman practices floor gymnastics while others engage in various activities
+    in the background. A second woman practices floor gymnastics.
+  ctx_b: the two women
+  ctx: Kobieta trenuje gimnastykę artystyczną na macie, podczas gdy w tle inni zajmują
+    się różnymi aktywnościami. Druga kobieta trenuje gimnastykę artystyczną na macie.
+    Obie kobiety
+  endings:
+  - są pokazane wykonujące tę samą czynność na zmianę.
+  - pozycjonują się na macie, trzymając się i wspomagając w rutynie.
+  - ćwiczą w ten sam sposób na siłowni w różnych środowiskach.
+  - poślizgną się i upadną, ale pozostają na nogach i zbierają się razem.
+  source_id: activitynet~v_4vdclFJFrdk
+  split: train
+  split_type: indomain
+  label: '0'
+- ind: 2388
+  activity_label: Cheerleading
+  ctx_a: A large group of cheerleaders are seen running through a hole and onto a
+    stage.
+  ctx_b: the group
+  ctx: Duża grupa cheerleaderek biegnie przez otwór na scenę. Grupa
+  endings:
+  - następnie zaczyna występować razem, podnosząc się nawzajem w powietrze.
+  - podnosi ręce i zaczyna tańczyć wokół w dużej sali gimnastycznej.
+  - kontynuuje zabawę, a kończy się mową mężczyzny do innych osób grających na zestawie
+    bębnów i kończy się oklaskami wielu osób.
+  - wykonuje wspólnie rutynę aerobową, podczas gdy inni obserwują z boku.
+  source_id: activitynet~v_SXZjg8ap1Uk
+  split: train
+  split_type: indomain
+  label: '0'
+- ind: 2205
+  activity_label: Preparing salad
+  ctx_a: Kale is being chopped up on a cutting board. It is tossed in salt for a few
+    minutes. Carrots are grated over the kale.
+  ctx_b: a tomato
+  ctx: Jarmuż jest siekany na desce do krojenia. Jest posypywany solą na kilka minut.
+    Marchew jest trzona na tarce nad jarmużem. Pomidor
+  endings:
+  - jest krojony w kostkę i mieszany z dressingiem.
+  - jest wyjmowany ze słoika.
+  - jest siekany dokładnie i porządnie.
+  - jest trzony razem z czosnkiem.
+  source_id: activitynet~v_Q2PC60uwjdY
+  split: train
+  split_type: indomain
+  label: '0'
+- ind: 1078
+  activity_label: Preparing salad
+  ctx_a: A person is slicing a potato. They stack up the potato slices and start chopping
+    them into tiny pieces.
+  ctx_b: he
+  ctx: Osoba kroi ziemniaka. Układa pokrojone plasterki i zaczyna siekać je na drobne
+    kawałki. Ona
+  endings:
+  - zalewa je wrzącą wodą, aby zrobić wywar.
+  - układa kawałki na talerzu stojącym w zlewie.
+  - następnie polewa ziemniaka masłem i zaczyna go wyciskać.
+  - kroi więcej ogórków i również je sieka.
+  source_id: activitynet~v_CIPSw35iF3k
+  split: train
+  split_type: indomain
+  label: '1'
+- ind: 193
+  activity_label: Spinning
+  ctx_a: A camera pans around a set of stairs and leads into people working out in
+    a class.
+  ctx_b: several shots
+  ctx: Kamera przesuwa się wokół zestawu schodów i prowadzi do ludzi ćwiczących na
+    zajęciach. kilka ujęć
+  endings:
+  - pokazuje ludzi stawiających stopy na torze i omawia cel podnoszenia energii.
+  - pokazuje ludzi grających w unihokeja wewnątrz sali gimnastycznej i cofających
+    się, aby obserwować zawody.
+  - pokazuje ludzi siedzących na metalowych rowerach treningowych i poruszających
+    się w górę i w dół na urządzeniu.
+  - pokazuje ludzi ćwiczących razem, podczas gdy mężczyzna mówi do kamery.
+  source_id: activitynet~v_0dkIuFFlLRM
+  split: train
+  split_type: indomain
+  label: '3'
+- ind: 3093
+  activity_label: Playing guitarra
+  ctx_a: A man is shown against a white background. He is playing a guitar with his
+    hands.
+  ctx_b: the chords and words
+  ctx: Na białym tle pokazany jest mężczyzna. Gra na gitarze używając swoich rąk.
+    Akordy i słowa
+  endings:
+  - pojawiają się na dole ekranu, gdy gra.
+  - przychodzą do niego synchronicznie.
+  - są pokazywane w kółko.
+  - z piosenki odtwarzają się przed nim.
+  source_id: activitynet~v__xtOX9UCWmU
+  split: train
+  split_type: indomain
+  label: '0'
+- ind: 1392
+  activity_label: Tai chi
+  ctx_a: The man then goes back to more fighting with different men somewhere outdoors
+    where he continues to win the fights by hitting and occasionally kicking.
+  ctx_b: lastly
+  ctx: Mężczyzna wraca do dalszej walki z różnymi mężczyznami na zewnątrz, gdzie kontynuuje
+    zwyciężanie poprzez uderzenia i okazjonalne kopnięcia. Na koniec
+  endings:
+  - mężczyzna zaczyna grać więcej na gitarze, gdy odkrywa niektóre ruchy związane
+    z tym instrumentem, jednocześnie machając młotkiem w stronę celu, podczas gdy
+    jego przeciwnik trzyma gitarę, która jest wolna i pełna patyków, pokazując głowy
+    podobne do tej na gitarze i wymachując nią.
+  - zaczynają schodzić z lin i jeśli kiedykolwiek dojdzie do meczu między mężczyznami,
+    zdejmują kaski na każdym kroku i zaczynają rzucać w siebie nawzajem kilkakrotnie.
+  - mężczyzna ponownie pokazuje, jak rozmawia bardzo emocjonalnie, używając gestów
+    rąk i wyrazów twarzy, a wokół niego na ekranie pojawiają się nakładki reklamujące
+    jego kanał na YouTube oraz jego stronę internetową poświęconą walce w stylu tai
+    chi.
+  - dostaje się za innego mężczyznę i w ciągu kilku dni pokonuje go o kilka pełnych
+    byków, a obaj idą do dołu.
+  source_id: activitynet~v_Fp_uU-qMDSc
+  split: train
+  split_type: indomain
+  label: '2'
+- ind: 2813
+  activity_label: Shot put
+  ctx_a: The man looks outside and sees the lady. The lady uses a pole to pole vault
+    into the second story window and jump on the man.
+  ctx_b: we
+  ctx: Mężczyzna patrzy na zewnątrz i widzi kobietę. Kobieta używa tyczki, aby przeskoczyć
+    przez tyczkę do okna na drugim piętrze i skoczyć na mężczyznę.
+  endings:
+  - widzimy dwie osoby w pokoju, które przeskakują przez okno na czwartym piętrze.
+  - widzimy ekran tytułowy, a spodnie mężczyzny wylatują przez okno.
+  - widzimy skaczącego mężczyznę w salonie z książką, a potem pod samochodem.
+  - widzimy całą rutynę po raz drugi z zewnątrz.
+  source_id: activitynet~v_XSfG1M-Ik_A
+  split: train
+  split_type: indomain
+  label: '1'
+- ind: 2136
+  activity_label: Long jump
+  ctx_a: A man in the grass in the background runs with the men for a moment.
+  ctx_b: the man on the inside lane of the track
+  ctx: Mężczyzna na trawie w tle biegnie przez chwilę razem z innymi mężczyznami.
+    Mężczyzna na wewnętrznym torze bieżni
+  endings:
+  - dmucha suche liście z trawy na ziemi.
+  - zaczął biec bardzo szybko, a następnie skoczył do piaskownicy.
+  - podniósł ręce i rozproszył piasek, aby wejść na boisko.
+  - przechodzi przez starą drewnianą barierkę.
+  source_id: activitynet~v_P5Sg_kACPRM
+  split: train
+  split_type: indomain
+  label: '1'
+- ind: 2451
+  activity_label: Kneeling
+  ctx_a: A man is seen speaking to the camera as well as bowing to the camera.
+  ctx_b: the man
+  ctx: Widzimy mężczyznę, który mówi do kamery oraz kłania się przed kamerą.
+  endings:
+  - następnie wykonuje serię salto wstecz w krokiecie i rzuca piłką.
+  - następnie przechadza się po scenie i zaczyna tańczyć z inną osobą, podczas gdy
+    kobiety dopingują i zmagają się w przeciaganiu liny.
+  - wskazuje na kobietę, a następnie obchodzi stół i rzuca strzałkę precrime w tarczę
+    do darta.
+  - klęka kilkukrotnie i ponownie kłania się.
+  source_id: activitynet~v_TNVdpnrtn5A
+  split: train
+  split_type: indomain
+  label: '3'
+- ind: 2389
+  activity_label: Cheerleading
+  ctx_a: A large group of cheerleaders are seen running through a hole and onto a
+    stage. The group then begins performing with one another while lifting one another
+    into the air.
+  ctx_b: the group
+  ctx: Duża grupa cheerleaderek biegnie przez otwór na scenę. Następnie grupa zaczyna
+    występować razem, podnosząc się nawzajem w powietrze.
+  endings:
+  - kontynuują zabawę z innymi, którzy występują w różnorodny sposób.
+  - kontynuują występy, a także grają na gitarze i przytakują sobie nawzajem.
+  - kontynuuje występy, podczas gdy inni stoją wokół nich.
+  - kontynuują podnoszenie się i skakanie wokół siebie, kończąc zejściem ze sceny.
+  source_id: activitynet~v_SXZjg8ap1Uk
+  split: train
+  split_type: indomain
+  label: '3'
+- ind: 593
+  activity_label: Longboarding
+  ctx_a: A tall garage building is shown in the dark and then several teen age boys
+    appear skateboarding in the inside of it.
+  ctx_b: as they
+  ctx: Pokazano wysoki garaż, który jest oświetlony w ciemnościach, a następnie pojawia
+    się kilku nastoletnich chłopców jeżdżących na deskorolkach w jego wnętrzu. Gdy
+    oni
+  endings:
+  - kontynuują jazdę na deskorolkach z różnymi osobami po bokach, jeden z nich wyskakuje,
+    aby nasikać na jednego z chłopców, a następnie jest unikany przez innego mężczyznę
+    jeżdżącego na deskorolce w taki sposób, że jest widoczny tylko na zewnątrz i nie
+    jest widoczny z zewnątrz wideo.
+  - bawią się, jeden chłopiec w czerwonej kurtce zaraz ma upaść na podłogę, a wtedy
+    jego dziecko szybko przeskakuje przez niego i pojawia się na deskorolkach.
+  - skręcają za róg, trzymają się za koszulki i zjeżdżają pochyłą drogą gęsiego, a
+    jeden z chłopców trzyma kamerę na selfie sticku, nagrywając akcję.
+  - jeżdżą na deskorolkach, widać także ludzi jeżdżących na deskorolkach w salonie
+    gier.
+  source_id: activitynet~v_5nvximBXhFI
+  split: train
+  split_type: indomain
+  label: '2'
+- ind: 1100
+  activity_label: Playing water polo
+  ctx_a: The camera zooms in to show people swimming in the pool and some playing
+    volleyball in the pool. One person gets out of the pool and walks away.
+  ctx_b: a person
+  ctx: Kamera przybliża obraz, pokazując ludzi pływających w basenie oraz niektórych
+    grających w siatkówkę w basenie. Jedna osoba wychodzi z basenu i odchodzi.
+  endings:
+  - pojawia się na ekranie i pisze na dole ekranu.
+  - klęka na podłodze i przytrzymuje piłkę na siatce do siatkówki.
+  - rzuca piłką w czyjąś twarz.
+  - podnosi piłkę z ziemi, gdy kamera pokazuje liczne przedmioty zrobione z piasku.
+  source_id: activitynet~v_CXP20cVQN30
+  split: train
+  split_type: indomain
+  label: '2'
+- ind: 1457
+  activity_label: Using parallel bars
+  ctx_a: A man is doing a gymnastics routine on parallel bars.
+  ctx_b: he
+  ctx: Mężczyzna wykonuje układ gimnastyczny na poręczach równoległych. On
+  endings:
+  - przechodzi stamtąd, wykonując salto i salto w tył na poręczach równoległych.
+  - wykonuje kilka podciągnięć kolan, a następnie kładzie się na poręczach równoległych.
+  - zsiada i ląduje na macie.
+  - występuje na początku, skacząc między poręczami.
+  source_id: activitynet~v_GrqBqKMW4ps
+  split: train
+  split_type: indomain
+  label: '2'
+- ind: 1556
+  activity_label: Elliptical trainer
+  ctx_a: A rustic static bike of wood is in a room. Then, a man pedal the bike while
+    showing the handle.
+  ctx_b: then the man
+  ctx: W pomieszczeniu znajduje się rustykalny, drewniany rower stacjonarny. Następnie
+    mężczyzna pedałuje na rowerze, trzymając się za kierownicę, a potem mężczyzna
+  endings:
+  - jeździ i mija tor.
+  - otwiera torbę ukrywającą rower i pokazuje swoją pracę przed kamerą.
+  - drapie dach roweru żelazem.
+  - siada na rowerze, by pedałować, a potem wstaje.
+  source_id: activitynet~v_IFgEjS97Pmw
+  split: train
+  split_type: indomain
+  label: '3'
+- ind: 105
+  activity_label: Triple jump
+  ctx_a: As he reaches the dirt section, he he does three jumps. On his final jump,
+    he extends his legs to try and jump as far as possible.
+  ctx_b: the video
+  ctx: Gdy dociera do odcinka z ziemią, wykonuje trzy skoki. Podczas ostatniego skoku
+    wyciąga nogi, próbując skoczyć jak najdalej. film
+  endings:
+  - kończy się napisami końcowymi.
+  - kończy się po jego lądowaniu, a on jest pokazany uderzający o ziemię.
+  - kończy się pokazaniem napisów początkowych.
+  - kończy się więcej ziemi.
+  source_id: activitynet~v_-vqefJDOxkw
+  split: train
+  split_type: indomain
+  label: '1'
+- ind: 1705
+  activity_label: Ballet
+  ctx_a: The girls are now starting to sing as they continue to dance and the same
+    girl that was doing her own thing out of sync continues to do her own dancing
+    different from the majority of the young girls.
+  ctx_b: the dance
+  ctx: Dziewczyny zaczynają śpiewać, kontynuując taniec, a ta sama dziewczyna, która
+    wcześniej tańczyła w swoim własnym rytmie, nadal tańczy inaczej niż większość
+    młodych dziewcząt.
+  endings:
+  - moc idzie w parze z partnerem do tańca i przechodzą między sobą kilka dotknięć
+    podczas tańca.
+  - kontynuuje taniec i kończy się na dwóch osobach wyższych niż ostatnie i jednej
+    noszącej kapelusz, która siedzi z nimi i patrzy w kamerę.
+  - kończy się, a niektóre z dziewcząt wykonują ukłon, a potem wszystkie schodzą ze
+    sceny.
+  - zaczyna się wydłużać, a dzieci wydają się być bardzo zaangażowane.
+  source_id: activitynet~v_JxEnKQ7iXUI
+  split: train
+  split_type: indomain
+  label: '2'
+- ind: 453
+  activity_label: Mooping floor
+  ctx_a: A woman in a yellow shirt is holding a bottle in her hand.
+  ctx_b: she
+  ctx: Kobieta w żółtej koszulce trzyma butelkę w ręce. Ona
+  endings:
+  - miesza kilka składników w proszek.
+  - otwiera butelkę i wylewa jej zawartość do wiadra na ziemi.
+  - mówi o toczeniu butelki z detergentem i rozpyla go na ubraniach.
+  - rozpyla to na dyni pełnej atramentu.
+  source_id: activitynet~v_4CRacVTadPQ
+  split: train
+  split_type: indomain
+  label: '1'
+- ind: 2337
+  activity_label: Rope skipping
+  ctx_a: Another group of three in red shorts jumps rope. People in the background
+    walk around. A group of four girls jump rope.
+  ctx_b: the first group of people
+  ctx: Kolejna grupa trzech osób w czerwonych szortach skacze na skakance. Ludzie
+    w tle chodzą. Grupa czterech dziewcząt skacze na skakance. pierwsza grupa ludzi
+  endings:
+  - podchodzi do dużej półki, prowadząc za sobą dziecko.
+  - skacze na skakance z czwartą osobą.
+  - skacze tam i z powrotem, jest na ziemi.
+  - ', teraz dwie dziewczyny biegną, a za nimi reszta skacze.'
+  source_id: activitynet~v_ReOsTqcQBmY
+  split: train
+  split_type: indomain
+  label: '1'
+- ind: 2163
+  activity_label: Walking the dog
+  ctx_a: A toy dog is walking on the floor.
+  ctx_b: it
+  ctx: Zabawkowy piesek chodzi po podłodze. On
+  endings:
+  - zaczyna być strzyżony na podłodze.
+  - ma zakładaną tenisówkę i idzie do łazienki.
+  - podąża za zabawkowym psem, próbując złapać go rękami.
+  - zatrzymuje się, aby rozejrzeć się w tę i z powrotem.
+  source_id: activitynet~v_PbzmcZ_IORE
+  split: train
+  split_type: indomain
+  label: '3'
+- ind: 2916
+  activity_label: Playing pool
+  ctx_a: Then, the man puts the balls in a metal triangle and arrange others balls.
+    After, the young man strikes the white ball but immidiately stop it with the cue
+    sticks.
+  ctx_b: next
+  ctx: Następnie mężczyzna umieszcza kule w metalowym trójkącie i układa inne kule.
+    Potem młody mężczyzna uderza białą kulą, ale natychmiast zatrzymuje ją kijem bilardowym.
+    Dalej
+  endings:
+  - ', młody mężczyzna uderza kule i wprowadza białą kulę do kieszeni.'
+  - ', młody mężczyzna zbliża się do stołu bilardowego i uderza kulę, którą trzyma
+    dziewczyna.'
+  - ', mężczyzna dodaje kule do maszyny i umieszcza na jej końcu srebrną bańkę.'
+  - ', młody mężczyzna uderza białą kulę, a jej pył osiada na kamerze.'
+  source_id: activitynet~v_YnG1Uhh2h5E
+  split: train
+  split_type: indomain
+  label: '0'
+- ind: 2338
+  activity_label: Rope skipping
+  ctx_a: A group of four girls jump rope. The first group of people jumps rope with
+    a fourth person.
+  ctx_b: a different group
+  ctx: Grupa czterech dziewcząt skacze na skakance. Pierwsza grupa osób skacze na
+    skakance z czwartą osobą. inna grupa
+  endings:
+  - osób skacze na skakance samodzielnie.
+  - osób skacze na skakance z czwartą osobą.
+  - czwórka w czerwonym i czarnym skacze na skakance.
+  - osób skacze na skakance w rękawiczkach.
+  source_id: activitynet~v_ReOsTqcQBmY
+  split: train
+  split_type: indomain
+  label: '2'
+- ind: 1104
+  activity_label: Skiing
+  ctx_a: An introduction comes onto the screen for a video about how to ski.
+  ctx_b: a man
+  ctx: Na ekranie pojawia się wprowadzenie do filmu o tym, jak jeździć na nartach.
+    Mężczyzna
+  endings:
+  - o imieniu Stan uczy, jak jeździć na nartach, demonstrując na ekranie, jak prawidłowo
+    się ustawić do jazdy na nartach.
+  - jest pokazany na zewnątrz, siedząc na śniegu, wykonując skok przez słup.
+  - jest pokazany podczas treningu w pomieszczeniu jako część przygotowań do jazdy
+    na nartach, wykonując kilka ćwiczeń.
+  - prezentuje filmy z tematami, które omówi, oraz sprzętem, który będzie potrzebny
+    do jazdy na nartach.
+  source_id: activitynet~v_CZISTSKNsSk
+  split: train
+  split_type: indomain
+  label: '3'
+- ind: 3086
+  activity_label: Arm wrestling
+  ctx_a: There are a series of elbow wrestling events shown in the video where one
+    man is more forceful than the other and ends up winning the wrestling game. There
+    are some over dramatized scenes where people are elbow wrestling and over reacting
+    to the game.
+  ctx_b: there
+  ctx: W filmie przedstawiono serię wydarzeń związanych z zapasami na łokcie, gdzie
+    jeden z mężczyzn jest bardziej siłowy niż drugi i ostatecznie wygrywa zawody.
+    Są tam również sceny przerysowane, w których ludzie walczą na łokcie i przesadnie
+    reagują na grę.
+  endings:
+  - pojawia się również animacja przedstawiająca ludzi przeciwstawiających się drugiej
+    drużynie i walczących tylko za pomocą rąk.
+  - są biegacze świętujący, podczas gdy inny mężczyzna jest przepytywany, a jeden
+    trener udziela wywiadu, po czym spogląda na kamerę.
+  - pojawiają się również sceny z zapasami na ramionach bez koszulek, które kończą
+    się tym, że jeden z mężczyzn jest związany i koronowany na przegranego.
+  - widać również sędziów działających jako moderatorzy w meczu zapasów na łokcie.
+  source_id: activitynet~v__tPDUYSu1IQ
+  split: train
+  split_type: indomain
+  label: '3'
+- ind: 1276
+  activity_label: Clipping cat claws
+  ctx_a: A video of clipping a cats toenails is shown. Each paw is grabbed and the
+    nail is pushed out and trimmed.
+  ctx_b: the cat
+  ctx: Pokazano filmik, na którym obcina się paznokcie kota. Każda łapa jest chwycona,
+    a paznokieć wysuwany i przycinany. Kot
+  endings:
+  - ma pazury ponownie przycięte, co daje czysty wygląd.
+  - czyści paznokieć przed obcięciem.
+  - stracił ból, ale już mu przeszło i teraz relaksuje się, pokazując swoje paznokcie.
+  - jest dziwnie spokojny przez cały czas.
+  source_id: activitynet~v_EJiyr-6l3ps
+  split: train
+  split_type: indomain
+  label: '3'
+- ind: 1000
+  activity_label: Paintball
+  ctx_a: The man is crawling on the ground. He fills his gun with orange balls. A
+    person walks up to the bag near the man.
+  ctx_b: the man
+  ctx: Mężczyzna czołga się po ziemi. Napełnia swoją broń pomarańczowymi kulkami.
+    Osoba podchodzi do torby obok mężczyzny. mężczyzna
+  endings:
+  - ładuje swoją broń niebieskimi kulkami.
+  - wyjmuje ak.
+  - idzie wzdłuż zadbanego zielonego trawnika.
+  - wkłada pastę do swojej broni.
+  source_id: activitynet~v_B4zPg1ftxf4
+  split: train
+  split_type: indomain
+  label: '0'
+- ind: 2845
+  activity_label: Playing guitarra
+  ctx_a: An opening screen with the title of a song is shown.
+  ctx_b: we
+  ctx: Na ekranie otwierającym pokazany jest tytuł piosenki. Widzimy
+  endings:
+  - rzeźbiony przez człowieka zamek z piasku na pomarańczowym tle.
+  - kobietę w kuchni rozmawiającą z kamerą.
+  - mężczyznę grającego na gitarze w studiu nagraniowym.
+  - jak artysta przygotowuje się, obraz żółtej substancji na statywie.
+  source_id: activitynet~v_Y-dpHbPGQWE
+  split: train
+  split_type: indomain
+  label: '2'
+- ind: 3247
+  activity_label: Grooming dog
+  ctx_a: The lady picks up a brush and scissors. She sweeps the base of the stand.
+    She brushes the dogs right leg.
+  ctx_b: she
+  ctx: Pani podnosi szczotkę i nożyczki. Zamiata podstawę stojaka. Czesa prawą nogę
+    psa. ona
+  endings:
+  - klęka, a następnie siada na pośladkach.
+  - następnie przycina włosy na tej łapie.
+  - stoi obok czystej koryty dla koni.
+  - kontynuuje czyszczenie podstawy stojaka.
+  source_id: activitynet~v_bXEG4X7pRds
+  split: train
+  split_type: indomain
+  label: '1'
+- ind: 213
+  activity_label: Tennis serve with ball bouncing
+  ctx_a: A person is seen standing on a tennis court bouncing a ball.
+  ctx_b: another man
+  ctx: Osoba jest widziana stojąca na korcie tenisowym odbijającą piłkę. Inny mężczyzna
+  endings:
+  - zaczyna mówić do kamery.
+  - podchodzi uderzając lotkę.
+  - jest widziany stojący gotowy po drugiej stronie przed dużą publicznością.
+  - trzyma rakietę obok siebie.
+  source_id: activitynet~v_0wwx4wnHv-U
+  split: train
+  split_type: indomain
+  label: '2'
+- ind: 1473
+  activity_label: Swimming
+  ctx_a: A man stands in front of the camera speaking and various trips of people
+    and sites are shown.
+  ctx_b: another man
+  ctx: Mężczyzna stoi przed kamerą przemawiając, a na ekranie pojawiają się różne
+    ujęcia ludzi i miejsc. Inny mężczyzna
+  endings:
+  - przytrzymuje czarną nartę, podczas gdy inni zjeżdżają z góry, pokazując kolejną
+    osobę ślizgającą się po stoku.
+  - jest widoczny stojąc obok, podczas gdy inny mężczyzna sika do miski.
+  - jest pokazany przemawiający, a na ekranie pojawiają się również instrumenty oraz
+    wywiady.
+  - jest przepytywany, po czym następuje kilka kolejnych ujęć z tego obszaru.
+  source_id: activitynet~v_HBJzxWj7CaY
+  split: train
+  split_type: indomain
+  label: '3'
+- ind: 2493
+  activity_label: Playing beach volleyball
+  ctx_a: A group is playing volleyball on a beach. The men volley ball back and forth
+    over the net.
+  ctx_b: one of the players
+  ctx: Grupa osób gra w siatkówkę na plaży. Mężczyźni odbijają piłkę siatkową tam
+    i z powrotem przez siatkę. Jeden z graczy
+  endings:
+  - spada z deski po serwisie.
+  - upada na piasek.
+  - trafia piłką w siatkę.
+  - upada na ziemię z impetem.
+  source_id: activitynet~v_TnYCazY5WEM
+  split: train
+  split_type: indomain
+  label: '1'
+- ind: 577
+  activity_label: Making a cake
+  ctx_a: The man flips the pancakes. The pancake is placed on a plate and syrup is
+    poured on it.
+  ctx_b: the man
+  ctx: Mężczyzna przewraca naleśniki. Naleśnik jest kładziony na talerzu i polewany
+    syropem. Mężczyzna
+  endings:
+  - myje i próbuje naleśnika.
+  - zmywa syrop.
+  - jest pokazany jedzący kawałek naleśnika.
+  - obiera mięso, wkłada je do piekarnika, a gotowy naleśnik jest szatkowany.
+  source_id: activitynet~v_5Y4YkCkgShc
+  split: train
+  split_type: indomain
+  label: '2'
+- ind: 1450
+  activity_label: Disc dog
+  ctx_a: Five different people tosses a freebie in the air and a dog jumps and catch
+    the freebie in his mouth, the dog then moves on to the next person and do the
+    same thing as many people watch from a distances.
+  ctx_b: there
+  ctx: Pięć różnych osób rzuca frisbee w powietrze, a pies skacze i łapie frisbee
+    w pysk, po czym przechodzi do następnej osoby i robi to samo, podczas gdy wielu
+    ludzi obserwuje z oddali.
+  endings:
+  - trzy osoby w żółtych kamizelkach grają w piłkę nożną na zamkniętym stadionie,
+    a wielu widzów obserwuje ich grę z trybun.
+  - trzy z nich mają teraz dwie torby płócienne, a inni stoją na schodach dmuchanej
+    tratwy.
+  - kilka osób ćwiczy w zamkniętym środowisku.
+  - są teraz dwa psy, które skaczą w powietrze łapiąc frisbee i wykonując sztuczki.
+  source_id: activitynet~v_GehJuCIJ7AI
+  split: train
+  split_type: indomain
+  label: '3'
+- ind: 349
+  activity_label: Table soccer
+  ctx_a: The men play against one another while taking breaks to get a drink and speak
+    with team mates.
+  ctx_b: the people
+  ctx: Mężczyźni grają przeciwko sobie, robiąc przerwy na picie i rozmowy z kolegami
+    z drużyny.
+  endings:
+  - trzymają miski pełne owoców i warzyw rosnących w dużych kałużach wody, a mężczyzna
+    w odzieży ochronnej gra w pokera z innymi mężczyznami.
+  - ściskają sobie ręce i przytulają przyjaciół oraz rodzinę.
+  - ściskają sobie ręce po jednej wymianie piłki.
+  - kontynuują naukę gry dla niektórych dziewczyn, gdy pokazywany jest nowy film o
+    hantlach.
+  source_id: activitynet~v_2Tm_2wgv2Zs
+  split: train
+  split_type: indomain
+  label: '1'
+- ind: 2172
+  activity_label: Bullfighting
+  ctx_a: A crowd of people are at a stadium watching a bull fight. A petite man is
+    standing in front of the bull with a red cloth and taunting the bull.
+  ctx_b: once
+  ctx: Tłum zgromadzony na stadionie obserwuje walkę byków. Niewielki mężczyzna stoi
+    przed bykiem z czerwoną płachtą i kpi z byka. Raz
+  endings:
+  - byk jest spokojny, mężczyzna chwyta płachtę i zaczyna wiązać ją wokół nóg byka.
+  - byk podnosi się na tylnych nogach, mężczyzna zdejmuje płachtę i podchodzi do czarnego
+    byka, aby go uspokoić.
+  - jest pokonany, byk wpada w szał i atakuje mężczyznę, który jest obserwowany przez
+    reportera.
+  - byk się rusza, pojawiają się trzej kolejni mężczyźni z różowymi płachtami i zaczynają
+    drażnić byki, a ten uderza ich rogami.
+  source_id: activitynet~v_PfNtxlM1QHw
+  split: train
+  split_type: indomain
+  label: '3'
+- ind: 1503
+  activity_label: Playing pool
+  ctx_a: A large group of people are seen walking into an office and interviewing
+    a man on television.
+  ctx_b: many people
+  ctx: Widzimy dużą grupę ludzi wchodzących do biura i przeprowadzających wywiad z
+    mężczyzną w telewizji. Wiele osób
+  endings:
+  - jest widzianych, jak biega po krytym boisku w krótkich spodenkach i gra w lacrosse.
+  - jest widzianych, jak jedzą lunch z mężczyzną i pokazują jego pączka, zanim kontynuują
+    nagrywanie wideo.
+  - rozmawia z reporterami, a na kilku klipach pokazane są osoby jeżdżące na deskorolkach.
+  - ogląda wywiad, a jeden z mężczyzn rozmawia ze złością z kobietą.
+  source_id: activitynet~v_H_Spgfds1iY
+  split: train
+  split_type: indomain
+  label: '3'
+- ind: 1019
+  activity_label: Mixing drinks
+  ctx_a: A bartender is shown speaking to the camera while pouring ice into a glass
+    and various liquids into a blender.
+  ctx_b: he
+  ctx: Barman jest pokazany mówiący do kamery, jednocześnie wsypując lód do szklanki
+    i wlewając różne płyny do blendera. On
+  endings:
+  - następnie dodaje cukier do szklanki i przelewa go do kieliszka do martini, a potem
+    rozlewa whiskey do kieliszka do martini razem z lodem.
+  - następnie demonstruje, jak schłodzić szklankę używając alkoholu, wlewając go do
+    shakera, a potem pije, trzymając szklankę wysoko, by to zademonstrować.
+  - następnie dodaje żółty napój do szklanki, który miesza, a potem trzyma go przy
+    szklance, aby zakończyć.
+  - wlewa więcej lodu do blendera i miesza wszystkie płyny razem.
+  source_id: activitynet~v_BLmAF2wbTz8
+  split: train
+  split_type: indomain
+  label: '3'
+- ind: 695
+  activity_label: Shaving
+  ctx_a: A man is seen standing in front of a mirror holding a razor. He then begins
+    shaving his face while still looking in the mirror.
+  ctx_b: he
+  ctx: Widzimy mężczyznę stojącego przed lustrem, trzymającego maszynkę do golenia.
+    Następnie zaczyna golić twarz, wciąż patrząc w lustro. On
+  endings:
+  - pluje do zlewu i kontynuuje golenie.
+  - naciera twarz żelem do golenia, wciąż patrząc w lustro.
+  - demonstruje, jak prawidłowo golić się maszynką, przesuwając ją po twarzy.
+  - kończy golenie twarzy i uśmiecha się do kamery.
+  source_id: activitynet~v_7VvcQNSAd24
+  split: train
+  split_type: indomain
+  label: '3'
+- ind: 1791
+  activity_label: Making a cake
+  ctx_a: A woman is standing inside a dark kitchen, talking. She shows a cake cooling
+    on a metal rack.
+  ctx_b: she
+  ctx: Kobieta stoi w ciemnej kuchni i rozmawia. Pokazuje ciasto, które stygnie na
+    metalowej półce.
+  endings:
+  - miesza krem czekoladowy, mieszając krem i owijając go w lokówki.
+  - macza sodę oczyszczoną w butelce z żelem do pieczenia.
+  - demonstruje, jak mieszać składniki w mikserze, a następnie piec ciasto.
+  - pokazuje pokrojone warzywa.
+  source_id: activitynet~v_KpoH4pBp9fg
+  split: train
+  split_type: indomain
+  label: '2'
+- ind: 2113
+  activity_label: Building sandcastles
+  ctx_a: They have a sand in buckets trying to build sand castles. When they take
+    the bucket up the sand isn't very stable at all.
+  ctx_b: the little boy
+  ctx: Mają piasek w wiaderkach i próbują budować zamki z piasku. Kiedy podnoszą wiaderko,
+    piasek wcale nie jest stabilny. Mały chłopiec
+  endings:
+  - podchodzi i siada na kolanach taty, a mężczyzna zaczyna usadzać swoją żonę.
+  - idzie i kopie wszystkie części zamku, które tworzyli.
+  - rozmawia z kamerą, patrząc na swój talerz, próbując budować zamki z piasku.
+  - idzie i od razu zaczyna nabierać piasek do swojego wiaderka i wstaje wysoko na
+    swoim krześle.
+  source_id: activitynet~v_OLRDf3vO8lw
+  split: train
+  split_type: indomain
+  label: '1'
+- ind: 2989
+  activity_label: Hitting a pinata
+  ctx_a: A little baby is outside holding a stick attempting to hit the pinata with
+    it.
+  ctx_b: behind her
+  ctx: Małe dziecko jest na zewnątrz, trzyma kij i próbuje uderzyć nim w pinatę. Za
+    nią
+  endings:
+  - ', kobieta trzyma dziecko i pomaga mu, gdy uderza w pinatę.'
+  - inne dzieci podchodzą i używają pinaty, a mała dziewczynka wciąż uderza i uderza
+    w pinatę.
+  - chłopiec stoi na podwórku, trzyma piłkę i ćwiczy.
+  - widać, jak bawi się z małą dziewczynką.
+  source_id: activitynet~v_ZgIKmwnCqr4
+  split: train
+  split_type: indomain
+  label: '0'
+- ind: 1365
+  activity_label: River tubing
+  ctx_a: A man and a woman are sitting in two separate floating donuts, the man in
+    the blue, the woman in the green, and both are smiling then the man raises his
+    left arm to wave.
+  ctx_b: a group of people
+  ctx: Mężczyzna i kobieta siedzą na dwóch oddzielnych pływających kołach, mężczyzna
+    na niebieskim, kobieta na zielonym, obydwoje się uśmiechają, a następnie mężczyzna
+    podnosi lewą rękę, by pomachać grupie ludzi.
+  endings:
+  - pływają na platformach w pływających kołach na jeziorze, jeden z nich ma mikrofon.
+  - na zmianę wspina się po drabinie na pływaku.
+  - również są na różnokolorowych pływających kołach, bawią się, wpadają do wody i
+    dobrze się bawią.
+  - w serii łodzi wybuchają w głębokiej wodzie, a następnie ludzie jeżdżą na linie
+    i są ciągnięci z powrotem przez motorówkę.
+  source_id: activitynet~v_FaKQvJBhMPg
+  split: train
+  split_type: indomain
+  label: '2'
+- ind: 487
+  activity_label: Sumo
+  ctx_a: The video by tmz is showing several overweight men as part of the sumo destruction
+    event. It shows a picture of singer george michael too.
+  ctx_b: there
+  ctx: Film wideo opublikowany przez TMZ pokazuje kilku otyłych mężczyzn biorących
+    udział w wydarzeniu zwanym 'sumo destruction'. Pokazuje również zdjęcie piosenkarza
+    George'a Michaela. Tam
+  endings:
+  - są klipy, na których widać go śpiewającego lub walczącego podczas wydarzenia z
+    Ramones, które nadal są odtwarzane w filmie.
+  - są sumo zapaśnicy próbujący rozpocząć atak, skacząc przez poprzeczki i wykonując
+    salta.
+  - znajduje się panel osób siedzących w studiu i rozmawiających o wydarzeniu.
+  - są ludzie surfujący na żaglówce oraz różne zdjęcia osób uprawiających gating.
+  source_id: activitynet~v_4j7_nh61bvo
+  split: train
+  split_type: indomain
+  label: '2'
+- ind: 2619
+  activity_label: Bullfighting
+  ctx_a: A bull comes out of the gate at a rodeo and man in the ring jumps on then
+    off his back. The man picks up his fallen hat in the ring.
+  ctx_b: the man
+  ctx: Byk wychodzi z bramki na rodeo, a mężczyzna w ringu skacze na jego grzbiet,
+    a następnie zeskakuje. Mężczyzna podnosi swój upuszczony kapelusz w ringu.
+  endings:
+  - pije płyn z kubka podczas rodeo.
+  - następnie rzuca byka na trawę.
+  - wsiada na swojego konia.
+  - biega, unikając szarżującego byka.
+  source_id: activitynet~v_VEXswbPrwxE
+  split: train
+  split_type: indomain
+  label: '3'
+- ind: 2028
+  activity_label: Shuffleboard
+  ctx_a: Some women are on a boat attempting to figure out how to play shuffleboard.
+    The girl makes a shuffleboard ahot and the girls all begin to celebrate.
+  ctx_b: she
+  ctx: Kilka kobiet jest na łodzi i próbuje zrozumieć, jak grać w shuffleboard. Dziewczyna
+    wykonuje rzut w shuffleboard, a wszystkie zaczynają świętować. Ona
+  endings:
+  - rzuca piłkę i odskakuje.
+  - wymyśla rozwiązanie problemu i teraz wszystkie patrzą na nią tańczącą.
+  - kontynuuje próby wykonywania rzutów i zachowuje się głupkowato.
+  - pływa wokół basenu, wykonując sztuczki dla małego dziecka, które się bawi.
+  source_id: activitynet~v_NNQQPZpzCOk
+  split: train
+  split_type: indomain
+  label: '2'
+- ind: 3333
+  activity_label: Plastering
+  ctx_a: A man is seen speaking to the camera indoors as well as outdoors. He points
+    to several objects while leading into dirt being shown as well as plaster.
+  ctx_b: people
+  ctx: Widzimy mężczyznę mówiącego do kamery w pomieszczeniu oraz na zewnątrz. Wskazuje
+    na kilka przedmiotów, prowadząc do pokazania ziemi oraz tynku. Ludzie
+  endings:
+  - pracują na dachu, podczas gdy inny mężczyzna próbuje go czyścić, wciąż mówiąc.
+  - są widoczni, jak odłupują więcej przyborów szkolnych, a także czyszczą drewno,
+    pokazując zdjęcia ludzi.
+  - są widoczni, jak nakładają tynk na wszystkie ściany, podczas gdy mężczyzna kontynuuje
+    mówienie.
+  - są widoczni, używają narzędzi do demonstracji czyszczenia i przesuwania przedmiotów,
+    a inni są widoczni sprzątający w tym samym czasie.
+  source_id: activitynet~v_cDe2GlvMEQg
+  split: train
+  split_type: indomain
+  label: '2'
+- ind: 278
+  activity_label: Arm wrestling
+  ctx_a: The man prepares his arm as the other grabs his hand and he pretends to kick
+    his head.
+  ctx_b: more people
+  ctx: Mężczyzna przygotowuje swoje ramię, gdy inny chwyta go za rękę, a on udaje,
+    że kopie go w głowę. więcej osób
+  endings:
+  - podchodzi, aby zmierzyć się z tym mężczyzną w zapasach na ręce, podczas gdy pokazywane
+    jest jedzenie, a przegrany zostaje oblanym jedzeniem.
+  - i mężczyzna odwracają się, podnosząc ciężary.
+  - są pokazani machający młotami, gdy mężczyzna przechodzi za nimi i tworzy koło
+    z zespołem.
+  - pojawia się i wszyscy zaczynają tańczyć, gdy kamera skupia się na ich krokach.
+  source_id: activitynet~v_1YGz5CQBflM
+  split: train
+  split_type: indomain
+  label: '0'
+- ind: 957
+  activity_label: Pole vault
+  ctx_a: A man stands by a pole vault rig while a series of vaulters is shown attempting
+    the vault with varying degrees of success. A group of people wearing white uniforms
+    walk by in the background.
+  ctx_b: two people
+  ctx: Mężczyzna stoi obok urządzenia do skoku o tyczce, podczas gdy seria skoczków
+    próbuje wykonać skok z różnym stopniem sukcesu. Grupa osób w białych mundurach
+    przechodzi w tle. dwie osoby
+  endings:
+  - przechodzą w tle.
+  - podchodzą, aby stanąć przed kamerą skoku.
+  - są pokazywane podczas ćwiczenia skoku, podczas gdy grupa innych osób ogląda i
+    robi zdjęcia.
+  - w pomarańczowych mundurach przechodzą za siatką na boisku.
+  source_id: activitynet~v_AoRk69eieek
+  split: train
+  split_type: indomain
+  label: '0'
+- ind: 2411
+  activity_label: Longboarding
+  ctx_a: We see a wolf fall in the title screen. We see the landscape of a small town.
+  ctx_b: a boy
+  ctx: Widzimy wilka, który spada na ekranie tytułowym. Widzimy krajobraz małego miasteczka.
+    Chłopiec
+  endings:
+  - traci hamulec postojowy i samochód przewraca się.
+  - rozmawia, a my widzimy dziecko.
+  - jeździ po ulicy na deskorolce.
+  - pokazuje nam swojego kija i jak waży.
+  source_id: activitynet~v_T3rh5gQVFKA
+  split: train
+  split_type: indomain
+  label: '2'
+- ind: 3457
+  activity_label: Shot put
+  ctx_a: A large man is doing behind the neck shoulder presses.
+  ctx_b: he
+  ctx: Duży mężczyzna wykonuje wyciskanie sztangi zza głowy. On
+  endings:
+  - wstrzymuje oddech podczas wykonywania ćwiczenia, a następnie wstaje i zaczyna
+    chodzić.
+  - bardzo chce to robić, ale również wielu innych ludzi to wykonuje.
+  - powoli naciska na kark i poddaje się mocnemu uchwytowi mopów.
+  - przebija kark, a następnie usuwa tkankę, gdy wkłada kolejny dysk w mięsień.
+  source_id: activitynet~v_do_AQlxV9SI
+  split: train
+  split_type: indomain
+  label: '0'
+- ind: 1356
+  activity_label: Hula hoop
+  ctx_a: The man and woman put on a tutu and blindfolds. They then begin to hula hoop
+    until the woman loses.
+  ctx_b: afterward
+  ctx: Mężczyzna i kobieta zakładają tutu i opaski na oczy. Następnie zaczynają kręcić
+    hula-hop, aż kobieta przegrywa. Potem
+  endings:
+  - ', dwóch mężczyzn tańczy jednocześnie na suficie.'
+  - dołącza do nich grupa ludzi w chacie.
+  - ', wracają, aby ponownie zająć się grą w hula-hop, aż wszyscy się przewracają.'
+  - ', zwracają się do kamery i machają na pożegnanie.'
+  source_id: activitynet~v_FMmrxy3OanA
+  split: train
+  split_type: indomain
+  label: '3'
+- ind: 2539
+  activity_label: Drum corps
+  ctx_a: Text appears on the screen with a link. People in uniform march down the
+    street.
+  ctx_b: it
+  ctx: Tekst pojawia się na ekranie z linkiem. Ludzie w mundurach maszerują ulicą.
+  endings:
+  - następnie przechodzi do prezentera wiadomości z laptopem.
+  - kończy się materiałem z uczestnikami idącymi i wiwatującymi.
+  - przechodzi do tłumu przyglądającego się.
+  - pokazuje reklamę obozu śnieżnego z jego zdjęciem chaty.
+  source_id: activitynet~v_USaP2UCPBEc
+  split: train
+  split_type: indomain
+  label: '2'
+- ind: 2652
+  activity_label: Removing ice from car
+  ctx_a: A man wearing a black coat is standing on the sidewalk.
+  ctx_b: he
+  ctx: Mężczyzna w czarnym płaszczu stoi na chodniku. On
+  endings:
+  - podchodzi do samochodu i zaczyna zdrapywać śnieg z okien.
+  - wykonuje wysoki skok w powietrze.
+  - trzyma dużą kosę i szybko nią macha po chodniku.
+  - podchodzi do szopy i używa lekkiej maszyny do usuwania liści z drzewa.
+  source_id: activitynet~v_VWmSZPIoBlw
+  split: train
+  split_type: indomain
+  label: '0'
+- ind: 1188
+  activity_label: Archery
+  ctx_a: He grabs another arrow from his waist and shoots again. He shoots an arrow
+    once more. He grabs a final arrow and shoots.
+  ctx_b: a person
+  ctx: Chwyta kolejną strzałę ze swojego pasa i strzela ponownie. Strzela jeszcze
+    raz strzałą. Chwyta ostatnią strzałę i strzela. osoba
+  endings:
+  - wchodzi na belkę.
+  - jest widziana, jak wyjmuje strzałę i podpala sąsiedni ogród.
+  - idzie w kierunku stogu siana, gdzie strzały zostały wystrzelone.
+  - wstaje i siada na krześle.
+  source_id: activitynet~v_DMw9Cb_Xy2A
+  split: train
+  split_type: indomain
+  label: '2'
+- ind: 2829
+  activity_label: Long jump
+  ctx_a: He does it again landing into some sand. He continues to do this run and
+    jump again landing like a pro.
+  ctx_b: then another man named ralph
+  ctx: On robi to ponownie, lądując w piasku. Kontynuuje bieg i skok, lądując jak
+    profesjonalista. Następnie inny mężczyzna o imieniu Ralph
+  endings:
+  - prosi go o pocałunek i prowokuje go, gdyż również bierze swoją kolej, lądując
+    w jeszcze więcej piasku.
+  - Bugun przychodzi po kilka puszek piasku.
+  - zamierza wziąć swoją kolej.
+  - zaczyna wykonywać podwójny skok i wpada w piasek, całkowicie się ustawiając.
+  source_id: activitynet~v_XkTWEDKtP1A
+  split: train
+  split_type: indomain
+  label: '2'
+- ind: 869
+  activity_label: Making a sandwich
+  ctx_a: A small brush with melted butter begins to butter bread on both sides which
+    gets put onto a flat grill and flipped until both sides are grilled.
+  ctx_b: some white shredded food
+  ctx: Mały pędzel nasączony stopionym masłem zaczyna smarować chleb z obu stron,
+    który następnie jest kładziony na płaską patelnię i przewracany, aż obie strony
+    będą upieczone. Pewna biała, starta żywność
+  endings:
+  - jest wrzucana na grill i mieszana czarną szpatułką.
+  - blok jest kładziony na to, aby się gotowało, dodawany po jednym kawałku, a to
+    wszystko jest umieszczane na grillu.
+  - następnie jest układana na talerzu, który jest położony na serwetce, a potem kucharz
+    chwyta szczypce, chwyta frytki i przewraca je na jednym końcu, zanim doda jajka
+    i inne składniki na grill.
+  - resztki są teraz przygotowywane i rozpoczynają się na długiej tacy na długim drewnianym
+    stole.
+  source_id: activitynet~v_9WmsYbZl1pw
+  split: train
+  split_type: indomain
+  label: '0'
+- ind: 722
+  activity_label: Wrapping presents
+  ctx_a: The woman lays out cellophane and places the wrapped toy on it. The woman
+    cuts the cellophane and then proceeds to roll up the tissue paper covered toy.
+  ctx_b: the woman
+  ctx: Kobieta rozkłada celofan i kładzie na nim zapakowaną zabawkę. Kobieta przycina
+    celofan, a następnie zwija zabawkę owiniętą w papier. kobieta
+  endings:
+  - skręca końce celofanu i zakleja paczkę taśmą.
+  - zwija wyściółkę zabawki i układa ją przed ostatecznym zawinięciem.
+  - używa nożyczek do cięcia mięsa i siedzi, trzymając prezenty.
+  - trzyma zabawkę w dłoniach i kładzie ją pod swoją dłoń.
+  source_id: activitynet~v_7yg2zbiTJJ4
+  split: train
+  split_type: indomain
+  label: '0'
+- ind: 2150
+  activity_label: Slacklining
+  ctx_a: A car is seen driving along the road that leads into people tightening roads
+    and grabbing drinks. Several clips are shown of people walking across the rope
+    as well as bouncing on it.
+  ctx_b: more close ups
+  ctx: Widzimy samochód jadący drogą prowadzącą do ludzi zaciskających liny i sięgających
+    po napoje. Pokazano kilka ujęć ludzi przechodzących po linie oraz skaczących na
+    niej. więcej zbliżeń
+  endings:
+  - są pokazane osoby ciągnące linę w różnych miejscach, jak również wzdłuż rzeki
+    oraz wspinające się na skały.
+  - są pokazane, jak również jazda na rowerze drogą.
+  - są pokazane twarze ludzi, jak również stanie i skakanie na linie.
+  - są pokazane, jak również dzieci jadące na workach wypełnionych piwem, dobrze się
+    bawiąc.
+  source_id: activitynet~v_POhazPPwHhQ
+  split: train
+  split_type: indomain
+  label: '2'
+- ind: 2051
+  activity_label: Painting
+  ctx_a: A person's hand is seen holding a paint brush. The hand then puts drops of
+    ink on paper.
+  ctx_b: the person's hand
+  ctx: Widać rękę osoby trzymającej pędzel. Następnie ręka ta kładzie krople tuszu
+    na papierze.
+  endings:
+  - następnie zaczyna malować plakat na ścianie.
+  - jest widoczna ponownie z pędzlem.
+  - następnie widać, jak poleruje puszkę.
+  - zaczyna malować pędzel.
+  source_id: activitynet~v_N_zbcVs419E
+  split: train
+  split_type: indomain
+  label: '1'
+- ind: 389
+  activity_label: Calf roping
+  ctx_a: A man riding a horse and swinging a rope around is seen chasing after a calf
+    and eventually grabbing the animal with his rope. He holds the calf down and another
+    man comes out to help the man tie up the calf.
+  ctx_b: he
+  ctx: Mężczyzna na koniu, machający lassem, goni za cielęciem i ostatecznie łapie
+    zwierzę lasskiem. Przytrzymuje cielę na ziemi, a inny mężczyzna podchodzi, aby
+    pomóc mu związać cielę.
+  endings:
+  - puszcza lasso, które wypadło i cielę pędzi, aby wydostać się z siana.
+  - ponownie lasuje cielę i rzuca je sobie na ramię obok siebie.
+  - następnie chwyta swoje lasso i odjeżdża konno z areny.
+  - podnosi kolejne cielę i zaczyna nim machać na swoim lassie, podczas gdy mężczyzna
+    ponownie stoi obok niego.
+  source_id: activitynet~v_34NXXCSWyzE
+  split: train
+  split_type: indomain
+  label: '2'
+- ind: 3476
+  activity_label: Shaving legs
+  ctx_a: Two men standing in front of a pair of bathroom sinks and mirrors remove
+    the robes they're wearing to reveal spandex clothing, then turn to face the camera
+    to speak. A large group of people ride bicycles down the road.
+  ctx_b: a barefoot man
+  ctx: Dwóch mężczyzn stojących przed parą umywalek i luster w łazience zdejmuje szaty,
+    które mają na sobie, odsłaniając ubrania z elastanu, a następnie obracają się,
+    by przemówić do kamery. Duża grupa osób jedzie rowerami po drodze. Bosy mężczyzna
+  endings:
+  - przewraca się na płytkach łazienkowych.
+  - stoi w łazience.
+  - wjeżdża na rowerach po schodach, a następnie ściąga starą drabinę budowlaną za
+    pomocą przedłużacza, podczas gdy inni obserwują.
+  - stoi na ulicy, trzymając swój rower i kij, jednocześnie rozmawiając z kamerą.
+  source_id: activitynet~v_dzpsJQN4o-Y
+  split: train
+  split_type: indomain
+  label: '1'
+- ind: 607
+  activity_label: Playing polo
+  ctx_a: A small group of men are seen riding around on various horses holding sticks
+    in their hand and preparing for a game.
+  ctx_b: the men
+  ctx: Mała grupa mężczyzn jest widziana, jak jeździ na różnych koniach, trzymając
+    w rękach kije i przygotowując się do gry. Mężczyźni
+  endings:
+  - przejeżdżają obok siebie, a jeden z nich wchodzi w kadr, pocierając ogrodzenie.
+  - grają w polo, przemieszczając się tam i z powrotem po boisku, ścigając się nawzajem.
+  - następnie rzucają do siebie piłkami, machając kijami, a jeden z nich wygrywa,
+    ciesząc się.
+  - następnie rzucają piłkę na ziemię i wszyscy jeżdżą na koniach, próbując uderzyć
+    piłkę, a jeden zdobywa gola.
+  source_id: activitynet~v_5x1diXJ8gME
+  split: train
+  split_type: indomain
+  label: '3'
+- ind: 3478
+  activity_label: Shaving legs
+  ctx_a: The title "how to shave your legs" appears over a man performing that action.
+    The men discuss and demonstrate using an electric razor to shave your legs.
+  ctx_b: one
+  ctx: Tytuł "jak golić nogi" pojawia się nad mężczyzną wykonującym tę czynność. Mężczyźni
+    rozmawiają i demonstrują używanie elektrycznej maszynki do golenia nóg. jeden
+  endings:
+  - mężczyzna następnie dotyka swoich nóg, aby wyłączyć maszynkę i ogłasza, że musi
+    ogolić nogi.
+  - następnie omawia, jak wysoko powinno się golić nogi.
+  - porusza nogą z suszarką do włosów i kończy stojąc przodem do kamery, tatuując
+    swoją nogę.
+  - mężczyzna chwyta ścierkę i czyści górną część oraz dolną część.
+  source_id: activitynet~v_dzpsJQN4o-Y
+  split: train
+  split_type: indomain
+  label: '1'
+- ind: 31
+  activity_label: Getting a haircut
+  ctx_a: He scrubs in the shampoo and then washes it off. He then combs it and blow
+    dries his hair after styling it with gel.
+  ctx_b: he
+  ctx: On wciera szampon, a następnie spłukuje go. Następnie czesze włosy i suszy
+    je suszarką po ułożeniu ich żelem. on
+  endings:
+  - następnie spłukuje je w zlewie.
+  - rozpuszcza włosy, dając im ostatnie suszenie przed przyłożeniem ich do twarzy.
+  - używa elektrycznej maszynki do przycinania bokobrodów i skroni.
+  - następnie spryskuje włosy jakimś płynem.
+  source_id: activitynet~v_-JqLjPz-07E
+  split: train
+  split_type: indomain
+  label: '2'
+- ind: 2496
+  activity_label: Elliptical trainer
+  ctx_a: An elderly man is using an elliptical trainer inside a gym.
+  ctx_b: he
+  ctx: Starszy mężczyzna korzysta z orbitreka w siłowni. On
+  endings:
+  - używa go, aby chodzić wzdłuż ściany.
+  - chodzi tam i z powrotem, starając się ćwiczyć wewnątrz, jednocześnie korzystając
+    z orbitreka.
+  - używa go do chodzenia, przyspieszania i wykonywania różnych obrotów.
+  - pompuje i cofa się, rozmawiając z osobą z kamerą.
+  source_id: activitynet~v_TrRsujPlt5w
+  split: train
+  split_type: indomain
+  label: '3'
+- ind: 3233
+  activity_label: Putting on shoes
+  ctx_a: A woman is sitting on the floor with her shoes off.
+  ctx_b: the woman
+  ctx: Kobieta siedzi na podłodze bez butów. kobieta
+  endings:
+  - kładzie się i rozluźnia palce u stóp.
+  - zakłada jeden but.
+  - czyści trampki w misce.
+  - rozprowadza ciasto na kartach na białej desce i dodaje każdą warstwę, śpiewając
+    i robiąc zabawne miny.
+  source_id: activitynet~v_bW5HfDWUP3U
+  split: train
+  split_type: indomain
+  label: '1'
+- ind: 2454
+  activity_label: Mixing drinks
+  ctx_a: A series of shots appear with a person pouring alcohol into a martini glass
+    and then the screen fades into the video title screen showing a website name,
+    the name of the drink they are making and the person who will be making it.
+  ctx_b: a website address
+  ctx: Seria ujęć przedstawia osobę wlewającą alkohol do kieliszka na martini, po
+    czym ekran przechodzi w tytułowy ekran wideo pokazujący nazwę strony internetowej,
+    nazwę przygotowywanego drinka oraz osobę, która go przygotowuje. adres strony
+    internetowej
+  endings:
+  - gdzie powstał ten drink.
+  - ', paczka próbek skóry, a następnie pokazany jest obraz innego człowieka i to,
+    co kiedyś było osobą, teraz jest czymś innym.'
+  - pokazany jest na ekranie, po czym pojawia się zdjęcie kobiety w topie na ramiączkach,
+    a następnie tytułowa sekwencja z numerem telefonu komórkowego.
+  - pokazany jest na dole ekranu.
+  source_id: activitynet~v_TOfBNYOlv8c
+  split: train
+  split_type: indomain
+  label: '3'
+- ind: 2105
+  activity_label: Making a sandwich
+  ctx_a: He puts a toothpick in each section of the sandwich. He moves the sandwich
+    from the board onto a plate.
+  ctx_b: he
+  ctx: Wkłada wykałaczkę w każdą część kanapki. Przenosi kanapkę z deski na talerz.
+    on
+  endings:
+  - dodaje frytki na talerz z kanapką.
+  - następnie zatrzymuje swojego krwawego mary w ruchu.
+  - zdejmuje bułkę z bułki i kładzie ją po drugiej stronie ekranu tytułowego.
+  - następnie chwyta rożek lodowy, posypuje go pieprzem i kładzie na talerz.
+  source_id: activitynet~v_O8JVA-scYlM
+  split: train
+  split_type: indomain
+  label: '0'
+- ind: 1479
+  activity_label: Trimming branches or hedges
+  ctx_a: He climbed the blue-green ladder to trim the top of the hedge, he moved the
+    ladder to do the middle top of the hedge.
+  ctx_b: the man
+  ctx: Wspiął się po niebiesko-zielonej drabinie, aby przyciąć wierzchołek żywopłotu,
+    następnie przesunął drabinę, aby przyciąć środkową górną część żywopłotu. Mężczyzna
+  endings:
+  - wspiął się po drabinie, aby dostać się na drabinę i wspinać się po niej.
+  - odstawił kosiarkę i podszedł jak najbliżej do drabiny, następnie przycisnął kosiarkę
+    do drabiny, na której stał.
+  - przyciął niski, okrągły krzew, używając drabiny do przycięcia wierzchołka okrągłego
+    żywopłotu.
+  - pracował tak szybko, jak tylko mógł, aż udało mu się przejść tę część tuż nad
+    wierzchołkiem żywopłotu.
+  source_id: activitynet~v_HGy8UgabFMw
+  split: train
+  split_type: indomain
+  label: '2'
+- ind: 2211
+  activity_label: Putting in contact lenses
+  ctx_a: The boy holds open his eyelids and places in a contact lens.
+  ctx_b: the man
+  ctx: Chłopiec trzyma otwarte powieki i wkłada soczewkę kontaktową. Mężczyzna
+  endings:
+  - wkłada pierścień do trzeciego oka.
+  - wyjmuje soczewkę kciukiem i przeciera ją palcem.
+  - otwiera oko i wkłada soczewkę kontaktową, zanim założy ją na palec chłopca.
+  - odchyla głowę do tyłu i zamyka oczy, aby dostosować soczewkę.
+  source_id: activitynet~v_Q7R3ajucvyE
+  split: train
+  split_type: indomain
+  label: '3'
+- ind: 849
+  activity_label: Wrapping presents
+  ctx_a: A woman is seen speaking to the camera while grabbing various bags and laying
+    them out.
+  ctx_b: she
+  ctx: Kobieta jest widoczna, jak mówi do kamery, chwytając różne torby i układając
+    je. Ona
+  endings:
+  - wkłada przedmiot do torby, wskazując na pudełko obok siebie.
+  - rozrywa je wszystkie i chwyta więcej kawałków papieru, aby owinąć nimi torbę,
+    patrząc przy tym na kamerę.
+  - wiąże kokardę wokół swojej talii i prezentuje parę butów.
+  - następnie nakłada krem przeciwsłoneczny na skórę i prezentuje się przed kamerą.
+  source_id: activitynet~v_9K97gmkVbyQ
+  split: train
+  split_type: indomain
+  label: '0'
+- ind: 3512
+  activity_label: Shoveling snow
+  ctx_a: A family is in the living room i'm trying to get out after being snowed in.
+    A man opens the door and tries to jump over the snow that is in the way.
+  ctx_b: he
+  ctx: Rodzina znajduje się w salonie, próbując wydostać się po tym, jak zostali zasypani
+    śniegiem. Mężczyzna otwiera drzwi i próbuje przeskoczyć przez zaspy śniegu, które
+    stanowią przeszkodę. On
+  endings:
+  - dostaje się na drugą stronę i zaczyna próbować ponownie.
+  - robi gwiazdę, która obraca się do tyłu i ląduje na obszarze pokrytym śniegiem.
+  - próbuje kilka razy, a w końcu ucieka.
+  - utknie w śniegu, a jego rodzina próbuje mu pomóc się wydostać.
+  source_id: activitynet~v_eGA5tbX8oH0
+  split: train
+  split_type: indomain
+  label: '3'
+- ind: 1748
+  activity_label: Plastering
+  ctx_a: The man in white shirt is putting cement on the wall. The man is holding
+    a blue long tube pointing on the wall.
+  ctx_b: the man in gray uniform
+  ctx: Mężczyzna w białej koszuli nakłada cement na ścianę. Mężczyzna trzyma niebieską,
+    długą rurę skierowaną na ścianę. Mężczyzna w szarym uniformie
+  endings:
+  - zdjął czarny melonik i położył go na białej rurze.
+  - zeszedł ze ściany i poszedł po podłodze.
+  - szedł, chodził i układał płytki na podłodze.
+  - użył rury/pompy i rozpylił cement na ścianie.
+  source_id: activitynet~v_KSu59HUet3E
+  split: train
+  split_type: indomain
+  label: '3'
+- ind: 1437
+  activity_label: Using the pommel horse
+  ctx_a: The athlete who is wearing gray tights and black shirt with number 2 on it
+    started go on the beam and started to swirl around.
+  ctx_b: when he
+  ctx: Sportowiec, który ma na sobie szare rajtuzy i czarną koszulkę z numerem 2,
+    wszedł na belkę i zaczął się obracać. Kiedy
+  endings:
+  - zeszedł z belki, podszedł do żółtego pojemnika zawierającego białą proszek, a
+    następnie wrócił na belkę i wykonywał swoje triki, obracając się.
+  - doszedł do końca belki, rzucił hantle na koniec i odszedł, co spowodowało powrót
+    grupy członków drużyny, którzy obserwowali go, jak odchodzi.
+  - dotarł do dolnej części belki, wybiegł z belki, jednak skończyło się to niepowodzeniem,
+    ponieważ kontynuował obracanie się, będąc na ziemi.
+  - zajął pozycję, skoczył w linii, zaczął się obracać, a następnie szybko zakończył
+    skok.
+  source_id: activitynet~v_GQzwzOM9db8
+  split: train
+  split_type: indomain
+  label: '0'
+- ind: 1583
+  activity_label: Getting a haircut
+  ctx_a: Then he takes a spray bottle and sprays his hair with water and combs it.
+    He then takes a razor and begins shaving the sides and the back of his head.
+  ctx_b: he
+  ctx: Następnie bierze butelkę z rozpylaczem i spryskuje włosy wodą, a potem je czesze.
+    Następnie bierze maszynkę do golenia i zaczyna golić boki i tył głowy. On
+  endings:
+  - następnie odkłada maszynki i napełnia zlew wodą.
+  - oddziela włosy i skleja je z powrotem.
+  - bierze parę nożyczek i zaczyna przycinać górną część włosów.
+  - wyciska włosy spod spodu za pomocą szczoteczki do zębów.
+  source_id: activitynet~v_Ig_AvatvYrk
+  split: train
+  split_type: indomain
+  label: '2'
+- ind: 1796
+  activity_label: Decorating the Christmas tree
+  ctx_a: He is holding a crystal star in his hands which he places on top of the tree.
+    Then he takes some christmas lights lights and twirls it around the branches of
+    the tree.
+  ctx_b: he
+  ctx: Trzyma w dłoniach kryształową gwiazdę, którą umieszcza na szczycie choinki.
+    Następnie bierze światełka choinkowe i oplata nimi gałęzie drzewa.
+  endings:
+  - kontynuuje owijanie światełek wokół drzewa w sposób, który dotąd nie był widziany
+    i rozświetla choinkę.
+  - bierze czerwoną girlandę i demonstruje, jak owijać nią choinkę.
+  - następnie napełnia kilka kryształowych doniczek ozdobami, które zawiesił na drzewie.
+  - następnie rzuca na choinkę torbę z prezentami.
+  source_id: activitynet~v_KptXzRFIvTw
+  split: train
+  split_type: indomain
+  label: '1'
+- ind: 94
+  activity_label: Playing accordion
+  ctx_a: A man is seen speaking to the camera while holding a large accordion in his
+    hands.
+  ctx_b: the man
+  ctx: Widzimy mężczyznę, który przemawia do kamery, trzymając w rękach dużą akordeon.
+  endings:
+  - gra na instrumencie, patrząc w kamerę.
+  - kontynuuje grę na instrumencie, patrząc w dal i wskazując.
+  - następnie demonstruje, jak prawidłowo grać na instrumencie, poruszając rękami
+    w górę i w dół.
+  - zaczyna ćwiczyć na akordeonie, łącząc inne elementy i składając końce.
+  source_id: activitynet~v_-nskwoky7vk
+  split: train
+  split_type: indomain
+  label: '2'
+- ind: 3498
+  activity_label: Cleaning shoes
+  ctx_a: A person is peeling a sticker off of a white shoe.
+  ctx_b: they
+  ctx: Osoba zdejmuje naklejkę z białego buta. Ona
+  endings:
+  - wkłada piłkę do buta, aby aktywować światło.
+  - zdrapuje dżinsy skrobaczką.
+  - wyciera but ręcznikiem.
+  - zostawia już zdjętą naklejkę na podeszwie.
+  source_id: activitynet~v_e5rZPT7BJas
+  split: train
+  split_type: indomain
+  label: '2'
+- ind: 739
+  activity_label: Preparing salad
+  ctx_a: A woman is talking about how to make a salad.
+  ctx_b: she
+  ctx: Kobieta opowiada o tym, jak zrobić sałatkę. Ona
+  endings:
+  - rozrywa sałatę na mniejsze kawałki.
+  - zaczyna od sojowej kiełbasy i patelni w kształcie sheltie.
+  - używa wszystkiego, od pomidorów po scientepeel, aby zrobić sałatkę.
+  - dekoruje sałatę za pomocą szpatułki, przecinając ją na pół.
+  source_id: activitynet~v_8ATFQNEWHL0
+  split: train
+  split_type: indomain
+  label: '0'
+- ind: 322
+  activity_label: Hanging wallpaper
+  ctx_a: He starts of by preparing the space by moving furniture away from the walls
+    and covering the furniture with plastic sheets for protection. He also removes
+    the window treatments from windows.
+  ctx_b: he
+  ctx: Zaczyna od przygotowania przestrzeni poprzez odsunięcie mebli od ścian i przykrycie
+    ich folią ochronną. Zdejmuje również dekoracje okienne z okien.
+  endings:
+  - pokazuje, jak podejmować środki ostrożności w stosunku do instalacji elektrycznej,
+    włączników i obwodów.
+  - następnie używa odkurzacza z uchwytem, aby usunąć całą folię z przodu okien.
+  - dodaje folie ochronne do rogu okna na wypadek utraty widoku.
+  - następnie odkurza duże dekoracyjne obszary.
+  source_id: activitynet~v_2Mj26IwwEiY
+  split: train
+  split_type: indomain
+  label: '0'
+- ind: 1367
+  activity_label: River tubing
+  ctx_a: A brown haired woman standing in a pile of floating donuts is holding a mic
+    and talking, and other clips begin to play that include scenery of the lake, interviewing
+    various people of ages and both sexes, people walking with their floating donuts,
+    signs at the lake, people having fun and etcetera.
+  ctx_b: the woman
+  ctx: Kobieta o brązowych włosach stoi na stosie unoszących się pączków, trzymając
+    mikrofon i mówiąc, podczas gdy odtwarzane są inne klipy, w tym sceny z jeziora,
+    wywiady z różnymi ludźmi w różnym wieku i obu płci, ludzie spacerujący z unoszącymi
+    się pączkami, znaki przy jeziorze, ludzie dobrze się bawiący i tym podobne. kobieta
+  endings:
+  - teraz siedzi na zielonym unoszącym się pączku, wciąż trzymając mikrofon i nadal
+    mówiąc.
+  - mówi, podczas gdy skacze po śniegu i maluje na stopionym pomarańczu.
+  - następnie zdejmuje nogi z blachy do ciasta, odkłada ją obok stosu niedopałków
+    papierosów i śpiewa, wstając, aby odejść.
+  - pokazuje więcej filmów, na których montuje i zapala pączki, które mają kozy i
+    tworzy artykuły o ogniskach oraz animowane reklamy i magazyny jako animowana reanimacja.
+  source_id: activitynet~v_FaKQvJBhMPg
+  split: train
+  split_type: indomain
+  label: '0'
+- ind: 2112
+  activity_label: Building sandcastles
+  ctx_a: Family day at the beach, father and son are walking around and then they
+    start to play in the sand. They have a sand in buckets trying to build sand castles.
+  ctx_b: when they
+  ctx: Dzień rodzinny na plaży, ojciec i syn spacerują, a potem zaczynają bawić się
+    w piasku. Mają piasek w wiaderkach i próbują zbudować zamki z piasku. Kiedy oni
+  endings:
+  - skończą, ojciec rozkłada koszyk i sprawia, że dziecko dotyka jego twarzy przed
+    nim.
+  - skończą budować swoje zamki, idą na pole, aby przesypać piasek do dużego metalowego
+    naczynia i zbudować zamek z piasku.
+  - skończą, sprawdzają pieniądze, aby zobaczyć, czy mają wystarczająco na nowy zamek
+    z piasku.
+  - podnoszą wiadro, piasek wcale nie jest stabilny.
+  source_id: activitynet~v_OLRDf3vO8lw
+  split: train
+  split_type: indomain
+  label: '3'
+- ind: 3192
+  activity_label: Longboarding
+  ctx_a: A falls off a skateboard in an awkward way. Then we see several other boys
+    as they trip and fall.
+  ctx_b: they
+  ctx: A spada z deskorolki w niezręczny sposób. Następnie widzimy kilku innych chłopców,
+    jak potykają się i upadają. Oni
+  endings:
+  - w końcu wychodzą na własną rękę, skacząc na nierówne urwiska.
+  - wchodzą do basenu i śmieją się z tego.
+  - biorą ostre zakręty na przedmiejskich drogach, starając się utrzymać na deskach.
+  - są zepchnięci z budynku na śnieg.
+  source_id: activitynet~v_bDf_xpUpdmU
+  split: train
+  split_type: indomain
+  label: '2'
+- ind: 3515
+  activity_label: Long jump
+  ctx_a: Various athletes are seen standing ready while one jumps in place and prepares
+    himself.
+  ctx_b: he
+  ctx: Różni sportowcy stoją gotowi, podczas gdy jeden z nich skacze w miejscu, przygotowując
+    się.
+  endings:
+  - następnie biegnie wzdłuż długiej bieżni, wpada do piaskownicy i wznosi ręce w
+    górę.
+  - następnie wyskakuje w górę, podczas gdy inny rzuca dla niego oszczep, aby mógł
+    to zrobić ponownie.
+  - następnie wskakuje na belkę i wykonuje kilka skoków w stylu 'hop scotch'.
+  - następnie ciągnie się wzdłuż liny i skacze wielokrotnie, aby wykonać skok do dołu,
+    a kilku innych sportowców mówi do kamery.
+  source_id: activitynet~v_eGTZNTfgg24
+  split: train
+  split_type: indomain
+  label: '0'
+- ind: 2699
+  activity_label: Hopscotch
+  ctx_a: A little girl is standing in front of a hopscotch game in her living room.
+    She jumps forward on each square, then turns and goes the other way.
+  ctx_b: she
+  ctx: Mała dziewczynka stoi przed grą w klasy w swoim salonie. Skacze do przodu na
+    każdym polu, a następnie obraca się i idzie w drugą stronę. Ona
+  endings:
+  - w końcu dociera do końca i wraca do swojego pokoju.
+  - kontynuuje skakanie, gdy obchodzi i schodzi z każdego pola.
+  - mija inną dziewczynkę siedzącą, i również idzie w drugą stronę.
+  - uśmiecha się i kłania przed kamerą.
+  source_id: activitynet~v_W2wyahjyTFc
+  split: train
+  split_type: indomain
+  label: '3'
+- ind: 1792
+  activity_label: Making a cake
+  ctx_a: She shows a cake cooling on a metal rack. She demonstrates how to mix the
+    ingredients in a mixer, then bake the cake.
+  ctx_b: when it
+  ctx: Pokazuje ciasto, które stygnie na metalowej kratce. Demonstruje, jak mieszać
+    składniki w mikserze, a następnie piec ciasto. Kiedy ciasto
+  endings:
+  - jest gotowe, polewa je i wkłada do piekarnika.
+  - jest upieczone, przekłada je na kratkę, aby ostygło.
+  - jest gotowe, pokazuje gorącą blachę, a następnie kontynuuje chłodzenie.
+  - jest ukończone, błyszczy.
+  source_id: activitynet~v_KpoH4pBp9fg
+  split: train
+  split_type: indomain
+  label: '1'
+- ind: 218
+  activity_label: Mixing drinks
+  ctx_a: A video of vodka being poured into a martini glass is shown. A woman stands
+    behind a bar with bottles and ingredients.
+  ctx_b: she
+  ctx: Pokazano film, na którym wlewa się wódkę do szklanki martini. Kobieta stoi
+    za barem z butelkami i składnikami. ona
+  endings:
+  - zaczyna nalewać drinki do szklanki z wódką i lodem.
+  - miesza alkohole w szklance, potem wstrząsa nimi przed ozdobieniem i wystawieniem
+    drinka.
+  - miesza składniki razem w szklance koktajlowej, potem napełnia ją, wlewając do
+    kilku otworów, a następnie umieszcza je w przezroczystej szklance.
+  - wlewa składniki do szklanki, dodaje wódkę, sok z cytryny i dziwnie wyglądający
+    napój z szklanki, która ma małe kółka.
+  source_id: activitynet~v_1-nEQf-TJPE
+  split: train
+  split_type: indomain
+  label: '1'
+- ind: 2401
+  activity_label: Rollerblading
+  ctx_a: People are doing tricks on roller blades.
+  ctx_b: a man
+  ctx: Ludzie wykonują triki na rolkach. Mężczyzna
+  endings:
+  - robi trik na deskorolce.
+  - skacze z lotu schodami na rolkach.
+  - ubrany w czarne ubranie medyczne, przechodzi przez lód.
+  - trzyma kamerę za skakankami.
+  source_id: activitynet~v_SsAmEJvdpyU
+  split: train
+  split_type: indomain
+  label: '1'
+- ind: 1809
+  activity_label: Hand car wash
+  ctx_a: A person vacuum the inside of a car, while other men clean by hand the car
+    with detergent and water. Then, a man dry the car with clothes. Other cars are
+    washed in a automatic car machine.
+  ctx_b: after
+  ctx: Osoba odkurza wnętrze samochodu, podczas gdy inni mężczyźni ręcznie myją samochód
+    detergentem i wodą. Następnie mężczyzna suszy samochód szmatami. Inne samochody
+    są myte w automatycznej myjni samochodowej. Po
+  endings:
+  - ', ten sam mechanizm jest używany do mycia szyb samochodowych.'
+  - ', ludzie czyścili samochód szmatami zarówno wewnątrz, jak i na zewnątrz ręcznie.'
+  - ', kierowcy biorą swoje karty prawa jazdy, rozmawiają i podają swoje imiona.'
+  - ', osoba umieszcza parasol z wodą podczas czyszczenia samochodu, podczas gdy dwóch
+    mężczyzn zabiera parasol.'
+  source_id: activitynet~v_Kt1JpqwDvl8
+  split: train
+  split_type: indomain
+  label: '1'
+- ind: 2045
+  activity_label: Blow-drying hair
+  ctx_a: She sections her hair, takes out a brush, and begins to blow dry her hair
+    with the brush.
+  ctx_b: when she
+  ctx: Dzieli włosy na sekcje, bierze szczotkę i zaczyna suszyć włosy suszarką, używając
+    szczotki. Kiedy ona
+  endings:
+  - skończy, myje twarz i wstaje, aby przytulić się do niej.
+  - kończy, układa włosy w stylizację za pomocą produktu, który pokazuje osobie.
+  - kończy, podskakuje i energicznie potrząsa włosami, sprawiając wrażenie, jakby
+    machała do kamery.
+  - zakończy, na ekranie pojawiają się napisy końcowe filmu.
+  source_id: activitynet~v_NURIoQoKk1E
+  split: train
+  split_type: indomain
+  label: '3'
+- ind: 3569
+  activity_label: Wakeboarding
+  ctx_a: A jet ski is parked and a man is riding one.
+  ctx_b: we
+  ctx: Skuter wodny jest zaparkowany, a mężczyzna na nim jedzie. My
+  endings:
+  - widzimy demonstrację, jak latać jednym z helikopterów przy użyciu tyczki do spadochroniarstwa.
+  - widzimy pojawienie się baru w tle i prezentera wiadomości.
+  - widzimy osobę poniżej, która pilotuje samolot.
+  - widzimy imię mężczyzny na ekranie oraz mężczyznę za łodzią i mężczyznę na skuterze
+    wodnym, który wykonuje akrobacje.
+  source_id: activitynet~v_etG65un_AiQ
+  split: train
+  split_type: indomain
+  label: '3'
+- ind: 1738
+  activity_label: Playing polo
+  ctx_a: An audience is sitting in the stands watching a game on the field. These
+    riders get on their horses and start trying to score for their team.
+  ctx_b: someone
+  ctx: Publiczność siedzi na trybunach i ogląda grę na boisku. Jeźdźcy wsiadają na
+    swoje konie i zaczynają zdobywać punkty dla swojej drużyny. Ktoś
+  endings:
+  - próbuje ich rozproszyć i wszędzie się wtrącać.
+  - podnosi jednego z koni i trzyma go.
+  - osiąga sukces, a jedna z grup na widowni klaska.
+  - chwycił za przednią część koszulki i ściągnął ją na boisko.
+  source_id: activitynet~v_KOFXi1RYx_g
+  split: train
+  split_type: indomain
+  label: '2'
+- ind: 251
+  activity_label: Waterskiing
+  ctx_a: A man is holding onto a bar as he is standing on a water ski. He is being
+    pulled through the water by a motor boat.
+  ctx_b: he
+  ctx: Mężczyzna trzyma się drążka, stojąc na nartach wodnych. Jest ciągnięty przez
+    wodę za pomocą motorówki. On
+  endings:
+  - jest w stanie się ustabilizować i wraca na narty wodne, gdy łódź zbliża się z
+    większą prędkością.
+  - następnie dryfuje w kierunku plaży, uśmiechając się do kamery.
+  - machając do kamery, wpada do wody przed dużym wodospadem.
+  - uprawia narciarstwo wodne na długim jeziorze, starając się utrzymać równowagę.
+  source_id: activitynet~v_1DvNkSGk-JA
+  split: train
+  split_type: indomain
+  label: '3'
+- ind: 1780
+  activity_label: Walking the dog
+  ctx_a: A dog sniffs the feet of a man and a woman.
+  ctx_b: the couple
+  ctx: Pies wącha stopy mężczyzny i kobiety. Para
+  endings:
+  - wyprowadza psa nad jezioro.
+  - zaczyna tańczyć, podnosząc i rzucając dysk w powietrze.
+  - opiera się o zwierzęta siedzące na krzesłach.
+  - rozmawia, a następnie malują swoje kije na czarno.
+  source_id: activitynet~v_KnF56TCKPYw
+  split: train
+  split_type: indomain
+  label: '0'
+- ind: 2492
+  activity_label: Playing beach volleyball
+  ctx_a: A group is playing volleyball on a beach.
+  ctx_b: the men volley ball
+  ctx: Grupa osób gra w siatkówkę na plaży. Mężczyźni odbijają piłkę
+  endings:
+  - po odbiciu piłki do siatki.
+  - po odbiciu piłki, przemieszczając się po piasku.
+  - po odbiciu piłki do siebie na piasku.
+  - tam i z powrotem przez siatkę.
+  source_id: activitynet~v_TnYCazY5WEM
+  split: train
+  split_type: indomain
+  label: '3'
+- ind: 904
+  activity_label: Hopscotch
+  ctx_a: A woman is drawing a hopscotch board on the ground in chalk. She stands up
+    and walks to the front of the hopscotch board.
+  ctx_b: she
+  ctx: Kobieta rysuje na ziemi kredą planszę do klasy. Wstaje i podchodzi do początku
+    planszy. Ona
+  endings:
+  - spogląda wstecz na kamerę, mówi coś i wskazuje na różne rzeczy, zaczynając tatuażować
+    się po boku.
+  - maluje białe elementy na kredowej planszy markerem.
+  - odwraca się i wraca do swojego biurka.
+  - zaczyna skakać po planszy.
+  source_id: activitynet~v_9tAyfaBGwyg
+  split: train
+  split_type: indomain
+  label: '3'
+- ind: 1918
+  activity_label: Table soccer
+  ctx_a: A large group of people are seen standing around a foose ball table speaking
+    to one another and leads into them playing the game.
+  ctx_b: many people
+  ctx: Duża grupa ludzi stoi wokół stołu do piłkarzyków, rozmawiając ze sobą, co prowadzi
+    do rozpoczęcia gry. Wiele osób
+  endings:
+  - jest widzianych, jak biega wokół stołu do gry tam i z powrotem, podczas gdy inni
+    obserwują z boku.
+  - obserwuje z boku, jak dziewczyny poruszają się po pokoju, z czego jedna wskakuje
+    na plecy drugiej i uderza coś w powietrze.
+  - obserwuje i siedzi wokół gier foos ze sobą, kończąc na tym, że jedna osoba odchodzi.
+  - kontynuuje obserwowanie gry z boku i spogląda w dół na rozgrywkę.
+  source_id: activitynet~v_M3jMJB_t024
+  split: train
+  split_type: indomain
+  label: '3'
+- ind: 64
+  activity_label: Fixing the roof
+  ctx_a: The woman then stands up and walks to a part of the roof where she lifts
+    up a black shingle on the roof.
+  ctx_b: the woman
+  ctx: Kobieta wstaje i idzie do części dachu, gdzie podnosi czarną dachówkę. kobieta
+  endings:
+  - wspina się na czarną dachówkę i uśmiecha się do kamery.
+  - następnie podnosi kolejną dachówkę i rzuca je na dach, po czym je podpala.
+  - teraz stoi na ziemi przed domem, uśmiechając się i rozmawiając.
+  - następnie wspina się na przednią część dachówki i wisi na sznurze, rozmawiając
+    z inną kobietą, która siedzi na drugiej dachówce.
+  source_id: activitynet~v_-fMxoShIXiM
+  split: train
+  split_type: indomain
+  label: '2'
+- ind: 1059
+  activity_label: Wrapping presents
+  ctx_a: A teenaged boy and his mother are sitting in bed dressed very relaxed and
+    talking about how to wrap gifts.
+  ctx_b: he
+  ctx: Nastoletni chłopak i jego matka siedzą na łóżku ubrani bardzo swobodnie i rozmawiają
+    o tym, jak zapakować prezenty. On
+  endings:
+  - używa małego drewnianego pudełka do zapakowania prezentu, podczas gdy on i jego
+    matka bawią się różnymi guzikami z przodu i z tyłu.
+  - rozprasza się swoim telefonem, a potem wraca do pracy, zaczynają ciąć papier do
+    pakowania.
+  - otrzymuje prezent zapakowany w brązowy papier i taśmę, który następnie owija wokół
+    niego jeszcze raz.
+  - siedzi, a prezent ze sklepu jest pokazany zapakowany, a potem kobieta suszy go
+    suszarką i wiąże.
+  source_id: activitynet~v_BuaWU70q7cE
+  split: train
+  split_type: indomain
+  label: '1'
+- ind: 1360
+  activity_label: Fixing bicycle
+  ctx_a: A person's hands are seen close up on a tool and begins moving the handle
+    around and taking the tool apart.
+  ctx_b: the person
+  ctx: Widzimy z bliska ręce osoby, która obraca rączkę narzędzia i rozkłada je na
+    części.
+  endings:
+  - kontynuuje mierzenie narzędzia i przesuwanie go wzdłuż narzędzia.
+  - następnie odkłada narzędzie na dwie części i zaczyna pocierać je o dywan, prezentując
+    więcej produktów.
+  - odkręca niektóre elementy, dokręca wnętrze i obraca śrubokrętem, trzymając narzędzie.
+  - teraz używa stawu kolanowego i mniejszego narzędzia do zbudowania tej formy.
+  source_id: activitynet~v_FSU0YVLCoSc
+  split: train
+  split_type: indomain
+  label: '2'
+- ind: 3142
+  activity_label: Trimming branches or hedges
+  ctx_a: A man comes onto the screen to introduce a video about him trimming trees.
+  ctx_b: he
+  ctx: Mężczyzna pojawia się na ekranie, aby przedstawić film o tym, jak przycina
+    drzewa. On
+  endings:
+  - używa przedłużacza, aby przyciąć drzewa.
+  - pokazuje, jak przycinać najwyższe drzewa i robi to już od prawie siedmiu lat.
+  - podnosi piłę do przycinania i uruchamia silnik.
+  - robi to bardzo powoli, pokazując różne narzędzia, których używa do przycinania
+    gęstego listowia.
+  source_id: activitynet~v_aVDyPmUgHU0
+  split: train
+  split_type: indomain
+  label: '2'
+- ind: 658
+  activity_label: Powerbocking
+  ctx_a: We see a white opening screen. We see a man dunk a basketball wearing jump
+    stilts.
+  ctx_b: we
+  ctx: Widzimy biały ekran otwarcia. Widzimy mężczyznę, który wsadza piłkę do kosza
+    na skokowych szczudłach. my
+  endings:
+  - widzimy innego mężczyznę odbijającego piłkę, a mężczyzna na skokowych szczudłach
+    robi to ponownie.
+  - widzimy, jak mężczyzna rzuca piłkę i widzimy, jak ląduje na boisku.
+  - widzimy ludzi na skokowych szczudłach biegnących po schodach.
+  - widzimy ludzi grających w siatkówkę na sali gimnastycznej.
+  source_id: activitynet~v_6iSqTbL5WXY
+  split: train
+  split_type: indomain
+  label: '0'
+- ind: 3313
+  activity_label: Canoeing
+  ctx_a: A lady has one foot in the water and one in the boat and she starts doing
+    push-ups on the boat.
+  ctx_b: the lady
+  ctx: Dama ma jedną nogę w wodzie, a drugą w łodzi i zaczyna robić pompki na łodzi.
+  endings:
+  - dostaje znów patyczki do oczu i zaczyna je zdejmować.
+  - złości się na kamerę i zaczyna śpiewać podczas mówienia.
+  - kończy i jej nogi idą w górę, a ona wraca w dół z nogami do góry.
+  - kończy i pokazuje swoje mięśnie do kamery.
+  source_id: activitynet~v_c81l0bAPiFo
+  split: train
+  split_type: indomain
+  label: '3'
+- ind: 1273
+  activity_label: Doing a powerbomb
+  ctx_a: A man is seen standing with one man in a bedroom.
+  ctx_b: he
+  ctx: Widzimy mężczyznę stojącego z innym mężczyzną w sypialni. On
+  endings:
+  - wskazuje na swoją twarz i zaczyna przekłuwać sobie wargę.
+  - zaczyna grać na perkusji, podczas gdy drugi siedzi obok niego.
+  - następnie zaczyna golić swoją nogę.
+  - schyla się i zaczyna podnosić drugiego mężczyznę.
+  source_id: activitynet~v_EHXpUlacN88
+  split: train
+  split_type: indomain
+  label: '3'
+- ind: 3169
+  activity_label: Disc dog
+  ctx_a: There are dogs sleeping in each cage. A man is shown on a field performing
+    tricks with a dog and a bunch of frisbees.
+  ctx_b: the dog
+  ctx: W każdej klatce śpią psy. Na polu pokazany jest mężczyzna wykonujący sztuczki
+    z psem i stosem frisbee. Pies
+  endings:
+  - próbuje licznych sztuczek, podczas gdy mężczyzna pracuje.
+  - skacze wokół osoby, czasami wskakując jej na plecy.
+  - jakby chciał, aby kamera znalazła się w jego pysku.
+  - łapie, robi salta i goni za frisbee.
+  source_id: activitynet~v_axoyB4pypWY
+  split: train
+  split_type: indomain
+  label: '3'
+- ind: 2677
+  activity_label: Playing piano
+  ctx_a: The playing is seen from a hand close up view again. The second man imitates
+    the first man.
+  ctx_b: the first man
+  ctx: Znów widzimy grę z bliska, z perspektywy ręki. Drugi mężczyzna naśladuje pierwszego
+    mężczyznę.
+  endings:
+  - klaszcze na widok naśladownictwa drugiego mężczyzny.
+  - rzuca spojrzenie, podając trzeciemu mężczyźnie jego spray do malowania.
+  - nosi srebrną kulę z niebieskim rzutem położonym na wierzchu.
+  - jest ponownie pokazany w zwolnionym tempie, grając na pianinie.
+  source_id: activitynet~v_Vtnn6yJqHqM
+  split: train
+  split_type: indomain
+  label: '0'
+- ind: 69
+  activity_label: Fixing the roof
+  ctx_a: The roof is done and a view of the entire house is shown to show off the
+    finished roof.
+  ctx_b: the woman
+  ctx: Dach jest ukończony i pokazano widok na cały dom, aby zaprezentować skończony
+    dach. Kobieta
+  endings:
+  - stoi przed domem, uśmiechając się podczas rozmowy.
+  - przeprowadza kolejny wywiad z mężczyzną i opuszcza pomieszczenie.
+  - pokazuje glebę z dwoma warstwami gontów i nakłada warstwę na górny gont.
+  - układa worki na boku i zaczyna nakładać szablony na wierzch.
+  source_id: activitynet~v_-fMxoShIXiM
+  split: train
+  split_type: indomain
+  label: '0'
+- ind: 714
+  activity_label: Kneeling
+  ctx_a: A man is kneeling down on a blue mat.
+  ctx_b: a man
+  ctx: Mężczyzna klęczy na niebieskiej macie.
+  endings:
+  - rzuca rzutkami w swoje cele.
+  - następnie kładzie czarny pręt na głowie mężczyzny.
+  - stoi za nim i rozmawia.
+  - wchodzi przed niego i przygotowuje się, by oprzeć się o jego ramiona.
+  source_id: activitynet~v_7vXt9RxeXWY
+  split: train
+  split_type: indomain
+  label: '2'
+- ind: 2588
+  activity_label: Trimming branches or hedges
+  ctx_a: The man points to the melons up against the wall and begins trimming them
+    with his sheers throwing them to the side.
+  ctx_b: the man
+  ctx: Mężczyzna wskazuje na melony przy ścianie i zaczyna je przycinać swoimi nożycami,
+    odrzucając je na bok.
+  endings:
+  - przynosi je z powrotem na talerz i zaczyna gestykulować w ich kierunku, patrząc
+    im w oczy.
+  - próbuje przykryć melony czerwoną farbą i żółtą taśmą, podczas gdy biegnie, a nasz
+    mężczyzna kończy przycinanie ich swoimi nożycami.
+  - następnie przewraca ten jeden ostry topór, aby stał się odpowiednim przedmiotem
+    do gotowania, po czym przesuwa wszystkie upieczone ciasteczka.
+  - idzie do zewnętrznej krawędzi plantacji melonów i podnosi dużą latorośl jedną
+    ręką, a drugą obcina liście.
+  source_id: activitynet~v_UojTppgtyCE
+  split: train
+  split_type: indomain
+  label: '3'
+- ind: 167
+  activity_label: Welding
+  ctx_a: He shows two aluminum plates that are joined together for demonstration purposes.
+    He takes the nova rod and shows how he can weld the two pieces together.
+  ctx_b: he
+  ctx: Pokazuje dwie aluminiowe płyty, które są połączone ze sobą w celach demonstracyjnych.
+    Bierze pręt nova i pokazuje, jak może zespawać te dwie części razem. on
+  endings:
+  - przesuwa gwiazdkowaty spawarkę na jedną stronę piaszczystego obszaru z powodu
+    piasku, który go pokrył.
+  - odkłada pręt i pokazuje, jak może spawać zewnętrzną stronę samochodu od wewnątrz.
+  - rozpoczyna spawanie dwóch aluminiowych płyt.
+  - następnie demonstruje, jak spawać za pomocą pompy, aż beton będzie czysty.
+  source_id: activitynet~v_0UcBldDI0RA
+  split: train
+  split_type: indomain
+  label: '2'
+- ind: 3568
+  activity_label: Playing water polo
+  ctx_a: A small group of people are seen pushing a ball along the water and scoring
+    into the goal. The people continue playing with the ball and swimming along the
+    water.
+  ctx_b: the ball
+  ctx: Mała grupa osób popycha piłkę po wodzie i zdobywa bramkę. Ludzie kontynuują
+    grę z piłką, pływając wzdłuż wody.
+  endings:
+  - jest podawana kolejnej osobie, aby zdobyć bramkę, a następnie gra toczy się dalej.
+  - kontynuuje obracanie się i kończy kilkoma dodatkowymi ujęciami pływających ludzi.
+  - ostatecznie przekracza siatkę ponownie, nie trafiając do bramki i wpada do siatki.
+  - następnie również jest zdobywana przez drużynę oraz reporterów siedzących wokół
+    i obserwujących zdobycie bramki.
+  source_id: activitynet~v_esZMkzlZiuY
+  split: train
+  split_type: indomain
+  label: '0'
+- ind: 862
+  activity_label: Making a sandwich
+  ctx_a: An introduction of 6 different small videos of foods appear and there's text
+    below that say's "steve's cooking".
+  ctx_b: a large piece of raw meat
+  ctx: Na ekranie pojawia się sześć krótkich filmów o jedzeniu, a poniżej widnieje
+    napis "gotowanie Steve'a". Duży kawałek surowego mięsa
+  endings:
+  - i kiełbasa leżą na rozgrzanej płycie, a wideo pokazuje kilka kanapek rozłożonych
+    na talerzu przed uderzeniem w talerz.
+  - jest pokazane na talerzu, który stoi na bloku rzeźniczym, kotlety są również krojone
+    nożem, a mięso jest pokrojone na czarno.
+  - jest pokazane na desce do krojenia, która jest maczana po ugotowaniu i głównym
+    przygotowaniu.
+  - pojawia się na białym talerzu, a słowo Reuben miga kilka razy, gdy jest pokazywane
+    pod różnymi kątami.
+  source_id: activitynet~v_9WmsYbZl1pw
+  split: train
+  split_type: indomain
+  label: '3'
+- ind: 2900
+  activity_label: Surfing
+  ctx_a: An intro leads into several shots of a man riding a large wave of a surf
+    board from various angles.
+  ctx_b: one man
+  ctx: Wstęp prowadzi do kilku ujęć mężczyzny surfującego na dużej fali na desce surfingowej
+    z różnych perspektyw. jeden mężczyzna
+  endings:
+  - następnie jest przeprowadzany wywiad przez kamerzystę i ponownie pokazany surfujący
+    na dużych falach na oceanie.
+  - ściga się na falach oceanu, walcząc ramię w ramię.
+  - przewraca się, a następnie wylatuje nad falą i ląduje na piasku, gdzie kilku innych
+    surferów wykonuje różne ewolucje.
+  - również zjeżdża na swoim deskorolce po bardzo dużej fali, jednocześnie wiążąc
+    swoją deskę.
+  source_id: activitynet~v_YeNlYRWhFzE
+  split: train
+  split_type: indomain
+  label: '0'
+- ind: 891
+  activity_label: Playing squash
+  ctx_a: There are two players wearing a red and white shirt and the other wearing
+    black and white shirt, playing racket ball in an indoor court with a few spectators.
+  ctx_b: the player in red
+  ctx: Dwóch graczy, jeden w czerwono-białej koszulce, a drugi w czarno-białej, grają
+    w squasha na krytym korcie przy obecności kilku widzów. Gracz w czerwonym
+  endings:
+  - musi uderzyć piłkę w biodro i pozwolić jej wylądować na korcie jako pierwszej.
+  - uderza piłkę forehandem, a jego przeciwnik skacze do przodu, aby zwrócić piłkę.
+  - i białej koszulce przygotowuje serwis i uderza piłkę wodną wysoko w siatkę, a
+    drugi gracz w czarno-białej koszulce stoi i przygotowuje się, by zaprosić swojego
+    przeciwnika do gry.
+  - uderza piłkę mocno rakietą, ale ma monitor w lewej ręce, więc piłka nie trafia
+    go w prawą rękę na rakiecie.
+  source_id: activitynet~v_9qNM5tNMxK4
+  split: train
+  split_type: indomain
+  label: '1'
+- ind: 1355
+  activity_label: Hula hoop
+  ctx_a: The man and his family are in a backyard speaking to the camera. After he
+    speaks, they cheer. The man and woman put on a tutu and blindfolds.
+  ctx_b: they
+  ctx: Mężczyzna i jego rodzina są na podwórku i rozmawiają do kamery. Po jego wypowiedzi
+    wszyscy wiwatują. Mężczyzna i kobieta zakładają tiulowe spódniczki i opaski na
+    oczy. Oni
+  endings:
+  - idą po piłę łańcuchową i przecinają środek lewej krawędzi ogrodzenia.
+  - przyjmują pozycję do ustawienia ramy, a następnie opuszczają dom uśmiechnięci.
+  - zaczynają kręcić hula-hop, aż kobieta przegrywa.
+  - stają na środku podwórka i przez chwilę się kładą.
+  source_id: activitynet~v_FMmrxy3OanA
+  split: train
+  split_type: indomain
+  label: '2'
+- ind: 2102
+  activity_label: Making a sandwich
+  ctx_a: He puts mayonnaise on top of the top piece of bread. He stacks the food up
+    on the bread again. He tops it with a final piece of bread.
+  ctx_b: he
+  ctx: Nakłada majonez na górną kromkę chleba. Układa jedzenie na chlebie ponownie.
+    Przykrywa to ostatnią kromką chleba. On
+  endings:
+  - następnie chwyta inną kromkę i przecina ją na pół.
+  - wlewa olej na talerze, które ze sobą brzęczą.
+  - kroi kanapkę na cztery kawałki na desce.
+  - przykrywa kanapkę pokrywką.
+  source_id: activitynet~v_O8JVA-scYlM
+  split: train
+  split_type: indomain
+  label: '2'
+- ind: 337
+  activity_label: Playing badminton
+  ctx_a: A coach shows different leg stances to a student for playing badminton. The
+    coach returns serves from the student using the racket during a practice drill.
+  ctx_b: the students
+  ctx: Trener pokazuje uczniowi różne pozycje nóg do gry w badmintona. Trener odbija
+    serwisy ucznia rakietą podczas ćwiczenia.
+  endings:
+  - odbija serwisy od instruktora podczas ćwiczenia.
+  - przeprowadza konferencję prasową na siłowni, podczas której uczniowie nadal obserwują
+    uderzenie.
+  - demonstruje jak używać rakietę po otrzymaniu odpowiedniej okazji do jej zwrotu.
+  - pokazuje różne ruchy i pozycje.
+  source_id: activitynet~v_2Peh_gdQCjg
+  split: train
+  split_type: indomain
+  label: '0'
+- ind: 1769
+  activity_label: Kneeling
+  ctx_a: A woman comes onto the screen kneeling down holding a stick.
+  ctx_b: she
+  ctx: Kobieta pojawia się na ekranie klęcząc i trzymając kij. Ona
+  endings:
+  - zaczyna się głębiej rozciągać, trzymając kij dla równowagi.
+  - ostatecznie demonstruje przesuwanie krzesła, które trzyma, trzymając przy tym
+    świecę.
+  - zaczyna uderzać piłkę tenisową kijem.
+  - demonstruje, jak używać kija przeciwko kłodzie.
+  source_id: activitynet~v_KfX3APC8lp4
+  split: train
+  split_type: indomain
+  label: '0'
+- ind: 3535
+  activity_label: Playing pool
+  ctx_a: There is a pool table with billiard balls on it.
+  ctx_b: a person
+  ctx: Na stole bilardowym znajdują się kule bilardowe. Osoba
+  endings:
+  - wchodzi do pokoju i kładzie napiwek na stole.
+  - przechodzi przez stół, mijając zieloną kulę bilardową na zielonym, który znajduje
+    się obok zielonego stołu bilardowego.
+  - wykonuje strzał, potem mężczyzna mówi, wstaje i odchodzi od stołu.
+  - trzyma w ręku kij bilardowy.
+  source_id: activitynet~v_eVwRbDXyBbc
+  split: train
+  split_type: indomain
+  label: '3'
+- ind: 2459
+  activity_label: Slacklining
+  ctx_a: The lady sits on her knees. The man in the background picks up snow. The
+    lady falls of the slack line.
+  ctx_b: we
+  ctx: Dama klęczy. Mężczyzna w tle zbiera śnieg. Dama spada z linii równoważnej.
+    my
+  endings:
+  - widzimy napisy końcowe.
+  - widzimy mężczyzn grających w hokeja na lodzie.
+  - widzimy damę obok konia.
+  - widzimy mężczyznę skaczącego na linii równoważnej.
+  source_id: activitynet~v_TPsMocKBQU0
+  split: train
+  split_type: indomain
+  label: '3'
+- ind: 3180
+  activity_label: Capoeira
+  ctx_a: The men also dance as they sing and play the maracas the lead singer sings
+    solo for some time while the others play their maracas.
+  ctx_b: then all the men
+  ctx: Mężczyźni również tańczą, śpiewając i grając na marakasach, a główny wokalista
+    śpiewa solo przez pewien czas, podczas gdy inni grają na swoich marakasach. Następnie
+    wszyscy mężczyźni
+  endings:
+  - zbierają się i idą na plac, aby świętować zdobycie medalu i znajdują miejsca na
+    trybunach.
+  - kontynuują grę, podczas gdy różni ludzie, trzymający łuki i strzały, tańczą na
+    placu, a potem na scenie na stałej scenie.
+  - dołączają do niego w śpiewaniu piosenki, grając jednocześnie na marakasach.
+  - kończą, a jeden z wokalistów robi kilkusekundową pauzę.
+  source_id: activitynet~v_b5GrYqt5tRQ
+  split: train
+  split_type: indomain
+  label: '2'
+- ind: 3513
+  activity_label: Shoveling snow
+  ctx_a: A man opens the door and tries to jump over the snow that is in the way.
+    He gets stuck in the snow and his family tries to help him get out.
+  ctx_b: once he
+  ctx: Mężczyzna otwiera drzwi i próbuje przeskoczyć przez śnieg, który stanowi przeszkodę.
+    Utknął w śniegu, a jego rodzina próbuje mu pomóc się wydostać. Gdy on
+  endings:
+  - wyzwoli się, biegnie tak szybko, jak tylko może, aby jak najwięcej pojeździć na
+    snowboardzie.
+  - jest wolny, próbuje zjechać całą drogę z powrotem i kończy ślizgając się, próbując
+    rozmawiać z kamerą.
+  - znajdzie się wystarczająco daleko, robią razem aniołka na śniegu i przeskakują
+    przez niego.
+  - wychodzi, rzuca im łopatę, aby odśnieżyli śnieg na podłodze.
+  source_id: activitynet~v_eGA5tbX8oH0
+  split: train
+  split_type: indomain
+  label: '3'
+- ind: 1275
+  activity_label: Clipping cat claws
+  ctx_a: A video of clipping a cats toenails is shown.
+  ctx_b: each paw
+  ctx: Pokazano filmik, na którym obcina się paznokcie kota. Każda łapa
+  endings:
+  - jest obcinana pojedynczo, a na końcu kot przebija skórę.
+  - jest obcinana po jednej stronie.
+  - jest chwytana, a paznokieć jest wysuwany i przycinany.
+  - jest przycinana aż do żywego.
+  source_id: activitynet~v_EJiyr-6l3ps
+  split: train
+  split_type: indomain
+  label: '2'
+- ind: 1265
+  activity_label: Playing lacrosse
+  ctx_a: Person is walking inside a house to an open field holding a baseball bat.
+    Perso is walking with a handle stick behind some men running around the field.
+  ctx_b: some papers
+  ctx: Osoba idzie wewnątrz domu na otwarte pole, trzymając kij baseballowy. Osoba
+    idzie z laską za kilkoma mężczyznami biegającymi po polu. jakieś papiery
+  endings:
+  - spadły na pole, a pokazany jest nieruchomy obraz mężczyzny w czarnej czapce.
+  - są pokazane, a kobiety sprzedają koszulki do lacrosse, podczas gry, ludzie gromadzą
+    się wokół pola.
+  - są składane na stole.
+  - są rozdawane na polu.
+  source_id: activitynet~v_E9hFBWDR12A
+  split: train
+  split_type: indomain
+  label: '1'
+- ind: 1319
+  activity_label: Playing drums
+  ctx_a: A mexican band is playing and singing. The camera does a closeup on each
+    member. There is a crowd listening to them.
+  ctx_b: the band name
+  ctx: Meksykański zespół gra i śpiewa. Kamera robi zbliżenie na każdego z członków.
+    Tłum słucha ich. nazwa zespołu
+  endings:
+  - pojawia się, a oni zaczynają grać słowa "la carta" i "la bike disco".
+  - pojawia się, a właściciel ich wita.
+  - jest na tyłach ich koszulek.
+  - to mkjet rock band.
+  source_id: activitynet~v_EqqqGf4wLH0
+  split: train
+  split_type: indomain
+  label: '2'
+- ind: 2572
+  activity_label: Sumo
+  ctx_a: Two men speak on walkie talkies on the side and the men drive the cars into
+    one another. One pushes the car back and the men all get out and speak to one
+    another.
+  ctx_b: another car
+  ctx: Dwaj mężczyźni rozmawiają przez krótkofalówki, stojąc obok siebie, a następnie
+    kierują samochodami na siebie. Jeden z nich odepchnął samochód, wyszli i zaczęli
+    rozmawiać. Inny samochód
+  endings:
+  - przejeżdża kamerzystę.
+  - wjeżdża, a mężczyźni idą w stronę siebie, podczas gdy pięciu mężczyzn ubranych
+    na czarno wykonuje techniki walki na scenie.
+  - zostaje uderzony przez samochód z przodu i wszyscy odjeżdżają samochodami.
+  - jest testowany, mężczyźni rozmawiają z kamerą i odsuwają samochód, podczas gdy
+    inni patrzą z niedowierzaniem.
+  source_id: activitynet~v_UjG_uHlFf3s
+  split: train
+  split_type: indomain
+  label: '3'
+- ind: 978
+  activity_label: Drinking beer
+  ctx_a: We see 5 men walking down the street sides by side. A man looks at the men.
+    A lady looks at the men.
+  ctx_b: two men
+  ctx: Widzimy 5 mężczyzn idących ulicą obok siebie. Mężczyzna patrzy na nich. Kobieta
+    patrzy na nich. Dwóch mężczyzn
+  endings:
+  - odwraca się i patrzy na siebie.
+  - rozpoczyna walkę na rękę i mężczyzna po prawej stronie wygrywa.
+  - siedzi w restauracji.
+  - wstaje i rozpoczyna walkę na rękę.
+  source_id: activitynet~v_AyWXuUCDSjw
+  split: train
+  split_type: indomain
+  label: '0'
+- ind: 505
+  activity_label: Tumbling
+  ctx_a: A second woman practices floor gymnastics. The two women are shown performing
+    the same action in turn.
+  ctx_b: the first woman
+  ctx: Druga kobieta wykonuje gimnastykę na podłodze. Obie kobiety pokazane są wykonujące
+    tę samą czynność na zmianę. Pierwsza kobieta
+  endings:
+  - z powodzeniem podnosi drążek na suficie.
+  - przechodzi od kroku baletowego do kroku baletowego.
+  - jest pokazana podczas dalszej gimnastyki na podłodze, z okazjonalnymi zwolnieniami
+    tempa podczas powtórek jej ruchów.
+  - kończy i skacze radośnie w górę i w dół.
+  source_id: activitynet~v_4vdclFJFrdk
+  split: train
+  split_type: indomain
+  label: '2'
+- ind: 1030
+  activity_label: Painting
+  ctx_a: A man in gray shirt is sitting on a chair.
+  ctx_b: the man
+  ctx: Mężczyzna w szarej koszuli siedzi na krześle. Mężczyzna
+  endings:
+  - za nim zaczyna myć stopę mężczyzny.
+  - wskazuje pędzlem na puste płótno, kontynuując rozmowę.
+  - z brodą uderza w gong młotkiem.
+  - zaczyna golić nogi krzesła.
+  source_id: activitynet~v_BOckSaGr-uI
+  split: train
+  split_type: indomain
+  label: '1'
+- ind: 52
+  activity_label: Painting
+  ctx_a: A lady named linda, creator of paint along is demonstrating how to do an
+    acrylic painting. She starts with a one inch flat brush and yellow and white acrylic
+    paint.
+  ctx_b: she
+  ctx: Pani o imieniu Linda, twórczyni Paint Along, demonstruje, jak malować farbami
+    akrylowymi. Rozpoczyna od płaskiego pędzla o szerokości jednego cala oraz żółtej
+    i białej farby akrylowej. Ona
+  endings:
+  - następnie maluje około sześciu odcieni koloru fioletowego na papierze.
+  - tworzy wzory w kształcie litery X na płótnie za pomocą żółtej farby.
+  - zakłada kremowy płaszcz i zaczyna malować białe drewniane ogrodzenie bez użycia
+    mieszadła do farb.
+  - przesypuje farbę w elektrycznym płaskim pędzlu i nakłada ją na ścianę.
+  source_id: activitynet~v_-YjGbsbDoxs
+  split: train
+  split_type: indomain
+  label: '1'
+- ind: 307
+  activity_label: Zumba
+  ctx_a: A man and two women are doing an aerobic dance inside a building. They perform
+    several moves, speeding up with time.
+  ctx_b: they
+  ctx: Mężczyzna i dwie kobiety wykonują taniec aerobowy w budynku. Wykonują różne
+    ruchy, z czasem przyspieszając. Oni
+  endings:
+  - skaczą dookoła, wyskakując z podskoków.
+  - zatrzymują się na końcu, a ich instruktor podchodzi.
+  - wykonują ćwiczenia na nogi na siłowni, podczas gdy kamera rejestruje ich poruszających
+    się obok siebie.
+  - zatrzymują się, klaskając i wycierając włosy z twarzy, gdy kończą.
+  source_id: activitynet~v_28QW8P1x_LE
+  split: train
+  split_type: indomain
+  label: '3'
+- ind: 3600
+  activity_label: Croquet
+  ctx_a: A person is seen wearing slippers and holding a stick in their hands.
+  ctx_b: the person
+  ctx: Widzimy osobę, która ma na sobie kapcie i trzyma kij w rękach. Osoba ta
+  endings:
+  - następnie zaczyna chodzić po pokoju popychając kijem piłkę.
+  - jest widziana, jak używa kija w całym domu do wylewania farby.
+  - następnie jest widziana, jak porusza się po pokoju zaczynając uderzać piłkę.
+  - bierze do ręki kij bilardowy i obraca się dookoła.
+  source_id: activitynet~v_f4s1ngeK5P4
+  split: train
+  split_type: indomain
+  label: '0'
+- ind: 2425
+  activity_label: River tubing
+  ctx_a: Several kids are in their inner-tubes in the water among other people floating
+    on inner-tubes in the water.
+  ctx_b: several people
+  ctx: Kilka dzieci znajduje się w swoich dmuchanych oponach na wodzie wśród innych
+    osób pływających na dmuchanych oponach na wodzie.
+  endings:
+  - są na nadmuchiwanych łodziach, które są ciągnięte przez linę w grze w przeciąganie
+    liny.
+  - unoszą się na dnie głębokiego basenu otoczonego skałami i wodą.
+  - są pokazane w kajakach z ludźmi na dmuchanych oponach w tle.
+  - znajdują się razem na dużym niebieskim obszarze.
+  source_id: activitynet~v_T9JSNxOyUQA
+  split: train
+  split_type: indomain
+  label: '2'
+- ind: 2251
+  activity_label: Bullfighting
+  ctx_a: The bull tackles the male. The male gets up and his face is bloody. People
+    help the male and carry him away.
+  ctx_b: the male
+  ctx: Byk atakuje mężczyznę. Mężczyzna wstaje, a jego twarz jest zakrwawiona. Ludzie
+    pomagają mężczyźnie i wynoszą go stamtąd.
+  endings:
+  - nadepnął na byka.
+  - zostawia czarny but.
+  - podnosi się i wychodzi z areny.
+  - podnosi się nieco i odwraca.
+  source_id: activitynet~v_QLVgy-1ydr0
+  split: train
+  split_type: indomain
+  label: '1'
+- ind: 2197
+  activity_label: Tumbling
+  ctx_a: A gymnast runs, then flips several times down an indoor track.
+  ctx_b: other girls
+  ctx: Gimnastyczka biegnie, a następnie wykonuje kilka salta na krytej bieżni. Inne
+    dziewczyny
+  endings:
+  - w różnych strojach obserwują, jak biegnie.
+  - wykonują salta w eliptycznych przestrzeniach zarówno do ćwiczeń, jak i tańca.
+  - są w tle i obserwują ją.
+  - idą w jej ślady, szybko robiąc salta.
+  source_id: activitynet~v_Q159fj3M9NM
+  split: train
+  split_type: indomain
+  label: '3'
+- ind: 1448
+  activity_label: Playing pool
+  ctx_a: The man in gray sweater lean on the table and look at the ball, he then hit
+    the white ball and hit the yellow ball, while the man in plaid shirt sat on the
+    chair.
+  ctx_b: the man in gray sweater
+  ctx: Mężczyzna w szarym swetrze opiera się o stół i patrzy na kulę, następnie uderza
+    białą kulą i trafia żółtą kulę, podczas gdy mężczyzna w koszuli w kratę siedzi
+    na krześle. Mężczyzna w szarym swetrze
+  endings:
+  - rzuca kulą i trafia żółtą kulę, mężczyzna w niebieskim swetrze chwyta kulę i rzuca
+    nią.
+  - siada na krześle naprzeciwko stołu i kontynuuje trzymanie żółtych kul, które trafiają
+    niebieską kulę.
+  - kontynuuje grę w bilard, sprawiając, że kule wpadają do łuz.
+  - siada na swoim białym stole.
+  source_id: activitynet~v_G_kJ-Af89ew
+  split: train
+  split_type: indomain
+  label: '2'
+- ind: 3232
+  activity_label: Table soccer
+  ctx_a: An intro leads into a close up of a fooseball table and panning around several
+    specs of the table.
+  ctx_b: two people
+  ctx: Wstęp prowadzi do zbliżenia na stół do piłkarzyków, a kamera przesuwa się po
+    kilku szczegółach stołu. Dwóch ludzi
+  endings:
+  - jest widocznych, jak grają ze sobą, podczas gdy kamera pokazuje stół z kilku stron,
+    a chłopcy przybijają sobie piątki.
+  - następnie trzyma innego mężczyznę za ramię i popycha go do stołu.
+  - tworzy krąg i zaczyna grać tam i z powrotem przez stół, rozmawiając ze sobą z
+    dala od kamery.
+  - następnie grają w grę w piłkarzyki na paintball, strącając kulki i wracając z
+    pchnięciami, a drugi serwuje kulki do bramki.
+  source_id: activitynet~v_bW4AfWvteIo
+  split: train
+  split_type: indomain
+  label: '0'
+- ind: 488
+  activity_label: Sumo
+  ctx_a: It shows a picture of singer george michael too. There's a panel of people
+    sitting in a studio talking about the event.
+  ctx_b: they
+  ctx: Pokazuje również zdjęcie piosenkarza George'a Michaela. W studiu siedzi grupa
+    ludzi, którzy rozmawiają o wydarzeniu.
+  endings:
+  - ubierają się na czarno i zakładają kostiumy.
+  - rozpoczynają wykonanie tanga przed publicznością.
+  - czytają scenariusz i śmieją się.
+  - są pokazywani grający w shuffleboard i łowiący ryby pod lodem.
+  source_id: activitynet~v_4j7_nh61bvo
+  split: train
+  split_type: indomain
+  label: '2'
+- ind: 2835
+  activity_label: Breakdancing
+  ctx_a: A lone man in a room with a green screen backdrop performs a break dancing
+    move on a patch of hardwood floors, using his back to spin.
+  ctx_b: the man
+  ctx: Samotny mężczyzna w pomieszczeniu z zielonym tłem wykonuje ruch breakdance
+    na kawałku parkietu, używając swojego pleców do obracania się.
+  endings:
+  - pojawia się na bezkoszulkowym zielonym tle, wychodzi do równoległych drążków i
+    wykonuje solo pół skoku.
+  - następnie obraca się i robi salto przez jeden z dwóch belek w pokoju, lądując
+    gracji i elegancko na czarno-białym dywanie na środku parkietu.
+  - obraca się wokół siebie i jednocześnie kopie.
+  - przestaje tańczyć i staje przed kamerą, rozmawiając z nią, zanim zademonstruje
+    podstawowe ruchy breakdance, w tym używanie rąk i kolan do wykonywania obrotów
+    z podłogi.
+  source_id: activitynet~v_XzNMQl0EdEo
+  split: train
+  split_type: indomain
+  label: '3'
+- ind: 1573
+  activity_label: Painting
+  ctx_a: The words "abstract birds/oil painting katy jade dobson" appear on screen.
+  ctx_b: dobson
+  ctx: Na ekranie pojawiają się słowa "abstrakcyjne ptaki/obraz olejny Katy Jade Dobson".
+  endings:
+  - ma na sobie czarną koszulkę i paznokcie zakończone szponami.
+  - szkicuje projekt na białym płótnie i zaczyna go malować.
+  - leży na ziemi, a dwóch mężczyzn odciąga go stamtąd.
+  - maluje szkło w pustej kuchni.
+  source_id: activitynet~v_IVHmmp3Nsd4
+  split: train
+  split_type: indomain
+  label: '1'
+- ind: 2982
+  activity_label: Getting a haircut
+  ctx_a: The male then turns and the middle of the hair begins to get trimmed. Next
+    is the sides and the same actions are repeated until the hair is finished.
+  ctx_b: finally
+  ctx: Mężczyzna odwraca się, a środek włosów zaczyna być przycinany. Następnie przycinane
+    są boki i te same czynności są powtarzane, aż fryzura zostanie ukończona. w końcu
+  endings:
+  - ', obaj chłopcy cofają się i praca zostaje zakończona.'
+  - ', dziwne fryzury się rozchodzą i zaczyna się golenie włosów oraz wskazywanie
+    na boki.'
+  - ', brzytwy są wyciągane i fryzjer zaczyna wykańczać włosy mężczyzny, a na koniec
+    fryzjer jeszcze raz przeczesuje włosy grzebieniem i nożyczkami.'
+  - ', zostają tylko dwie ręce, które mają jeszcze przejść przez jego włosy.'
+  source_id: activitynet~v_ZYAY3TEUjGI
+  split: train
+  split_type: indomain
+  label: '2'
+- ind: 444
+  activity_label: Playing beach volleyball
+  ctx_a: The camera pans in on a volleyball player while she plays a game with others.
+  ctx_b: the camera
+  ctx: Kamera zbliża się do siatkarki podczas gry z innymi. kamera
+  endings:
+  - przesuwa się nad dużą grupę ludzi, a następnie szybko wraca do leżącej na ziemi
+    siatkarki.
+  - zatrzymuje się co jakiś czas, aby uchwycić jej ruchy i obraca się wokół innych
+    grających.
+  - przesuwa się nad krabem na plaży.
+  - podnosi się, aby pokazać dwóch chłopców, którzy również grają w siatkówkę.
+  source_id: activitynet~v_44M2Ov9JzUE
+  split: train
+  split_type: indomain
+  label: '1'
+- ind: 3375
+  activity_label: Hand car wash
+  ctx_a: A guy is wiping a car tire. A female walks from driver side lightly rubbing
+    a black cloth on the join the guy.
+  ctx_b: the female
+  ctx: Mężczyzna wyciera oponę samochodu. Kobieta podchodzi od strony kierowcy, delikatnie
+    pocierając czarną szmatką, dołączając do mężczyzny.
+  endings:
+  - trzyma ciężką szmatkę nad oponą samochodu mężczyzny.
+  - opuszcza okno.
+  - rzuca czarną szmatkę na samochód tuż nad oponą, którą czyści mężczyzna.
+  - następnie wyciera po mężczyźnie z drugiej strony.
+  source_id: activitynet~v_ck05xSh9-ig
+  split: train
+  split_type: indomain
+  label: '2'
+- ind: 3724
+  activity_label: Playing ice hockey
+  ctx_a: A green and yellow team hockey team is pictured and there location is shown
+    on a map.
+  ctx_b: the video
+  ctx: Na zdjęciu widzimy drużynę hokejową w zielono-żółtych strojach, a ich lokalizacja
+    jest pokazana na mapie. Wideo
+  endings:
+  - przełącza się z powrotem na zawodników, od ćwiczeń hokejowych do fazy playoff.
+  - następnie wraca do gry i pokazuje miejsce, w którym drużyny rozgrywają mecz.
+  - przechodzi do długiego ujęcia gry, gdzie członek drużyny w czerwonych barwach
+    daje sygnał, by podnieść rękawicę.
+  - kończy się klipem z tytułem przesuwanym przez całą planszę.
+  source_id: activitynet~v_gnKpguqHfag
+  split: train
+  split_type: indomain
+  label: '1'
+- ind: 1554
+  activity_label: Cleaning windows
+  ctx_a: A young man puts detergent in a blue bucket, then shows and explains how
+    to clean a screen windows using a squeegee. After, the young man cleans the wet
+    screen with a cloth.
+  ctx_b: the young man
+  ctx: Młody mężczyzna wsypuje detergent do niebieskiego wiadra, następnie pokazuje
+    i wyjaśnia, jak czyścić okna z użyciem gumowej wycieraczki. Potem młody mężczyzna
+    czyści mokre okno za pomocą ścierki.
+  endings:
+  - przesuwa maskę samochodu z przedniej szyby.
+  - wyjaśnia, jak czyścić okna kostki Rubika, gdzie stoi szafka na karty.
+  - porównuje brudne okno z czystym i daje znak aprobaty kciukiem w górę.
+  - pokazuje rączkę wycieraczki i wyciera okno, a następnie zdejmuje koszulkę i kaszle
+    na gąbkę.
+  source_id: activitynet~v_ICM-GjDa9QY
+  split: train
+  split_type: indomain
+  label: '2'
+- ind: 1394
+  activity_label: Smoking hookah
+  ctx_a: A man is smoking a pipe and blowing smoke rings. The man uses profanity and
+    flips the camera off.
+  ctx_b: another man
+  ctx: Mężczyzna pali fajkę i puszcza kręgi dymu. Używa wulgaryzmów i pokazuje gest
+    Kozakiewicza w stronę kamery. Inny mężczyzna
+  endings:
+  - pojawia się z łysą, białą głową.
+  - nosi swoją żonę po schodach.
+  - ubrany w niebieski płaszcz ćwiczy grę na pianinie w pokoju.
+  - stoi i obserwuje go.
+  source_id: activitynet~v_FsQWaEejutU
+  split: train
+  split_type: indomain
+  label: '3'
+- ind: 3696
+  activity_label: Rock-paper-scissors
+  ctx_a: She is then shown talking to a young girl with a pink sweater and black skirt
+    and multiple games of rock paper scissors are being played between her and two
+    other girls. The girl with the pink sweater wins and she sits on the girls face.
+  ctx_b: afterwards
+  ctx: Pokazano, jak rozmawia z młodą dziewczyną w różowym swetrze i czarnej spódnicy,
+    a między nią a dwiema innymi dziewczynami rozgrywane są liczne gry w papier, kamień,
+    nożyce. Dziewczyna w różowym swetrze wygrywa i siada na twarzy dziewczyny. Potem
+  endings:
+  - otrzymuje od dziewczyn i przyjaciół gratulacje po swoim zwycięstwie.
+  - trzy dziewczyny stają razem i zaczynają rozmawiać do kamery.
+  - rozmawia z chłopcem w bluzie z kapturem, a wszystkie dziewczyny wiwatują z nią
+    i ściskają dłonie przed jej odejściem.
+  - prawdziwa dziewczyna podchodzi i szybko robi jej makijaż, a dziewczyny zaczynają
+    rozmawiać o swoich sprawach, zanim zwrócą uwagę na siebie, rozmazując szminkę
+    na twarzach i rozmawiając z przyjaciółmi.
+  source_id: activitynet~v_gIzsM5cv7XM
+  split: train
+  split_type: indomain
+  label: '1'
+- ind: 1179
+  activity_label: Archery
+  ctx_a: A man shoots an arrow with his bow.
+  ctx_b: he
+  ctx: Mężczyzna strzela z łuku strzałą. On
+  endings:
+  - mówi cześć do lasu.
+  - zamachuje się na strzałę.
+  - strzela w strunę.
+  - chwyci kolejną strzałę i strzela ponownie.
+  source_id: activitynet~v_DMw9Cb_Xy2A
+  split: train
+  split_type: indomain
+  label: '3'
+- ind: 721
+  activity_label: Wrapping presents
+  ctx_a: The woman wraps the toy in the tissue paper and tapes it shut. The woman
+    lays out cellophane and places the wrapped toy on it.
+  ctx_b: the woman
+  ctx: Kobieta owija zabawkę w papier pakowy i zakleja go taśmą. Kobieta rozkłada
+    celofan i kładzie na nim owiniętą zabawkę. Kobieta
+  endings:
+  - zawija prezenty w okrągły sposób za pomocą nożyczek.
+  - przecina celofan, a następnie zwija zabawkę owiniętą w papier pakowy.
+  - bierze większy zapakowany prezent i trzeci prezent zapakowany.
+  - odrywa róg tkaniny i kładzie zabawkę na protezie.
+  source_id: activitynet~v_7yg2zbiTJJ4
+  split: train
+  split_type: indomain
+  label: '1'
+- ind: 902
+  activity_label: Putting on shoes
+  ctx_a: A boy is bent over in his bedroom. He is trying to put on a shoe. He sits
+    down, playing with a broken lace.
+  ctx_b: he
+  ctx: Chłopiec schyla się w swoim pokoju. Próbuje założyć but. Siada, bawiąc się
+    zerwanym sznurówkiem. On
+  endings:
+  - kontynuuje pracę ze sznurówką, aż uda mu się ją zawiązać.
+  - ma na sobie różowe szorty i różowy top na ramiączkach.
+  - natychmiast przestaje, próbując naprawić część.
+  - podnosi się nieco, nadal się kołysząc.
+  source_id: activitynet~v_9riZioI46sM
+  split: train
+  split_type: indomain
+  label: '0'
+- ind: 3397
+  activity_label: Triple jump
+  ctx_a: A man is standing at the start line clapping his hands, people look on.
+  ctx_b: he
+  ctx: Mężczyzna stoi na linii startowej i klaszcze w dłonie, ludzie patrzą.
+  endings:
+  - podskakuje, kopa i robi wiele szalonych rzeczy.
+  - następnie zaczyna jeździć na rolkach i kręcić się dookoła.
+  - podnosi ręce, siada, a potem przeskakuje.
+  - rusza biegiem i wykonuje długi skok.
+  source_id: activitynet~v_cwQQj3VZLC8
+  split: train
+  split_type: indomain
+  label: '3'
+- ind: 2029
+  activity_label: Shuffleboard
+  ctx_a: The girl makes a shuffleboard ahot and the girls all begin to celebrate.
+    She continues to attempt make shots and act silly.
+  ctx_b: she
+  ctx: Dziewczyna wykonuje rzut w grze shuffleboard, a wszystkie dziewczyny zaczynają
+    świętować. Ona kontynuuje próby wykonania rzutów i zachowuje się głupkowato. Ona
+  endings:
+  - siada na krześle i kończy nagrywanie filmu.
+  - w końcu wykonuje rzut wart sto dziesięć dolarów do kamery.
+  - odkłada kij do shuffleboardu i film się kończy.
+  - patrzy na swoje limonkowo-brązowe włosy w lustrze i próbuje ponownie uzyskać kolor
+    truskawkowego blondu.
+  source_id: activitynet~v_NNQQPZpzCOk
+  split: train
+  split_type: indomain
+  label: '2'
+- ind: 1940
+  activity_label: Swimming
+  ctx_a: People dive into the pool and start swimming. A person reaches the end and
+    takes their goggles off.
+  ctx_b: they
+  ctx: Ludzie skaczą do basenu i zaczynają pływać. Jedna osoba dociera do końca i
+    zdejmuje gogle. Oni
+  endings:
+  - machają do kamery i się uśmiechają.
+  - zaczynają pływać tam i z powrotem do końca.
+  - kończą nurkowanie i wracają do wody.
+  - kontynuują pływanie, a potem są w basenie, skacząc do małych dmuchanych kół.
+  source_id: activitynet~v_MSfIKwQhLFk
+  split: train
+  split_type: indomain
+  label: '0'
+- ind: 1096
+  activity_label: Scuba diving
+  ctx_a: Scuba divers swim through a cave area. A tropical beach is seen. Sea turtles
+    graze and swim in the ocean.
+  ctx_b: various fish
+  ctx: Nurkowie z akwalungiem przepływają przez obszar jaskini. Widać tropikalną plażę.
+    Żółwie morskie pasą się i pływają w oceanie. różne ryby
+  endings:
+  - pływają w oceanie, podczas gdy inne poruszają się po morzu.
+  - przemieszczają się po dnie oceanu.
+  - przesuwają się po rafie.
+  - są widziane, jak przepływają przez rafę.
+  source_id: activitynet~v_CSk99DHanfg
+  split: train
+  split_type: indomain
+  label: '3'
+- ind: 3048
+  activity_label: Installing carpet
+  ctx_a: A guest room is shown, displaying the dirty carpets. Men are shown replacing
+    and repairing the floors with wooden slats that don't need glue to install.
+  ctx_b: final photos
+  ctx: Pokazano pokój gościnny z brudnymi dywanami. Mężczyźni wymieniają i naprawiają
+    podłogi, używając drewnianych desek, które nie wymagają kleju do montażu. zdjęcia
+    końcowe
+  endings:
+  - są pokazane z zamontowanymi podłogami oraz ekranami z ich logo.
+  - są pokazane, w tym nazwiska właścicieli i ich znaczenie.
+  - są pokazane z nowymi drewnianymi podłogami w pokoju gościnnym.
+  - są pokazane o pokojach, w tym o szafie w głównej sypialni.
+  source_id: activitynet~v__ajGnJjNUX0
+  split: train
+  split_type: indomain
+  label: '2'
+- ind: 248
+  activity_label: Table soccer
+  ctx_a: A group of boys are playing a game of foosball with girls.
+  ctx_b: the two groups
+  ctx: Grupa chłopców gra w piłkarzyki z dziewczynami. Obie grupy
+  endings:
+  - pojawiają się, gdy obok przechodzą dwaj chłopcy z dzieckiem przy stole.
+  - stoją po obu stronach automatu.
+  - grają w piłkę nożną na kręgle, podczas gdy inni ludzie obserwują wraz z kolejnym
+    chłopcem oglądającym grę z tyłu.
+  - dziewcząt zaczyna wygrywać, a ostatecznie jedna z nich wygrywa.
+  source_id: activitynet~v_1C0Ur7fen8s
+  split: train
+  split_type: indomain
+  label: '1'
+- ind: 1049
+  activity_label: Removing ice from car
+  ctx_a: A person is then shown walking out to the car with a utensil taking the snow
+    off of the glass.
+  ctx_b: then another screen
+  ctx: Pokazano osobę wychodzącą do samochodu z narzędziem, zdejmującą śnieg z szyby.
+    Następnie kolejny ekran
+  endings:
+  - pojawia się z białymi napisami, wyświetlając zdanie i lokalizację.
+  - pojawia się, pokazując jak śnieg osiada na samochodzie przed jego zdmuchnięciem,
+    podczas gdy osoba nadal mówi do kamery.
+  - pojawia się z dodatkowym tekstem, a następnie dwóch mężczyzn jest pokazanych,
+    jak usuwają śnieg z samochodu i prowadzą go na pokryte śniegiem pole, rozkładając
+    śnieg na dwóch oponach, gdy samochód nadal jest pokryty śniegiem.
+  - pojawia się z listą składników, a na drogach i tym podobnych nakładają lekką warstwę
+    na wewnętrzną stronę.
+  source_id: activitynet~v_Bl2Hqx3h9Fw
+  split: train
+  split_type: indomain
+  label: '0'
+- ind: 327
+  activity_label: Hanging wallpaper
+  ctx_a: He uses a paint roller to soak the wall paper for easy removal. He then demonstrates
+    how steam can be used too to loosen the wall paper.
+  ctx_b: then he
+  ctx: Używa wałka do malowania, aby nasączyć tapetę, co ułatwia jej usunięcie. Następnie
+    demonstruje, jak można również użyć pary do poluzowania tapety. Następnie on
+  endings:
+  - używa szpachelki, aby zmierzyć tapetę.
+  - bierze papier formujący i owija nim.
+  - zaczyna powoli odklejać papier od ściany.
+  - czyści przerwy szczotką do szorowania.
+  source_id: activitynet~v_2Mj26IwwEiY
+  split: train
+  split_type: indomain
+  label: '2'
+- ind: 1037
+  activity_label: Wrapping presents
+  ctx_a: A woman is on the floor with a box. She demonstrates how to cut and fold
+    the paper around the present. She tapes the present shut.
+  ctx_b: she
+  ctx: Kobieta siedzi na podłodze z pudełkiem. Demonstruje, jak przyciąć i złożyć
+    papier wokół prezentu. Zakleja prezent taśmą. Ona
+  endings:
+  - wyciąga smoczek i daje go dziecku.
+  - następnie umieszcza przezroczystą kokardę na prezencie.
+  - odczytuje nowe godziny prezentów.
+  - przykłada pieczęć do pudełka.
+  source_id: activitynet~v_BUk-fR6TAnk
+  split: train
+  split_type: indomain
+  label: '1'
+- ind: 3057
+  activity_label: Snatch
+  ctx_a: An olympic logo is seen with the 5 rings.
+  ctx_b: a young boy wearing striped shirt in a gym
+  ctx: Widoczne jest logo olimpijskie z 5 pierścieniami. Młody chłopiec w pasiastej
+    koszulce znajduje się na siłowni
+  endings:
+  - podnosi sztangę nad głowę.
+  - przygląda się pozostałym pierścieniom.
+  - dziko macha pierścieniami w kierunku niebieskiej ściany.
+  - zaczyna skakać na skakance, podczas gdy mężczyzna utrzymuje normalny poziom dźwięku,
+    aby go ocenić.
+  source_id: activitynet~v__j5JUQzOCtc
+  split: train
+  split_type: indomain
+  label: '0'
+- ind: 3410
+  activity_label: Playing drums
+  ctx_a: A young man sits down on a chair in front of a drum set.
+  ctx_b: he
+  ctx: Młody mężczyzna siada na krześle przed zestawem perkusyjnym. On
+  endings:
+  - zaczyna grać na perkusji, zaczynając od talerza.
+  - zaczyna grać rękoma na perkusji.
+  - przesuwa stopy tam i z powrotem po zestawie perkusyjnym.
+  - zaczyna grać na perkusji, która znajduje się w salonie.
+  source_id: activitynet~v_d-sWAcDYsbc
+  split: train
+  split_type: indomain
+  label: '3'
+- ind: 2861
+  activity_label: Assembling bicycle
+  ctx_a: He is putting training wheels on the back wheel of the bike. He puts the
+    front tire on the bike.
+  ctx_b: he
+  ctx: On montuje dodatkowe kółka do tylnej części roweru. Montuje przednie koło do
+    roweru. On
+  endings:
+  - umieszcza łomy nad kołem, które miał na tylnej części.
+  - wstaje na łokciu, aby zamontować pedał.
+  - przymocowuje kierownicę do tylnej części, aby zabezpieczyć szprychy.
+  - montuje kierownicę na rowerze.
+  source_id: activitynet~v_YCHmXwLhs3A
+  split: train
+  split_type: indomain
+  label: '3'
+- ind: 3753
+  activity_label: Drinking coffee
+  ctx_a: The customers are busy eating their food that is served. The bartender is
+    mixing drinks to make various cocktails. The barista is making latte and cappuccino.
+  ctx_b: a lady customer
+  ctx: Klienci zajęci są jedzeniem podanych potraw. Barman miesza drinki, tworząc
+    różnorodne koktajle. Barista przygotowuje latte i cappuccino. Pewna pani, klientka
+  endings:
+  - jest widziana, jak delektuje się swoimi napojami.
+  - przygotowuje i miesza mieszankę kawową.
+  - umiejętnie balansuje butelkami truskawkowego syropu do shakera.
+  - również przygotowuje różne napoje i herbaty dla klientów.
+  source_id: activitynet~v_h2HRRkwHoKw
+  split: train
+  split_type: indomain
+  label: '0'
+- ind: 2204
+  activity_label: Preparing salad
+  ctx_a: They are put in a pan and covered with water. Kale is being chopped up on
+    a cutting board. It is tossed in salt for a few minutes.
+  ctx_b: carrots
+  ctx: Są umieszczane na patelni i zalewane wodą. Jarmuż jest siekany na desce do
+    krojenia. Jest posypywany solą na kilka minut. marchewki
+  endings:
+  - i grzyby dodają sos do patelni.
+  - są dodawane i zapiekane w cieście na tartę.
+  - są nabierane i wrzucane do garnka, aby je smażyć.
+  - są trane na tarce nad jarmużem.
+  source_id: activitynet~v_Q2PC60uwjdY
+  split: train
+  split_type: indomain
+  label: '3'
+- ind: 1436
+  activity_label: Using the pommel horse
+  ctx_a: .
+  ctx_b: the athlete who is wearing gray tights and black shirt with number 2 on it
+  ctx: sportowiec, który ma na sobie szare rajtuzy i czarną koszulkę z numerem 2
+  endings:
+  - zaczyna iść po belce i zaczyna się obracać.
+  - upuszcza swoją kulę do kręgli na ziemię, próbując uniknąć jej uderzenia.
+  - robi stanie na rękach, potem robi salto i rzuca dysk lekko przez pole na drugą
+    stronę boiska.
+  - pojawia się przy trampolinie i zaczyna skakać, również w białej koszulce i czarnych
+    butach na platformie.
+  source_id: activitynet~v_GQzwzOM9db8
+  split: train
+  split_type: indomain
+  label: '0'
+- ind: 823
+  activity_label: Playing rubik cube
+  ctx_a: Then, a man writes on a paper and shows the young man. The young man solves
+    again the puzzle is less time, and the man takes note.
+  ctx_b: after the young man
+  ctx: Następnie mężczyzna pisze na papierze i pokazuje to młodemu człowiekowi. Młody
+    człowiek rozwiązuje ponownie zagadkę w krótszym czasie, a mężczyzna robi notatki.
+    Po tym jak młody człowiek
+  endings:
+  - rozwiązuje zagadkę jeszcze dwa razy w krótszym czasie.
+  - rozwiązuje zagadkę i podnosi ręce, a następnie rozwiązuje zagadkę i świętuje.
+  - rozwiązuje automat z przekąskami.
+  - pojawia się ponownie w innym miejscu i znowu rozwiązuje.
+  source_id: activitynet~v_9BS1II6O7I0
+  split: train
+  split_type: indomain
+  label: '0'
+- ind: 3575
+  activity_label: Discus throw
+  ctx_a: A teen spins holding a disc in his right hand, then the girl throws the disc
+    while competing in a stadium. Then, another young woman spins around an throws
+    a disc.
+  ctx_b: a
+  ctx: Nastolatek kręci się, trzymając dysk w prawej ręce, a następnie dziewczyna
+    rzuca dyskiem podczas zawodów na stadionie. Potem kolejna młoda kobieta obraca
+    się i rzuca dyskiem.
+  endings:
+  - Kobieta obraca się i rzuca dyskiem daleko, wygrywając zawody.
+  - Dwoje dzieci rywalizuje w mistrzostwach kręcenia się.
+  - Kobieta stoi na kręgielni i pisze na smartfonie.
+  - Młody mężczyzna stoi pośrodku starego tłumu.
+  source_id: activitynet~v_evXdygHVzNc
+  split: train
+  split_type: indomain
+  label: '0'
+- ind: 3092
+  activity_label: Playing guitarra
+  ctx_a: A man is shown against a white background.
+  ctx_b: he
+  ctx: Na białym tle pokazany jest mężczyzna. On
+  endings:
+  - jest ubrany w garnitur i krawat oraz trzyma rakietę tenisową.
+  - gra na gitarze używając swoich rąk.
+  - przygotowuje i układa kilka piłek na stole.
+  - trzyma dwie kulki do paintballa w ręku i leży na ziemi.
+  source_id: activitynet~v__xtOX9UCWmU
+  split: train
+  split_type: indomain
+  label: '1'
+- ind: 817
+  activity_label: Playing congas
+  ctx_a: Two people are seen playing a set of bongo drums while singing and looking
+    to the camera.
+  ctx_b: the men
+  ctx: Dwie osoby są widoczne grające na bębnach bongo, śpiewające i patrzące w kamerę.
+    Mężczyźni
+  endings:
+  - dodają tyle nut do bębnów, że zaczynają uderzać o ścianę.
+  - ciągle grają i kończą, zatrzymując się i uśmiechając do siebie.
+  - kontynuują grę, a także wykonują taneczne ruchy z inną osobą i kończą śpiewając.
+  - kontynuują grę i kończą skacząc dookoła, przy czym jeden z mężczyzn uderza o ścianę.
+  source_id: activitynet~v_98buk_vE_z4
+  split: train
+  split_type: indomain
+  label: '1'
+- ind: 3356
+  activity_label: Slacklining
+  ctx_a: There is a person biking on a tight rope, trying to balance as he falls off
+    towards the end of the rope.
+  ctx_b: there
+  ctx: Osoba jedzie na rowerze po linie, próbując utrzymać równowagę, gdy pod koniec
+    liny zaczyna spadać.
+  endings:
+  - widać szarą panoramę, a ludzie po bokach obserwują, jak ich punkt przekroczenia
+    zbliża się, by zobaczyć to z bliska.
+  - jest również inna osoba, która stoi i robi to samo w podobnych okolicznościach.
+  - czeka liczne inne osoby, które czekają na swoją kolej do skoku.
+  - biegają dzieci na ziemi.
+  source_id: activitynet~v_cYLIJC6QjQA
+  split: train
+  split_type: indomain
+  label: '3'
+- ind: 815
+  activity_label: Cleaning shoes
+  ctx_a: She puts the baby powder soaked toothbrush onto the shoe and starts to rub
+    it there. Then she grabs the blowdryer and blowdrys the shoe and scrubs them again.
+  ctx_b: then she
+  ctx: Kładzie na bucie szczoteczkę do zębów nasączoną pudrem dla dzieci i zaczyna
+    ją tam trzeć. Następnie chwyta suszarkę, suszy but i znowu go szoruje. Potem ona
+  endings:
+  - bierze taśmę klejącą, prasuje but i dodaje go do mieszanki ciasta, aby go obtoczyć.
+  - wlewa wybielacz do małej miski, która zawiera puder dla dzieci, wkłada do niej
+    szczoteczkę do zębów i ponownie trze nią but.
+  - bierze uchwyt, aby zgiąć but, chwyta go, a na końcu rozrywa go na drugim bucie.
+  - pokazuje drugiemu butowi maszynkę do kręcenia włosów, która jest przymocowana
+    do długiego uchwytu i wciera proszek do suszenia w nogę dziecka.
+  source_id: activitynet~v_96HJ_LqNdkg
+  split: train
+  split_type: indomain
+  label: '1'
+- ind: 2239
+  activity_label: Applying sunscreen
+  ctx_a: He then discusses what to do when a sunburn does occur, how to handle it
+    to take care of your skin. A slide is shown to make us aware of when a sunburn
+    is bad and needs medical attention.
+  ctx_b: he
+  ctx: Następnie omawia, co robić, gdy wystąpi oparzenie słoneczne, jak sobie z nim
+    radzić, aby zadbać o swoją skórę. Pokazuje slajd, aby uświadomić nam, kiedy oparzenie
+    słoneczne jest poważne i wymaga uwagi medycznej.
+  endings:
+  - następnie robi kolejny przegląd sposobów używania kremu przeciwsłonecznego, aby
+    dzień był przyjemny.
+  - kontynuuje pokazywanie różnych alkoholowych napojów, które mężczyzna wymienił
+    na końcu.
+  - nie jest bardzo konkretny co do szczegółów przypadku, ale zaznacza, że może to
+    stać się bardzo ważne z poważnymi skutkami na końcu.
+  - kontynuuje z większą ilością informacji o prenatalnej opiece, oznakach cierpienia
+    i dostępnych lekach.
+  source_id: activitynet~v_QJm_B5Hx4DI
+  split: train
+  split_type: indomain
+  label: '0'
+- ind: 2474
+  activity_label: Croquet
+  ctx_a: Several shots are shown of children hitting the balls as well as speaking
+    to the camera.
+  ctx_b: more kids and adults
+  ctx: Pokazano kilka ujęć, na których dzieci uderzają piłki oraz rozmawiają z kamerą.
+    więcej dzieci i dorosłych
+  endings:
+  - rozmawia z kamerą, pokazując, jak uderzają piłkę.
+  - biegają tam i z powrotem po boisku i rozmawiają z kamerą.
+  - obserwują, jak wszyscy odbijają piłki, a następnie stoją w ubraniach bramkarskich,
+    rozmawiają z kamerą i udają, że strzelają piłkami.
+  - są widziani, jak bawią się ze sobą, po czym pojawia się duży policjant z wędzarnią.
+  source_id: activitynet~v_TVeIcQOvMZI
+  split: train
+  split_type: indomain
+  label: '0'
+- ind: 1397
+  activity_label: Doing crunches
+  ctx_a: A man is sitting on a workout bench.
+  ctx_b: he
+  ctx: Mężczyzna siedzi na ławce do ćwiczeń. On
+  endings:
+  - kładzie się i zaczyna robić brzuszki.
+  - podnosi oponę i zakłada hula-hoop.
+  - ustawia się przed piłką na maszynie.
+  - zaczyna podnosić sztangę do pozycji siedzącej.
+  source_id: activitynet~v_FujUrbL1qc0
+  split: train
+  split_type: indomain
+  label: '0'
+- ind: 2319
+  activity_label: Walking the dog
+  ctx_a: A man walking two dogs show up walking on the side closer to the camera,
+    and he quickly notices another dog from the other side of the road suddenly coming
+    his way so he tries to tighten up his dogs leash to gain control of them, but
+    the other dog begins running towards them and starts attacking the man's dogs.
+  ctx_b: the man
+  ctx: Mężczyzna prowadzący na smyczy dwa psy zbliża się do kamery, kiedy nagle zauważa
+    nadchodzącego z przeciwnej strony drogi psa. Próbuje zacisnąć smycze, aby zapanować
+    nad swoimi psami, ale nadbiegający pies zaczyna atakować psy mężczyzny.
+  endings:
+  - następnie wstaje i zaczyna przechodzić na lewą stronę drogi, a psy podążają za
+    nim.
+  - kopie atakującego psa, próbując odzyskać kontrolę nad swoimi dwoma psami, podczas
+    gdy mężczyzna i drugi pies są po drugiej stronie drogi.
+  - kontynuuje zmagania o smycz psów, w pewnym momencie bardzo gwałtownie, a drugi
+    pies zaczyna walczyć, przewracając go na ziemię jak białe rękawiczki.
+  - oddaje strzał z bliskiej odległości w brzuch psa, powalając go mocno na ziemię.
+  source_id: activitynet~v_RTS4mOH3cFY
+  split: train
+  split_type: indomain
+  label: '1'
+- ind: 839
+  activity_label: Preparing pasta
+  ctx_a: Someone begins to cut various vegetable with a knife, this includes a green
+    vegetable and onions.
+  ctx_b: next an empty metallic pan
+  ctx: Ktoś zaczyna kroić różne warzywa nożem, w tym zielone warzywo i cebule. Następnie
+    pojawia się pusta metalowa patelnia
+  endings:
+  - na której widać pusty talerz przed nią, wraz z nieruchomymi warzywami.
+  - pojawia się, gdy dwa przedmioty zostają usunięte, a ziemniak podany na talerz.
+  - pojawia się, gdy ktoś wlewa olej i wrzuca do niej warzywa.
+  - pojawia się, a kobieta zaczyna kroić warzywa i uderzać w nie żółtym nożem.
+  source_id: activitynet~v_9FAPy8NVDgY
+  split: train
+  split_type: indomain
+  label: '2'
+- ind: 3574
+  activity_label: Discus throw
+  ctx_a: A teen spins holding a disc in his right hand, then the girl throws the disc
+    while competing in a stadium.
+  ctx_b: then
+  ctx: Nastolatek kręci się, trzymając dysk w prawej ręce, a następnie dziewczyna
+    rzuca dyskiem, rywalizując na stadionie. Następnie
+  endings:
+  - ', inna młoda kobieta obraca się i rzuca dyskiem.'
+  - ', nastolatek biega po podłodze i kręci się z dyskiem.'
+  - ', nastolatek kręci się stojąc na słupie, jednocześnie rozmawiając.'
+  - ', dziewczyna rzuca dyskiem, podczas gdy kobieta stoi przed nią i kibicuje, po
+    czym dziewczyna skacze i rzuca dyskiem.'
+  source_id: activitynet~v_evXdygHVzNc
+  split: train
+  split_type: indomain
+  label: '0'
+- ind: 267
+  activity_label: Polishing shoes
+  ctx_a: The man drops his block and resumes buffing. The man takes the cloth to shine
+    the left shoe.
+  ctx_b: the customer
+  ctx: Mężczyzna upuszcza blok i kontynuuje polerowanie. Mężczyzna bierze szmatkę,
+    aby wypolerować lewy but. klient
+  endings:
+  - ma już tylko jeden but na nodze.
+  - oddala się od recepcji.
+  - kontynuuje polerowanie prawego buta.
+  - przygląda się swoim błyszczącym butom.
+  source_id: activitynet~v_1OJa2iiFxfk
+  split: train
+  split_type: indomain
+  label: '3'
+- ind: 1395
+  activity_label: Shaving legs
+  ctx_a: A person is getting their legs waxed on a table.
+  ctx_b: they
+  ctx: Osoba depiluje nogi na stole. Oni
+  endings:
+  - są umieszczeni na podstawce i przykryci ręcznikami.
+  - nakładają krem do golenia na nogi.
+  - nacierają nogi balsamem po depilacji.
+  - golą nogi, ale pozostawiają depilowane partie.
+  source_id: activitynet~v_FtHP0PNqo2s
+  split: train
+  split_type: indomain
+  label: '2'
+- ind: 2839
+  activity_label: Using uneven bars
+  ctx_a: A large group of people are seen sitting around a gym when a girl runs in
+    and performs a routine on the uneven bars.
+  ctx_b: the girl
+  ctx: Duża grupa ludzi siedzi wokół sali gimnastycznej, kiedy dziewczyna wbiega i
+    wykonuje układ na poręczach asymetrycznych. Dziewczyna
+  endings:
+  - podskakuje w górę i w dół, kończąc skokiem z poręczy, podczas gdy tłum wiwatuje
+    i przytula się do siebie.
+  - kontynuuje krążenie wokół poręczy i kończy, zeskakując z boku i machając do publiczności.
+  - wykonuje ciągłe figury na poręczach, podczas gdy inni naśladują jej ruchy.
+  - kontynuuje wykonywanie trików z rozłożonymi ramionami, a następnie wstaje z powrotem
+    na poręcze i zaczyna wykonywać swój układ na belkach.
+  source_id: activitynet~v_XzbvKQ-o5Ow
+  split: train
+  split_type: indomain
+  label: '1'
+- ind: 340
+  activity_label: Discus throw
+  ctx_a: A woman prepares for a shot put throw swinging her arms on a sporting field.
+  ctx_b: the athlete
+  ctx: Kobieta przygotowuje się do rzutu kulą, kołysząc ramionami na boisku sportowym.
+    Sportowiec
+  endings:
+  - cofa ramiona, a następnie obraca ciało, wykonując rzut kulą.
+  - biegnie w kierunku dużego, imponującego piniaty, który blokuje jej rzut kulą.
+  - wykonuje rzut, skacząc w dół i skradając się na boisko za ciałem innej osoby,
+    aby rozpocząć rzut.
+  - odbija 12 dysk w prawej dłoni, podczas gdy duża brązowa siatka na rzut przelatuje
+    nad jej głową.
+  source_id: activitynet~v_2QeU2xYPdWE
+  split: train
+  split_type: indomain
+  label: '0'
+- ind: 1409
+  activity_label: Walking the dog
+  ctx_a: A woman is walking down the street with two dogs. The larger dog is holding
+    a leash in his mouth.
+  ctx_b: the smaller dog
+  ctx: Kobieta idzie ulicą z dwoma psami. Większy pies trzyma smycz w pysku, mniejszy
+    pies
+  endings:
+  - kilka razy szarpie smycz.
+  - jest przyczepiony do smyczy i jest właściwie prowadzony przez większego psa na
+    spacerze.
+  - prowadzi, a za nim idzie drugi pies.
+  - przygląda się, jak kobieta rozmawia z kamerą.
+  source_id: activitynet~v_G4kjV4ulJzo
+  split: train
+  split_type: indomain
+  label: '1'
+- ind: 2209
+  activity_label: Installing carpet
+  ctx_a: Other men lay down a green sheet of paper and continue taping down the paper.
+  ctx_b: one last set of paper
+  ctx: Inni mężczyźni kładą zielony arkusz papieru i kontynuują przyklejanie papieru.
+    ostatni zestaw papieru
+  endings:
+  - jest przyklejany taśmą i mężczyźni kontynuują pracę.
+  - są instalowane naprzeciwko siebie, a osoba zaczyna chodzić tam i z powrotem, przyklejając
+    przed otwarciem ściany z papieru.
+  - jest pokazany i mężczyźni skończyli jeden stół wraz z innymi częściami samochodowymi.
+  - jest przyklejany, a duża szara grupa ludzi zgromadziła się na zewnątrz budynku,
+    obserwując ich.
+  source_id: activitynet~v_Q43BuVI2r-s
+  split: train
+  split_type: indomain
+  label: '0'
+- ind: 617
+  activity_label: Playing guitarra
+  ctx_a: A camera zooms in on a person playing guitar and leads into a man speaking.
+  ctx_b: several more shots of people playing guitar and guitars on walls
+  ctx: Kamera zbliża się do osoby grającej na gitarze, a następnie przechodzi do mężczyzny
+    mówiącego. Kolejne ujęcia pokazują ludzi grających na gitarach i gitary na ścianach
+  endings:
+  - są pokazane, jak również ten sam mężczyzna mówiący do kamery.
+  - są pokazane, jak również maszerujący członkowie grający na bębnach i kończący
+    na mężczyźnie zatrzymującym się na kamerze.
+  - i ostatecznie pokazane jest nalewanie wody do szklanek, co prowadzi do sceny,
+    gdzie ktoś zapala świece w dużym kominku.
+  - są pokazane, po czym następuje scena z muzykami matadorami chodzącymi i rozmawiającymi
+    oraz przerywającymi muzykę na swoich urządzeniach.
+  source_id: activitynet~v_66BGqvwHbUw
+  split: train
+  split_type: indomain
+  label: '0'
+- ind: 2250
+  activity_label: Bullfighting
+  ctx_a: A male attaches two hollow sticks on a bull and runs off. The bull tackles
+    the male. The male gets up and his face is bloody.
+  ctx_b: people
+  ctx: Mężczyzna przyczepia dwa puste kije do byka i ucieka. Byk atakuje mężczyznę.
+    Mężczyzna wstaje, a jego twarz jest zakrwawiona. Ludzie
+  endings:
+  - znajdują się w tym pomieszczeniu gospodarczym, a grupa jest rozproszona.
+  - przytrzymują mężczyznę, podczas gdy on wsiada na konia.
+  - są wyciągani z areny przez byka.
+  - pomagają mężczyźnie i wynoszą go stamtąd.
+  source_id: activitynet~v_QLVgy-1ydr0
+  split: train
+  split_type: indomain
+  label: '3'
+- ind: 926
+  activity_label: Volleyball
+  ctx_a: A group of ladies passes. A lady falls and slides across the ground. Two
+    ladies high five each other.
+  ctx_b: three ladies
+  ctx: Grupa pań przechodzi obok. Jedna z pań upada i ślizga się po ziemi. Dwie panie
+    przybijają sobie piątkę. Trzy panie
+  endings:
+  - tańczą przez pole.
+  - przebiegają przez karnawał.
+  - uderzają się nawzajem kijem do pogo.
+  - wpadają w tłum po lewej stronie.
+  source_id: activitynet~v_ACnOpQNrhqs
+  split: train
+  split_type: indomain
+  label: '3'
+- ind: 2547
+  activity_label: Braiding hair
+  ctx_a: She begins by braiding one side of her hair and then twists it down and does
+    the same thing on the other side.
+  ctx_b: with one twist
+  ctx: Zaczyna od zaplecenia jednej strony włosów, a następnie skręca je w dół i robi
+    to samo po drugiej stronie. z jednym skrętem
+  endings:
+  - ', na włosy spryskiwana jest mgiełka lakieru do włosów.'
+  - ', warkocz jest zaplatany na środku głowy, co różni się od innej fryzury.'
+  - ', przerzuca włosy do tyłu, a te kilka razy unoszą się.'
+  - ', zbiera je do góry i spinając wsuwkami razem z drugą stroną.'
+  source_id: activitynet~v_UVxXr_mh5BM
+  split: train
+  split_type: indomain
+  label: '3'
+- ind: 1842
+  activity_label: BMX
+  ctx_a: Then there is another biker too, they're probably racing, they're going super
+    fast down the track turning and hitting high bumps that make them go high up in
+    the air.
+  ctx_b: the track
+  ctx: Następnie pojawia się kolejny rowerzysta, prawdopodobnie ścigają się, jadą
+    bardzo szybko po torze, skręcając i uderzając w wysokie garby, które wyrzucają
+    ich wysoko w powietrze.
+  endings:
+  - następnie zaczyna się zapełniać rowerzystami, muszą stać w miejscu wykonując bardzo
+    intensywne ćwiczenia, wszyscy mają na sobie wojskowe stroje i hełmy.
+  - jest ponownie pokazany i widać mężczyznę, który biegnie po nim razem z 10 rowerzystami.
+  - ma początkowo strome nachylenie, podczas gdy ludzie oglądają i chodzą po okolicy,
+    ale wyścig w końcu się zaczyna, wszyscy jadą szybciej niż inni, ponieważ nie chcą
+    wyprzedzać biegnąc.
+  - znowu się otwiera i zaczynają kolejny wyścig.
+  source_id: activitynet~v_L9MTwigRhmk
+  split: train
+  split_type: indomain
+  label: '3'
+- ind: 3394
+  activity_label: Table soccer
+  ctx_a: Two men are playing foosball in a dark room.
+  ctx_b: they
+  ctx: Dwaj mężczyźni grają w piłkarzyki w ciemnym pokoju. Oni
+  endings:
+  - rywalizują zaciekle w szybkim tempie.
+  - przesuwają się z boku na bok i zaczynają machać.
+  - zaczynają używać swoich map do piłkarzyków na stole.
+  - kilka razy uderzają piłkę o ścianę.
+  source_id: activitynet~v_cvatsuUhqhk
+  split: train
+  split_type: indomain
+  label: '0'
+- ind: 541
+  activity_label: Polishing forniture
+  ctx_a: He removes varnish from the top of the table. Afterwards, he does a light
+    sanding of the table. With a tack rug, he removes the dust.
+  ctx_b: wearing gloves
+  ctx: Zdejmuje lakier z wierzchu stołu. Następnie wykonuje lekkie szlifowanie stołu.
+    Przy użyciu maty klejącej usuwa kurz. Ma na sobie rękawice
+  endings:
+  - ', szlifował blat stołu przez bardzo długi czas.'
+  - ', usuwa klej ze stołu i czyści powierzchnię stołu.'
+  - ', nakłada bejcę na stół.'
+  - ', dekoruje stół zestawem błyszczących aluminiowych talerzy i zastawy stołowej.'
+  source_id: activitynet~v_5Fq-ln3yC38
+  split: train
+  split_type: indomain
+  label: '2'
+- ind: 1451
+  activity_label: Disc dog
+  ctx_a: Five different people tosses a freebie in the air and a dog jumps and catch
+    the freebie in his mouth, the dog then moves on to the next person and do the
+    same thing as many people watch from a distances. There are two dogs now that
+    are jumping the air catching freebies while doing tricks.
+  ctx_b: now there
+  ctx: Pięć różnych osób rzuca frisbee w powietrze, a pies skacze i łapie je w pysk,
+    po czym przechodzi do następnej osoby i robi to samo, podczas gdy wielu ludzi
+    obserwuje z oddali. Teraz są dwa psy, które skaczą w powietrze łapiąc frisbee,
+    wykonując przy tym sztuczki.
+  endings:
+  - są trzy zwierzęta z brązowo-czarnym psem, który wchodzi do ogrodzonego obszaru
+    i wskakuje na małą niebieską plastikową skrzynkę, skacze w dół i kieruje się w
+    stronę żółtej zabawki, która jest umieszczana na stole przez weterynarza.
+  - jest jedna kobieta z jednym psem wykonującym sztuczki, a pies łapie frisbee, gdy
+    kobieta rzuca je w powietrze.
+  - są cztery frisbee, które skaczą zgodnie z instrukcjami osoby rzucającej je podczas
+    wykonywania sztuczek.
+  - dwa psy skaczą po wykonaniu salta na trawie, przechodząc do wysokich skoków w
+    powietrze, aby złapać frisbee, a obserwator stoi w pobliżu.
+  source_id: activitynet~v_GehJuCIJ7AI
+  split: train
+  split_type: indomain
+  label: '1'
+- ind: 2701
+  activity_label: Camel ride
+  ctx_a: The camel is sitting on the ground, but then the man puts on his glasses
+    while he's sitting on the camel as it lifts up bringing the man forward a little
+    bit.
+  ctx_b: then someone
+  ctx: Wielbłąd siedzi na ziemi, ale potem mężczyzna zakłada okulary, siedząc na wielbłądzie,
+    który podnosi się, przesuwając mężczyznę nieco do przodu. Następnie ktoś
+  endings:
+  - chwyci za linę na wielbłądzie, aby poprowadzić go w odpowiednie miejsce.
+  - przechodzi pod wielbłądem i zmienia jego ruch, przybliżając mężczyznę ponownie.
+  - ciągnie za linę, a młoda kobieta za wielbłądem na ziemi po lewej stronie.
+  - zaczyna tańczyć na piasku.
+  source_id: activitynet~v_W40iaV960sw
+  split: train
+  split_type: indomain
+  label: '0'
+- ind: 47
+  activity_label: Starting a campfire
+  ctx_a: He takes his lighter and lights the newspaper in several places to start
+    the fire. The bonfire starts burning and continues to burn.
+  ctx_b: he
+  ctx: Bierze swój zapalniczkę i podpala gazetę w kilku miejscach, aby rozpocząć ogień.
+    Ognisko zaczyna się palić i nadal płonie. On
+  endings:
+  - bawi się z psem i robi dwie ciasteczka.
+  - dodaje jeszcze kilka gałązek, aby utrzymać płomienie.
+  - wstaje i próbuje umieścić na nim flagę, nie udaje mu się i robi z siebie kompletnego
+    głupca.
+  - zakłada sprzęt i taborety.
+  source_id: activitynet~v_-Xl95IW5H_s
+  split: train
+  split_type: indomain
+  label: '1'
+- ind: 3329
+  activity_label: Putting on shoes
+  ctx_a: They take their shoes off and put a different pair of shoes on. They continue
+    stepping on the mat in the new shoes.
+  ctx_b: they
+  ctx: Zdejmują swoje buty i zakładają inne. Kontynuują stąpanie po macie w nowych
+    butach.
+  endings:
+  - zdejmują swoje skarpetki i zakładają nowe.
+  - zdejmują te buty i odchodzą.
+  - zdejmują swoje skarpetki i zakładają je na stopę.
+  - następnie są ponownie pokazywani, a obok stoi dziewczyna, która rozmawia, trzymając
+    stopy w powietrzu i pokazując podstawy robienia butów.
+  source_id: activitynet~v_cCYLiE1fiEo
+  split: train
+  split_type: indomain
+  label: '1'
+- ind: 1550
+  activity_label: Shoveling snow
+  ctx_a: .
+  ctx_b: a man in a brown coat and hat
+  ctx: mężczyzna w brązowym płaszczu i kapeluszu
+  endings:
+  - prowadzi instruktaż, jak jeździć na nartach.
+  - odśnieża swoj podjazd.
+  - stoi przed drzewem w lesie.
+  - odkurza płytki.
+  source_id: activitynet~v_IBkHS9Zl2z8
+  split: train
+  split_type: indomain
+  label: '1'
+- ind: 2245
+  activity_label: Bullfighting
+  ctx_a: A male attaches a hollow stick on a bull whom chases him. A guy messes with
+    a bull. A bull pushes a man down.
+  ctx_b: the
+  ctx: Mężczyzna przyczepia pustą rurkę do byka, który go goni. Facet drażni byka.
+    Byk przewraca mężczyznę na ziemię.
+  endings:
+  - publiczność klaska na stojąco.
+  - bykobójca chwyta cielę i wsiada na nie.
+  - byk staje na klatce piersiowej mężczyzny, aby zaatakować.
+  - facet bezmyślnie wpatruje się w byka i dmucha dymem w jego oczy.
+  source_id: activitynet~v_QLVgy-1ydr0
+  split: train
+  split_type: indomain
+  label: '0'
+- ind: 2104
+  activity_label: Making a sandwich
+  ctx_a: He cuts the sandwich into four slices on a board. He puts a toothpick in
+    each section of the sandwich.
+  ctx_b: he
+  ctx: Kroi kanapkę na cztery kawałki na desce. Wkłada wykałaczkę w każdą część kanapki.
+    On
+  endings:
+  - układa plastry sera na kanapce.
+  - zdrapuje to, czego brakuje w kanapce.
+  - przenosi kanapkę z deski na talerz.
+  - posypuje kanapkę kiełkami.
+  source_id: activitynet~v_O8JVA-scYlM
+  split: train
+  split_type: indomain
+  label: '2'
+- ind: 1348
+  activity_label: Putting in contact lenses
+  ctx_a: A young woman speaks as she smiles. She squeezes the side of her right eye
+    and pokes out a contact lens.
+  ctx_b: she
+  ctx: Młoda kobieta mówi, uśmiechając się. Ściska bok swojego prawego oka i wyciąga
+    soczewkę kontaktową.
+  endings:
+  - opróżnia soczewkę do jednego oka i wciska ją głębiej.
+  - przechodzi do lewego oka i wyciąga soczewkę kontaktową.
+  - następnie całkowicie wkłada soczewkę do oka.
+  - umieszcza soczewkę w prawym oku.
+  source_id: activitynet~v_FLbTQGyoEMk
+  split: train
+  split_type: indomain
+  label: '1'
+- ind: 940
+  activity_label: Shoveling snow
+  ctx_a: A man and boy are outside on a driveway.
+  ctx_b: they
+  ctx: Mężczyzna i chłopiec są na zewnątrz, na podjeździe. Oni
+  endings:
+  - grają w krokiet na zielonej trawie.
+  - przeczesują trawnik grabiami.
+  - podłączają wąż do maszyny umieszczonej na trawie i używają go do zasilania kosiarki.
+  - rywalizują, aby zobaczyć, jak szybko mogą odśnieżyć podjazd.
+  source_id: activitynet~v_AUSqTMtjD0Y
+  split: train
+  split_type: indomain
+  label: '3'
+- ind: 2016
+  activity_label: Kneeling
+  ctx_a: Three men pass by in the mirror. The camera zooms in on the main subject.
+    A man in gray walks past in the mirror.
+  ctx_b: the screen
+  ctx: Trzech mężczyzn przechodzi obok w lustrze. Kamera przybliża głównego bohatera.
+    Mężczyzna w szarym przechodzi obok w lustrze. ekran
+  endings:
+  - następnie staje się czarno-biały.
+  - robi się czarny, a zielony ekran wraca z małym napisem.
+  - robi się czarny, a mężczyzna w szarym odwraca się, aby odejść.
+  - robi się czarny i widzimy napisy końcowe.
+  source_id: activitynet~v_NJQROeaBiVE
+  split: train
+  split_type: indomain
+  label: '3'
+- ind: 394
+  activity_label: Putting on makeup
+  ctx_a: Two girls are seen moving quickly around the room while switching places
+    and looking into a camera.
+  ctx_b: the younger girl
+  ctx: Widzimy dwie dziewczyny, które szybko poruszają się po pokoju, zamieniają się
+    miejscami i patrzą w kamerę. Młodsza dziewczyna
+  endings:
+  - popycha młodszą dziewczynę i prowadzi do kilku ujęć, w których obie wykonują sztuki
+    walki jeden na jednego.
+  - mówi do kamery przez pierwsze chwile, a następnie schyla się, by chwycić but chłopca.
+  - śmieje się do kamery, nakładając makijaż, podczas gdy druga szybko się porusza.
+  - kontynuuje taniec na podłodze, ciągnąc się wzdłuż ściany.
+  source_id: activitynet~v_3G3Zear4vog
+  split: train
+  split_type: indomain
+  label: '2'
+- ind: 1868
+  activity_label: Shaving legs
+  ctx_a: There's a young man sitting on the bath tub along with the woman. He washes
+    his legs with baby soap and water and begins shaving his legs.
+  ctx_b: then the woman
+  ctx: Młody mężczyzna siedzi na wannie razem z kobietą. Myje swoje nogi mydłem dla
+    dzieci i wodą, a następnie zaczyna golić nogi. Następnie kobieta
+  endings:
+  - spłukuje mydło i wciera je w jego nogi.
+  - bierze maszynkę do golenia i pomaga mężowi golić nogi.
+  - ściąga mu spodnie i czyści jego nogi.
+  - nakłada krem do golenia na jego skaleczenia, aby je zabezpieczyć.
+  source_id: activitynet~v_LXHc1X1pKEM
+  split: train
+  split_type: indomain
+  label: '1'
+- ind: 3219
+  activity_label: Using parallel bars
+  ctx_a: We see a man walk to the parallel bars and jump on.
+  ctx_b: we
+  ctx: Widzimy, jak mężczyzna podchodzi do poręczy równoległych i na nie wskakuje.
+    Widzimy
+  endings:
+  - jak mężczyzna wykonuje rutynowe ćwiczenia na poręczach.
+  - jak mężczyzna z zajęć jest na poręczach równoległych.
+  - jak mężczyzna wykonuje swój skok na końcu.
+  - jak mężczyzna kieruje się na zawody w curlingu.
+  source_id: activitynet~v_bUHE8XcPZgs
+  split: train
+  split_type: indomain
+  label: '0'
+- ind: 2088
+  activity_label: Skateboarding
+  ctx_a: .
+  ctx_b: a young man in a brown hoodie and cargo pants
+  ctx: młody mężczyzna w brązowej bluzie z kapturem i bojówkach
+  endings:
+  - stoi przy stole do blackjacka, krupier siedzi za nim na czarnym skórzanym krześle
+    i rozdaje karty.
+  - przygotowuje się do wspinaczki na wysokiej linie w dużej lodowej arenie.
+  - stoi na zewnątrz z ręką wyciągniętą na bok.
+  - stoi na drodze w lesistej okolicy, instruując widzów, trzymając koniec deskorolki.
+  source_id: activitynet~v_O4LdjwlsGKI
+  split: train
+  split_type: indomain
+  label: '3'
+- ind: 2027
+  activity_label: Shuffleboard
+  ctx_a: Some women are on a boat attempting to figure out how to play shuffleboard.
+  ctx_b: the girl
+  ctx: Kilka kobiet jest na łodzi i próbuje zrozumieć, jak grać w shuffleboard. Dziewczyna
+  endings:
+  - stoi trzymając coś w ręce i zrzuca to z planszy.
+  - wpisuje dwie litery na padzie obok siebie, jednocześnie rozmawiając.
+  - wykonuje rzut w shuffleboard, a wszystkie dziewczyny zaczynają świętować.
+  - na łodzi trzyma żółty kwadrat, a wokół niej gromadzi się wiele innych osób, stojących
+    w kółku.
+  source_id: activitynet~v_NNQQPZpzCOk
+  split: train
+  split_type: indomain
+  label: '2'
+- ind: 236
+  activity_label: Rollerblading
+  ctx_a: A boy is skating in a parking lot. He does several moves, dancing and talking.
+  ctx_b: the boy
+  ctx: Chłopiec jeździ na deskorolce na parkingu. Wykonuje kilka ruchów, tańczy i
+    rozmawia. Chłopiec
+  endings:
+  - dwa razy upada, robiąc salto w powietrzu.
+  - jeździ po parkingu na rolkach.
+  - siada na ziemi i bawi się frisbee.
+  - utknie i musi wstać ponownie.
+  source_id: activitynet~v_18k_K9cFFJg
+  split: train
+  split_type: indomain
+  label: '1'
+- ind: 2370
+  activity_label: Doing crunches
+  ctx_a: A man lays down on the floor over a mat.
+  ctx_b: the man
+  ctx: Mężczyzna leży na podłodze na macie. Mężczyzna
+  endings:
+  - wstaje, a następnie skacze na bungee.
+  - zaczyna tatuować się na plecach, używając tuszu i pędzla.
+  - trzyma ciężar nad głową.
+  - zaczyna wychodzić z pudełka.
+  source_id: activitynet~v_SIKxtWHWybU
+  split: train
+  split_type: indomain
+  label: '2'
+- ind: 1317
+  activity_label: Playing drums
+  ctx_a: A mexican band is playing and singing.
+  ctx_b: the camera
+  ctx: Meksykański zespół gra i śpiewa. Kamera
+  endings:
+  - jest skierowana na front kościoła, podczas gdy tłum obserwuje.
+  - obraca się w lewo, pokazując, że molo jest zakończone, i ludzie zaczynają po nim
+    chodzić.
+  - obraca się w lewo i pokazuje kogoś, kto ich nagrywa kamerą.
+  - robi zbliżenie na każdego z członków.
+  source_id: activitynet~v_EqqqGf4wLH0
+  split: train
+  split_type: indomain
+  label: '3'
+- ind: 3511
+  activity_label: Shoveling snow
+  ctx_a: A family is in the living room i'm trying to get out after being snowed in.
+  ctx_b: a man
+  ctx: Rodzina znajduje się w salonie, próbując wydostać się po tym, jak zostali zasypani
+    śniegiem. Mężczyzna
+  endings:
+  - na przykład próbuje wbić siekierę w śnieg, ale ta utknie.
+  - otwiera drzwi i próbuje przeskoczyć śnieg, który stanął na drodze.
+  - podnosi dużą łopatę do śniegu, a następnie cofa się.
+  - wiesza prawdziwe światełka na choince.
+  source_id: activitynet~v_eGA5tbX8oH0
+  split: train
+  split_type: indomain
+  label: '1'
+- ind: 100
+  activity_label: Getting a tattoo
+  ctx_a: We see blinds down on a window. A person is laying in a tattoo parlor being
+    tattooed.
+  ctx_b: we
+  ctx: Widzimy opuszczone żaluzje na oknie. Osoba leży w salonie tatuażu, będąc tatuowana.
+  endings:
+  - następnie widzimy wzór na ramieniu mężczyzny.
+  - oddalamy się i widzimy tatuażystę.
+  - widzimy tatuażystę i jego instrukcje.
+  - widzimy, jak artysta od tuszu pracuje nad wzorem.
+  source_id: activitynet~v_-tv6laq1ic0
+  split: train
+  split_type: indomain
+  label: '1'
+tensors: []

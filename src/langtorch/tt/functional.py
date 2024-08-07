@@ -34,7 +34,7 @@ def _numpy_object_pad(input_array, pad, value=None):
 
 
 def _unbroadcast_gradients(input_grad, tensor1, tensor2, gradient_equation=(lambda grad, t1, t2: (grad, grad)), sep=""):
-    with torch.no_grad():
+
         # Get the shapes of the original tensors
         tensor1_shape = tensor1.shape
         tensor2_shape = tensor2.shape
@@ -70,7 +70,6 @@ class AddTextTensor(Function):
 
     @staticmethod
     def forward(ctx, input, other):
-        # print("IJUIJU",input, other, type(input), type(other))
         ctx.save_for_backward(input, other)  # Save tensors for backward pass
         assert isinstance(other, langtorch.TextTensor)
         result = input.__class__(input.content + other.content, parse=False)
@@ -93,13 +92,17 @@ class MulTextTensor(Function):
     @staticmethod
     def forward(ctx, input1, input2):
         # Store the input for backward computation
-        assert isinstance(input1, langtorch.TextTensor) and hasattr(input1, "content"), input1
+        assert isinstance(input1, langtorch.TextTensor) and hasattr(input1, "content"), f"{input1} is not a valid TextTensor"
         if not isinstance(input2, langtorch.TextTensor):
             input2 = langtorch.TextTensor(input2, parse=False)
-        ctx.save_for_backward(input1, input2)
 
         # Compute the result using the content attribute's multiplication
-        result = input1.__class__(input1.content * input2.content, parse=False)
+        # FIX the use of copy especially at the end could be problematic
+        result = input1.__class__(input1.content.copy() * input2.content, parse=False)
+        if input1.requires_grad or input2.requires_grad:
+            result.requires_grad = True
+        ctx.skip_mul_grad = langtorch.is_skip_mul_grad_enabled()
+        ctx.save_for_backward(input1.copy(), input2.copy())
         return (result)
 
     @staticmethod
@@ -109,11 +112,9 @@ class MulTextTensor(Function):
         assert isinstance(grad_output, langtorch.TextTensor) and hasattr(grad_output,
                                                                          "content"), "Backward got a TextTensor without .content"
         input1, input2 = ctx.saved_tensors
-        grad_input1, grad_input2 = _unbroadcast_gradients(grad_output, input1, input2, gradient_equation=(
-            lambda grad, t1, t2: (grad * t2, grad * t1)))
-        # print("mul")
-        # print(torch.stack((input1, grad_input1)))
-        # print(torch.stack((input2, grad_input2)))
+        f = (lambda grad,t1,t2: (grad,grad)) if langtorch.is_skip_mul_grad_enabled() or ctx.skip_mul_grad else (lambda grad, t1, t2: (grad * t2, grad * t1))
+        grad_input1, grad_input2 = _unbroadcast_gradients(grad_output, input1, input2, gradient_equation=f) # What's the best way to justify this order in grad calculation
+
         return grad_input1, grad_input2
 
 
@@ -325,6 +326,7 @@ class ReshapeTextTensor(Function):
     @staticmethod
     def forward(ctx, input, shape):
         ctx.shape = input.shape
+
         output = input.__class__(input.content.reshape(*shape), parse=False),
         # metadata = input.metadata
         # a_apply(lambda v: v.reshape(*shape), lambda v: v.reshape(*shape, v.shape[-1]))

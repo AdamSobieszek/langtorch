@@ -22,7 +22,7 @@ def join_str_types(pandoc_tuples):
             return pandoc_tuples[1]
         elif len(pandoc_tuples) == 2:
             return (pandoc_tuples[0], join_str_types(pandoc_tuples[1]))
-    elif len(pandoc_tuples) == 1:
+    elif len(pandoc_tuples) == 1 and not isinstance(pandoc_tuples[0], tuple):
         return join_str_types(pandoc_tuples[0])
     elif all(isinstance(x, str) for x in pandoc_tuples):
         return "".join(pandoc_tuples)

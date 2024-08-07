@@ -1,12 +1,4 @@
-import argparse
-import concurrent
-from dotenv import load_dotenv
-
-load_dotenv(override=True)
-
 from tqdm import tqdm
-import textgrad as tg
-from textgrad.tasks import load_task
 
 import numpy as np
 import random
@@ -15,24 +7,6 @@ import random
 def set_seed(seed):
     np.random.seed(seed)
     random.seed(seed)
-
-
-def config():
-    parser = argparse.ArgumentParser(description="Optimize a prompt for a task.")
-    parser.add_argument("--task", type=str, default="BBH_object_counting", help="The task to evaluate the model on.")
-    parser.add_argument("--evaluation_engine", type=str, default="gpt-4o", help="The API to use for evaluation.")
-    parser.add_argument("--test_engine", type=str, default="gpt-3.5-turbo-0125", help="The API to use for evaluation.")
-    parser.add_argument("--batch_size", type=int, default=3, help="The batch size to use for training.")
-    parser.add_argument("--max_epochs", type=int, default=3, help="The maximum number of epochs to train for.")
-    parser.add_argument("--seed", type=int, default=42)
-    parser.add_argument("--run_validation", action="store_true", help="Whether to run validation or not.")
-    parser.add_argument("--do_not_run_larger_model", action="store_true",
-                        help="Whether to run the larger model or not.")
-    parser.add_argument("--num_threads", type=int, default=32, help="The number of threads to use for evaluation.")
-    return parser.parse_args()
-
-
-args = config()
 
 
 def eval_sample(item, eval_fn, model):
@@ -149,3 +123,82 @@ import json
 
 with open(f"./figures/results_{args.task}_{args.test_engine}.json", "w") as f:
     json.dump(results, f)
+
+
+import sys
+
+import langtorch.semantic_algebra
+
+sys.path.append("..")
+
+
+import langtorch
+from langtorch import TextTensor, String, Text, Activation
+from langtorch import Markdown, XML
+from langtorch.tt.functional import dropout
+from langtorch import Session, ctx
+import numpy as np
+from langtorch import TextModule
+from langtorch import Chat, ChatML
+
+from langtorch import TextTensor, TextModule, OpenAI, TextLoss, BinaryTextLoss
+import torch
+
+from langtorch import TextOptimizer, TextualGradientDescent
+import re
+import logging
+import pandas as pd
+import time
+
+# Configure logging at the root level of logging
+logging.basicConfig(level=logging.INFO)
+
+# Specifically, for PyTorch, set the logging level
+logger = logging.getLogger('torch')
+logger.setLevel(logging.DEBUG)
+
+T = torch.Tensor
+TT = TextTensor
+
+ctx.a = TT("a")
+
+
+
+df = pd.read_csv("conf/bbh.csv", index_col=0)
+train,val,test = TextTensor.from_df(df[df.split=="train"]),TextTensor.from_df(df[df.split=="val"]),TextTensor.from_df(df[df.split=="test"])
+from torch.utils.data import DataLoader, TensorDataset
+
+d = (lambda t: TensorDataset(t[:,0],t[:,1]))
+train,val,test = d(train),d(val),d(test)
+
+train_loader = DataLoader(train, batch_size=4)#, shuffle=True)
+
+STARTING_SYSTEM_PROMPT = "You will answer a reasoning question. Think step by step. The last line of your response should be of the following format: 'Answer: $VALUE' where VALUE is a numerical value."
+system_prompt = TextTensor({"system": STARTING_SYSTEM_PROMPT},
+                            requires_grad=True)
+loss_fn = BinaryTextLoss(activation=Activation("gpt-3.5-turbo"))
+# optimizer = TextualGradientDescent([system_prompt])
+
+# role_description = "structured system prompt to a somewhat capable language model that specifies the behavior and strategies for the QA task"
+task = TextModule(system_prompt, activation=Activation("gpt-3.5-turbo", T=0))
+optimizer = TextOptimizer(task.parameters())
+
+with Session('test.yaml'):
+        for steps, (input, target) in enumerate(train_loader):
+            if steps == 0:
+                continue
+            answers = task(input).detach().requires_grad_()
+        loss = loss_fn(answers, target)
+        print(loss)
+
+        loss.backward()
+
+        # optimizer.step()
+        # optimizer.zero_grad()
+        print("grad:", answers.grad, task._prompt.grad)
+        quit()
+        # print(f"Batch {i}:")
+        # print("Inputs:", inputs)
+        # print("Predicted:", outputs)
+        # print("Targets:", targets)
+        # print("----")

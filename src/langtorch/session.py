@@ -12,36 +12,12 @@ from omegaconf import OmegaConf, UnsupportedValueType
 
 from .conf import cfg_yaml_aliases
 
+# from torch.utils._contextlib import (
+#     _DecoratorContextManager,
+#     _NoParamDecoratorContextManager,
+#     F,
+# )
 
-class SingletonMeta(type):
-    # This dict holds a single instance of a given singleton class, indexed by the class itself
-    _instance = contextvars.ContextVar('ctx',
-                                       default={})
-
-    def __call__(cls, *args, **kwargs):
-        instances = cls._instance.get()  # Get the dict of single instances
-        if cls not in instances:  # Add new
-            instance = super().__call__(*args, **kwargs)
-            instances[cls] = instance
-            cls._instance.set(instances)
-        else:
-            if args or kwargs:  # Reload existing
-                instances[cls] = instances[cls].load(*args, **kwargs)
-        return instances[cls]
-
-
-@dataclass
-class StatusTracker:
-    """Stores metadata about the script's progress. Only one instance is created."""
-
-    num_tasks_started: int = 0
-    num_tasks_in_progress: int = 0  # script ends when this reaches 0
-    num_tasks_succeeded: int = 0
-    num_tasks_failed: int = 0
-    num_rate_limit_errors: int = 0
-    num_api_errors: int = 0  # excluding rate limit errors, counted above
-    num_other_errors: int = 0
-    time_of_last_rate_limit_error: int = 0  # used to cool off after hitting rate limits
 
 
 class SingletonMeta(type):
@@ -75,6 +51,7 @@ class Session(metaclass=SingletonMeta):
     """A context manager for saving and loading session data: tensors, api calls, configuration and caching"""
     default_config = os.path.join(os.path.dirname(os.path.abspath(__file__)), "conf/defaults.yaml")
     session_file_template = os.path.join(os.path.dirname(os.path.abspath(__file__)), "conf/new_session_template.yaml")
+    _SKIP_MUL_GRAD = False
 
     def __init__(self, path=None, override=False, **kwargs):
         self._tensors = dict()
@@ -91,6 +68,9 @@ class Session(metaclass=SingletonMeta):
             self._config = OmegaConf.load(self.default_config)
             if path:
                 self._path = path
+                if not os.path.exists(path):
+                    with open(path, 'w', encoding="utf-8") as f:
+                        OmegaConf.save(self._config, f, resolve=True)
             if self._path and not override:
                 session_config = OmegaConf.load(path)
                 self._config = OmegaConf.merge(self._config, session_config)
@@ -109,7 +89,7 @@ class Session(metaclass=SingletonMeta):
             logging.error(f"Error loading session configuration: {e}")
             self._config = OmegaConf.load(self.session_file_template)
         for k, v in kwargs.items():
-            setattr(self, k, v)
+            self._tensors[k] = v
         return self
 
     def save(self, path=None):

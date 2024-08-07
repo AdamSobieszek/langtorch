@@ -10,3 +10,12 @@ class XML(Text):
         # Prepare content appropriately before calling the superclass's __new__
         instance = super().__new__(cls, *substrings, parse=parse, language=language, **kwargs)
         return instance
+
+
+# class F_XML(Text):
+#     language = 'xml'
+#
+#     def __new__(cls, *substrings, parse="f-xml", language="xml", **kwargs):
+#         # Prepare content appropriately before calling the superclass's __new__
+#         instance = super().__new__(cls, *substrings, parse=parse, language=language, **kwargs)
+#         return instance
