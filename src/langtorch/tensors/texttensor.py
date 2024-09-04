@@ -13,7 +13,6 @@ import langtorch
 from .. import utils
 from ..api.call import get_embedding
 from ..autograd import make_grads
-from ..autograd.textmask import TextMask
 from ..grammars import formatters
 from ..texts import Text
 from ..tt.functional import AddTextTensor, MulTextTensor, PermuteTextTensor, FormatTextTensor, JoinTextTensor, \
@@ -92,6 +91,7 @@ class TextTensor(torch.Tensor, metaclass=_ParameterMeta):
     _embedding, _tokens, _grad_mask = None, None, None
     _tokenizer_kwargs = {"return_tensors": "pt", "padding": True, "truncation": True}
     _tiktoken_tokenizers = ['cl100k_base', 'p50k_base', 'r50k_base']
+    _logprobs = None
     parse = 'auto'
     is_gradient = False
     is_param = False
@@ -106,7 +106,9 @@ class TextTensor(torch.Tensor, metaclass=_ParameterMeta):
                 tokenizer_kwargs: dict = None,
                 requires_grad: bool = False,
                 is_param: bool = False,
-                is_gradient: bool = False, **kwargs):
+                is_gradient: bool = False,
+                logprobs=None,
+                **kwargs):
         if isinstance(content, TextTensor):
             for arg in ["metadata", "ttype", "embedding_model", "tokenizer", "tokenizer_kwargs", "requires_grad", "is_param",
                         "is_gradient"]:
@@ -115,12 +117,15 @@ class TextTensor(torch.Tensor, metaclass=_ParameterMeta):
                     setattr(content, arg, v)
             return content
 
-        embedding,tokens = None, None
         if metadata is None:
             metadata = dict()
-        for attr in ["content", "embedding", "tokens"]:
+        for attr in ["content"]:
             if not attr in metadata:
                 metadata[attr] = eval(attr)
+
+        for attr in ["embedding", "tokens", "logprobs"]:
+            if not attr in metadata:
+                metadata[attr] = None
 
         if isinstance(metadata["content"], dict):
             metadata["content"] = cls._dict_to_tt(metadata["content"], parse=parse)
@@ -156,7 +161,8 @@ class TextTensor(torch.Tensor, metaclass=_ParameterMeta):
             tensor.tokenizer = tokenizer
         if tokenizer_kwargs is not None:
             tensor._tokenizer_kwargs = tokenizer_kwargs
-
+        if logprobs is not None:
+            tensor.logprobs = logprobs
         return tensor
 
     @classmethod
@@ -251,6 +257,63 @@ class TextTensor(torch.Tensor, metaclass=_ParameterMeta):
         assert self._content is not None
 
     @property
+    def logprobs(self):
+        return self._logprobs
+
+    @logprobs.setter
+    def logprobs(self, logprobs):
+        if logprobs is None:
+            self._logprobs = None
+            self._metadata["logprobs"] = None
+            return
+
+        def process_nested_tokens(data):
+            def get_max_length(lst):
+                if isinstance(lst[0], dict):
+                    return len(lst)
+                return max(get_max_length(item) for item in lst)
+
+            def pad_nested_list(lst, max_length):
+                if isinstance(lst[0], dict):
+                    padded = lst + [{'token_id': 0, 'logprob': float('nan')}] * (max_length - len(lst))
+                    return padded
+                return [pad_nested_list(item, max_length) for item in lst]
+
+            def create_tensor(nested_list, key, padding_value=float('nan')):
+                if isinstance(nested_list[0], dict):
+                    return [item.get(key, padding_value) for item in nested_list]
+                return [create_tensor(item, key) for item in nested_list]
+
+            # Get the maximum length at each level
+            max_lengths = []
+            current_level = data
+            while isinstance(current_level[0], list):
+                max_lengths.append(get_max_length(current_level))
+                current_level = current_level[0]
+
+            # Pad the nested list
+            padded_data = data
+            for max_length in reversed(max_lengths):
+                padded_data = pad_nested_list(padded_data, max_length)
+
+            # Create tensors for token_ids and logprobs
+            token_ids = create_tensor(padded_data, 'token_id', 0)
+            logprobs = create_tensor(padded_data, 'logprob')
+
+            # Convert to PyTorch tensors
+            token_ids_tensor = torch.tensor(token_ids, dtype=torch.int)
+            logprobs_tensor = torch.tensor(logprobs, dtype=torch.float)
+
+            return token_ids_tensor.view(*self.shape, -1), logprobs_tensor.view(*self.shape, -1)
+
+        if not isinstance(logprobs, torch.Tensor):
+            self.tokens, self._logprobs = process_nested_tokens(logprobs)
+        else:
+            self._logprobs = logprobs
+        assert self._tokens is not None
+        self._metadata["logprobs"] = self._logprobs
+
+    @property
     def embedding(self):
         return self._embedding
 
@@ -277,22 +340,23 @@ class TextTensor(torch.Tensor, metaclass=_ParameterMeta):
 
     @property
     def tokens(self):
-        if not hasattr(self, "_tokens"):
+        if not hasattr(self, "_tokens"): #or self._tokens is None
             if self.tokenizer is not None:
-                self._tokens = self.tokenizer(self)
+                self.tokenize()
             else:
                 raise AttributeError("Tokens unavailable as no tokenizer has been set")
         return self._tokens
+
+    @tokens.setter
+    def tokens(self, tokens):
+        self._tokens = tokens
+        self._metadata["tokens"] = self._tokens
 
     @property
     def data(self):
         return TextTensor(metadata=copy.deepcopy(self.metadata))
 
     input_ids = tokens
-
-    @tokens.setter
-    def tokens(self, tokens):
-        self._tokens = tokens
 
     @property
     def tokenizer(self):
@@ -617,8 +681,10 @@ class TextTensor(torch.Tensor, metaclass=_ParameterMeta):
             for k in tensor_attributes:
                 metadata[k] = f_tensor(metadata[k], *args, **kwargs)
 
-        if f_embedding and metadata["embedding"] is not None:
-            metadata["embedding"] = f_embedding(metadata["embedding"], *args, **kwargs)
+        for attr in ["embedding", "tokens", "logprobs"]:
+            if f_embedding and metadata[attr] is not None:
+                metadata[attr] = f_embedding(metadata[attr], *args, **kwargs)
+
 
         if f_scalar:
             for k in scalar_attributes:
@@ -787,7 +853,6 @@ class TextTensor(torch.Tensor, metaclass=_ParameterMeta):
                 index = index.cpu().detach().numpy()
 
             if not (isinstance(index,slice) and index == slice(None, None, None)):
-                print(index)
                 _ = self.content[index]
         except IndexError as e:
             if ("out of bounds" in str(e)) or ("out of range" in str(e)):
@@ -1043,7 +1108,7 @@ class TextTensor(torch.Tensor, metaclass=_ParameterMeta):
 
     def view(self, *shape):
         return self.__class__(
-            metadata=self.metadata_apply(lambda v: v.reshape(*shape), lambda v: v.reshape(*shape, v.shape[-1])),
+            metadata=self.metadata_apply(lambda v: v.reshape(*shape), lambda v: v.reshape(*shape, v.shape[-1]) if len(shape) > 1 else v),
             parse=False)
 
     def repeat(tensor, *sizes):

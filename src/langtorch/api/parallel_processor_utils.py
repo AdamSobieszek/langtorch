@@ -84,8 +84,8 @@ class APIRequestOpenAI(APIRequest):
                     f"Request {self.task_id} failed with error {response['error']}"
                 )
                 status_tracker.num_api_errors += 1
-                error = response
-                if "Rate limit" in response["error"].get("message", ""):
+                error = response["error"].get("message", "") if isinstance(response["error"], dict) else response["error"]
+                if "rate limit" in error.lower():
                     status_tracker.time_of_last_rate_limit_error = time.time()
                     status_tracker.num_rate_limit_errors += 1
                     status_tracker.num_api_errors -= 1  # rate limit errors are counted separately

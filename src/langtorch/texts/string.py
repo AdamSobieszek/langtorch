@@ -12,5 +12,5 @@ class String(Text):
 
     @classmethod
     def _to_ast(cls, content, parser=False, is_tuple=True):
-        content = ast.to_ast(content, parser, is_tuple)
+        content = ast.to_ast_content(content, parser, is_tuple)
         return content if not is_tuple else (super().str_formatter(content),)

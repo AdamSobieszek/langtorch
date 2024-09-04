@@ -66,11 +66,12 @@ T = torch.Tensor
 TT = TextTensor
 
 t1 = TT(hella1k, parse=False)
-t1 = TT({"system":"Jesteś tłumaczem z angielskiego na polski. Przetłumacz strings napisane po angielsku i odpowiedz w formacie JSON"})+TT("{*:user}")*(
+t1 = TT({"system":"Jesteś tłumaczem z angielskiego na polski. Przetłumacz zadanie benchmarkowe napisane po angielsku i odpowiedz w formacie JSON"})+TT("{*:user}")*(
     TT("""Przetłumacz ten json. Składa się on z kontekstu i czterech możliwych kontynuacji. Upewnij się, że tłumaczenie każdej kontynuacji jest spójne z kontekstem.
 Bądź tak precyzyjny, jak to tylko możliwe. Zachowaj te same klucze w json odpowiedzi:
 
 {*}""")*t1)
+
 
 model = Activation("gpt-4-turbo",T=0.)
 

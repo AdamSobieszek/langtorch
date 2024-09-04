@@ -60,17 +60,17 @@ class ActivationFunction(torch.autograd.Function):
         logging.debug(f"Chat api unique system messages: {set(system_messages)}")
 
         output = activation.generate(input, system_messages)
-        print(output)
 
         assert output is not None
         shape = tuple([activation.n] + [m for m in input_tensor.shape]) if activation.n != 1 else tuple(
             input_tensor.shape)
-        output_tensor = input_tensor.__class__(langtorch.full_like(input_tensor, torch.nan))
+        # output_tensor = input_tensor.__class__(langtorch.full_like(input_tensor, torch.nan))
+        # output_tensor[~input_tensor.isnan()] = input_tensor.__class__(output, parse=activation.parse_output).to_list()
+        # TODO nan
+        output_tensor = output.view(shape)
 
-        output_tensor[~input_tensor.isnan()] = input_tensor.__class__(output, parse=activation.parse_output).to_list()
         ctx.save_for_backward(input_tensor.clone(), output_tensor.clone())
         ctx.activation = activation
-
         return output_tensor
 
     @staticmethod
@@ -155,8 +155,9 @@ class Activation(TextModule):
     @staticmethod
     def keep_history_hook(module, input, output):
         input = input[0]
-        if module.keep_history:
-            return input + output.add_key_("assistant")
+        # TODO decide whether to delete this
+        # if module.keep_history:
+        #     return input + output.add_key_("assistant")
 
     def forward(self, inputs) -> TextTensor:
         return ActivationFunction.apply(inputs, self)

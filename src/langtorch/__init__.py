@@ -13,3 +13,4 @@ from .semantic_algebra import mean, max, min
 from . import semantic_algebra as semalg
 from . import methods
 from .autograd import skip_mul_grad, is_skip_mul_grad_enabled
+from .grammars import TextAST

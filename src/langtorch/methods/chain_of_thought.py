@@ -1,5 +1,9 @@
 from ..tt import TextModule
 
+from langtorch import Text
+import copy
+copy.deepcopy(Text("{*}\nLet's think step by step.{:CoT}"))
+
 
 class CoTModule(TextModule):
     """Based on: zero-shot CoT (Kojima et al., 2022)"""

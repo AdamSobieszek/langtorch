@@ -11,6 +11,7 @@ from pyparsing import *
 from ..grammars import formatters
 from ..grammars import parsers
 from ..grammars import text_content_ast as ast
+from ..grammars.text_content_ast import TextAST
 from ..autograd.textmask import TextMask
 from ..utils import is_TextTensor, is_Text
 from langtorch import ctx
@@ -124,8 +125,7 @@ class Text(str):
             grad_mask = substrings[0].grad_mask
 
         content = ast.parse_content(content, parser=parser)
-
-        assert ast.is_valid_tree(content, is_tuple=True), f"Creating Text with an invalid content tree: {content}"
+        assert ast.is_valid_tree(content, is_top_level=True), f"Creating Text with an invalid content tree: {content}"
 
         instance = super().__new__(cls, cls.str_formatter(content, language))
         instance._content = content
@@ -206,6 +206,12 @@ class Text(str):
             else:
                 raise ValueError(f"Expected a list of dict type api responses, got {messages}")
 
+        logprobs = None
+        if "message" in messages[0]:
+            if "logprobs" in messages[0]:
+                logprobs = [m["logprobs"]["content"] for m in messages]
+            messages = [m["message"] for m in messages]
+
         text = cls.from_messages([m["choices"] for m in messages], **kwargs)
         return cls(*text, **kwargs)
 
@@ -220,7 +226,6 @@ class Text(str):
     @grad_mask.setter
     def grad_mask(self, value):
         self._grad_mask = TextMask(value)
-
 
     def require_grad_indices(self):
         other = self._full_grad_mask()
@@ -318,7 +323,8 @@ class Text(str):
             content = tuple(content)
         assert isinstance(content,
                           tuple), f"Content must be a list or tuple (of strings or tuples), not {type(content)}"
-        self._content = ast.to_ast(content, parser=False, is_tuple=True)
+        self._content = ast.to_ast_content(content, parser=False, is_tuple=True)
+
 
     def items(self):
         """
@@ -416,36 +422,33 @@ class Text(str):
                 self.text_instance = text_instance
 
             def __getitem__(self, index):
-                items = self.text_instance.items()
+                text_ast = self.text_instance.tree  # Get the TextAST instance
+
                 if isinstance(index, (int, tuple)):
-                    # Support negative indices
-                    if isinstance(index, int):
-                        index = (index,)
-                    if index and index[0] < 0:
-                        index = (len(items)+index[0],)+index[1:]
                     try:
-                        for i in index:
-                            skip_tuple = lambda t: skip_tuple(t[1]) if isinstance(t, tuple) else t
-                            items = skip_tuple(items)[i]
-                        grad_mask = self.text_instance._grad_mask.starts_with(index, strip=True) if len(index)>0 else self.text_instance._grad_mask
-                        return self.text_instance.__class__(items, parse=False, grad_mask=grad_mask)
+                        result = text_ast.get_by_index(index)
+                        grad_mask = self.text_instance._grad_mask.starts_with(index, strip=True) if len(
+                            index) > 0 else self.text_instance._grad_mask
+                        return self.text_instance.__class__(result.to_text().items(), parse=False,
+                                                            grad_mask=grad_mask)
                     except IndexError:
                         raise IndexError(f"Index {index} out of range")
+
                 elif isinstance(index, slice):
+                    items = self.text_instance.items()
                     sliced_items = items[index]
                     start = 0 if index.start is None else index.start
-                    stop = len(self.text_instance.items()) if index.stop is None else index.stop
+                    stop = len(items) if index.stop is None else index.stop
                     grad_mask = self.text_instance._grad_mask
-                    grad_mask = grad_mask[(grad_mask>=start) & (grad_mask<stop)]
-                    return self.text_instance.__class__(sliced_items, parse=False, grad_mask = grad_mask)
+                    grad_mask = grad_mask[(grad_mask >= start) & (grad_mask < stop)]
+                    return self.text_instance.__class__(sliced_items, parse=False, grad_mask=grad_mask)
+
                 elif isinstance(index, list):
-                    # Ensure all elements are integers
-                    if not all(isinstance(i, int) for i in index):
-                        raise IndexError("Index list must contain only integers")
-                    selected_items = [items[i] for i in index]
-                    return self.text_instance.__class__(selected_items, parse=False)
+                    selected_items = [self[i] for i in index]
+                    return self.text_instance.__class__(*selected_items, parse=False)
+
                 else:
-                    raise TypeError("Index must be an int, slice, or list of ints")
+                    raise TypeError("Index must be an int, tuple, slice, or list of ints")
 
             def __setitem__(self, index, value):
                 # Convert single value to tuple for consistency
@@ -739,6 +742,7 @@ class Text(str):
             return False
 
         items = copy.deepcopy(self.items())
+        # tree = copy.deepcopy(self.tree)
         result = copy.deepcopy(items)
         items_other = other.items()
         grad_mask = self.grad_mask.copy()
@@ -823,7 +827,6 @@ class Text(str):
         for i in indices_to_delete:
             result = del_ind(result, i)
 
-        print(self._index_list(result), formatted_indices)
         # for i in formatted_indices:
         #     def print_ind(subresult, i):
         #         if isinstance(subresult, tuple):
@@ -1048,98 +1051,21 @@ class Text(str):
 
 
 
-    def to_ast(self) -> ast.AST:
-        """
-        Convert the Text content to an abstract syntax tree (AST) using the ast module.
-        """
-
-        def build_ast_node(node: Union[str, Tuple, List]) -> ast.AST:
-            if isinstance(node, str):
-                return ast.Constant(value=node)
-            elif isinstance(node, tuple) and len(node) == 2:
-                return ast.Tuple(elts=[
-                    ast.Constant(value=node[0]),
-                    build_ast_node(node[1])
-                ], ctx=ast.Load())
-            elif isinstance(node, list):
-                return ast.List(elts=[build_ast_node(child) for child in node], ctx=ast.Load())
-            else:
-                raise ValueError(f"Unexpected node type: {type(node)}")
-
-        return ast.Module(body=[ast.Expr(value=build_ast_node(self.items()))], type_ignores=[])
-
-    @staticmethod
-    def _ast_to_python(node: ast.AST) -> Any:
-        """
-        Convert an AST node back to a Python object.
-        """
-        if isinstance(node, ast.Constant):
-            return node.value
-        elif isinstance(node, ast.Tuple):
-            return tuple(Text._ast_to_python(elt) for elt in node.elts)
-        elif isinstance(node, ast.List):
-            return [Text._ast_to_python(elt) for elt in node.elts]
-        elif isinstance(node, ast.Expr):
-            return Text._ast_to_python(node.value)
-        else:
-            raise ValueError(f"Unexpected AST node type: {type(node)}")
-
-    def get_by_index(self, index: Union[int, Tuple[int, ...]]) -> 'Text':
-        """
-        Access a node in the AST using the described index convention.
-        """
-
-        def traverse(node: ast.AST, idx: Union[int, Tuple[int, ...]]) -> ast.AST:
-            if isinstance(idx, int):
-                idx = (idx,)
-
-            current = node
-            for i in idx:
-                while isinstance(current, ast.Tuple):
-                    current = current.elts[1]  # Always take the second element of a tuple
-
-                if isinstance(current, ast.List):
-                    current = current.elts[i]
-                else:
-                    raise IndexError(f"Cannot index {type(current)} with integer")
-
-            return current
-
-        tree = self.to_ast()
-        result = traverse(tree.body[0].value, index)
-        return Text(self._ast_to_python(result))
-    def replace_subtree(self, index: Union[int, Tuple[int, ...]], new_subtree: 'Text') -> 'Text':
-        """
-        Replace a subtree in the AST with a new subtree.
-        """
-
-        def replace_node(node: ast.AST, idx: Union[int, Tuple[int, ...]], new_node: ast.AST) -> None:
-            if isinstance(idx, int):
-                if isinstance(node, (ast.List, ast.Tuple)):
-                    node.elts[idx] = new_node
-                else:
-                    raise IndexError(f"Cannot index {type(node)} with integer")
-            elif isinstance(idx, tuple):
-                current = node
-                for i in idx[:-1]:
-                    if isinstance(current, (ast.List, ast.Tuple)):
-                        current = current.elts[i]
-                    else:
-                        raise IndexError(f"Cannot index {type(current)} with integer")
-                replace_node(current, idx[-1], new_node)
-            else:
-                raise TypeError("Index must be an int or a tuple of ints")
-
-        tree = self.to_ast()
-        new_ast = new_subtree.to_ast().body[0].value
-        replace_node(tree.body[0].value, index, new_ast)
-
-        self.content = self._ast_to_python(tree.body[0].value)
-        return self
-
     @classmethod
-    def from_ast(cls, tree: ast.AST) -> 'Text':
+    def from_ast(cls, text_ast: TextAST) -> 'Text':
         """
         Create a Text instance from an AST.
         """
-        return cls(cls._ast_to_python(tree))
+        return cls( text_ast.to_python(), parse = False)
+
+    @property
+    def tree(self) -> TextAST:
+        """
+        Convert the Text instance to a TextAST.
+        """
+        return TextAST(self._content)
+
+    @tree.setter
+    def tree(self, text_ast: TextAST):
+        self._content = text_ast.to_python() if isinstance(TextAST,text_ast) else TextAST(text_ast).to_python()
+

@@ -138,16 +138,16 @@ def chat_strings(prompts, system_messages, model="gpt-3.5-turbo-0613", temperatu
               "presence_penalty": presence_penalty,
               "frequency_penalty": frequency_penalty,
               "tools": tools,
-              "tool_choice": tool_choice}
+              "tool_choice": tool_choice}|kwargs
 
     default_values = {"temperature": 1, "top_p": 1, "n": 1, "stop": None, "max_tokens": None, "presence_penalty": 0,
                       "frequency_penalty": 0, "tools": None, "tool_choice": "none"}
-    print(prompts)
+
     jobs = [{"model": model,
              "messages": ([{"role": "system", "content": system_message}] if system_message else []) + (
                  [{"role": "user", "content": prompt}] if isinstance(prompt, str) else
                      [{"role": r, "content": c} for r, c in prompt]),
-             **{param: value for param, value in params.items() if value != default_values[param]}}
+             **{param: value for param, value in params.items() if value != default_values.get(param, None)}}
             for prompt, system_message in zip(prompts, system_messages)]
     return [json.dumps(job, ensure_ascii=False) for job in jobs]
 

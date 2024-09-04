@@ -175,6 +175,7 @@ class Session(metaclass=SingletonMeta):
         return self._responses[id] if id in self._responses else None
 
     def add_response(self, id, response):
+        logprobs = None
         if "error" in response:
             from langtorch import Text
             response = [Text(response["error"], parse=False)]
@@ -184,10 +185,14 @@ class Session(metaclass=SingletonMeta):
             self._tensors.update(result_dict)
         elif "choices" in response:
             from langtorch import Text
+            if "logprobs" in response["choices"][0]:
+                logprobs = [m["logprobs"]["content"] for m in response["choices"]]
             response = [Text.from_messages(m['message'], parse=False) for m in response["choices"]]
         else:
             raise ValueError(f"Invalid response: {response}")
         self._responses.update({id: response})
+        if logprobs is not None:
+            self._responses.update({id + "_logprobs": logprobs})
 
     def prompts(self, ids):
         return [self._requests[id] if id in self._requests else None for id in ids]
@@ -216,7 +221,11 @@ class Session(metaclass=SingletonMeta):
                         key is not None and len(text.items()) != 0 and text.items()[0][0] != key) else text for
                  text in response] for
                 response in responses]
-            return TextTensor(responses, parse=False)  # .permute((1, 0))
+            if all(f"{id}_logprobs" in self._responses for id in ids):
+                logprobs = [self.get_response(id + "_logprobs") for id in ids]
+                return TextTensor(responses, logprobs = logprobs, parse=False)
+
+            return TextTensor(responses, parse=False)
 
     def __setattr__(self, name, value, save=True):
         if name in ["_config", "_tensors", "_session_file", "_override"]:
